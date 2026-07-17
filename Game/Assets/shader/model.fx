@@ -30,20 +30,80 @@ struct SPSIn
     float3 worldPos : TEXCOORD1;    // World-space position  (for specular later).
 };
 
+
+/** ディレクションライト */
+// ライトの方向とライトの色のみの情報を持つ
+struct DirectionLight
+{
+    float3 direction;  // ライトの方向
+    float pad0;        // パディング(そろえるための空き)
+    float3 color;      // ライトの色(RGB)
+    float pad1;        // パディング(そろえるだけの空き)
+};
+
+
+/** 環境光 */
+// 色のみの情報を持つ
+struct AmbientLight
+{
+    float3 ambient;   // 環境光
+    float pad2;       // パディング
+};
+
+/** ライト */
+struct Light
+{
+    float3 eyePos;                 // 視点の位置
+    float specPower;               // スぺキュラの絞り
+    float reflectPower;            // 反射の強さ
+};
+
+
 ///////////////////////////////////////
 // Common vertex shader code.
 // Provides: ModelCb(b0: mWorld/mView/mProj), SVSIn, bone matrices (t3),
 //           and the entry points VSMain / VSMainSkin / VSMainInstancing, etc.
 ///////////////////////////////////////
-#include "ModelVSCommon.h"
+#include "ModelVSCommon.h" // ModelCB : register(b0)はこの中に入ってる ※ b0は共通で使っているので被ってはならない
+
+/** 環境光の定数バッファ */
+// cbuffer AmbientLightCB : register(b1)
+// {
+//     AmbientLight ambientLight; // 環境光
+// };
+
+
+/** ディレクションライトの定数バッファ */
+// cbuffer DirectionLightCB : register(b1)
+// {
+//    DirectionLight directionLight; // ディレクションライト
+// };
+
+
+/** ライトの定数バッファ */
+// 環境光とか平行光源とかをまとめて所持する
+cbuffer LightCB : register(b1)
+{
+    DirectionLight directionLight;  // ディレクションライト
+    AmbientLight ambientLight;      // 環境光
+    Light light;                    // ライト
+};
+
 
 ///////////////////////////////////////
 // Shader resources.
 // The tkm material binds the albedo texture to t0.
 // (t1 = normal map, t2 = metallic/smooth — you can add them when you need them.)
 ///////////////////////////////////////
-Texture2D<float4> albedoTexture : register(t0);
-sampler Sampler : register(s0);
+Texture2D<float4> albedoTexture : register(t0); // テクスチャ
+
+// ノーマルマップ
+Texture2D<float4> normalMap : register(t1);     // テクスチャ
+
+// スぺキュラマップ
+Texture2D<float4> specularMap : register(t2);   // テクスチャ2
+
+sampler Sampler : register(s0);                 // サンプラー
 
 ////////////////////////////////////////////////
 // Vertex shader core (called by the VSMain* entry points in ModelVSCommon.h).
@@ -57,8 +117,8 @@ SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputed
     psIn.worldPos = psIn.pos;
 
     // World -> view -> projection (clip) space.
-    psIn.pos = mul(mView, psIn.pos);
-    psIn.pos = mul(mProj, psIn.pos);
+    psIn.pos = mul(mView, psIn.pos); // View
+    psIn.pos = mul(mProj, psIn.pos); // Projection
 
     // World-space normal / tangent / binormal.
     CalcVertexNormalTangentBiNormalInWorldSpace(
@@ -82,7 +142,84 @@ SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputed
 ////////////////////////////////////////////////
 float4 PSMain(SPSIn In) : SV_Target0
 {
+    // Step1-6よりnormalを使っていたのをlocalNormalに変更する
+    float3 localNormal = normalMap.Sample(Sampler,In.uv).xyz;
+
+    // 法線マップに書き込まれている法線は0.0~-1.0で、
+    // 負の数になっていないので負の数にする
+    localNormal = (localNormal, -0.5f) * 2.0f;
+
+    // 法線を回転させて、オブジェクト空間からワールド空間に変換する
+    float3 normal = normalize(
+          In.tangent  * localNormal.x  // 接線
+        + In.biNormal * localNormal.y  // 従法線
+        + In.normal   * localNormal.z  // 元の法線
+    );
+    // 上記のnormalをdiffuse と specular で扱う
+
+
+    //-----------------------------------------//
+    // Step1-6完成
+    // 補間で長さが縮むので正規化する
+    //float3 normal = normalize(In.normal);
+
+    // ピクセルの法線とライトの方向の内積を計算
+    float t0 = max(0.0f,dot(normal, -directionLight.direction));
+
+    // 拡散反射光を求める
+    float3 diffuseLig = directionLight.color * t0;
+    //-----------------------------------------//
+
+    // Step1-7完成
+    // 反射ベクトルを求める
+    float3 refVec = reflect(directionLight.direction, normal);
+
+    // 視点に伸びるベクトルを求めてついでに正規化する
+    float3 toEye = normalize(light.eyePos - In.worldPos);
+
+    // refVec と toEyeの内積から鏡面反射の光を絞る(specPowerはC++側で値の変更を容易にした)
+    float t1 = pow(max(0.0f,dot(refVec, toEye)), light.specPower);
+
+    // Step1-8完成
+    // スぺキュラマップからスぺキュラ反射光をサンプリングする
+    float specularPower = specularMap.Sample(Sampler, In.uv).r;
+
+    // 鏡面反射光を求める
+    float3 specularLig = directionLight.color * t1;
+
+    // 鏡面反射光に乗算する
+    specularLig *= specularPower * light.reflectPower;
+    //------------------------------------------//
+
+    // 3. 環境光と拡散反射光と鏡面反射光を足し算して、最終的な光を求める
+    float3 lig = ambientLight.ambient + diffuseLig + specularLig;
+    //------------------------------------------//
+
+    // (お試し) 鏡面反射光と拡散反射光を足し算してみた
+    //float3 lig = diffuseLig + specularLig;
+
+    // 2.環境光と拡散反射光を足し算して光を求める
+    //float3 lig = ambient + diffuseLig;
+
+    // 1. 環境光を渡す
+    //float3 lig = ambientLight.ambient;
+
     float4 albedoColor = albedoTexture.Sample(Sampler, In.uv);
+
+    //-----------------------------------------//
+    // Step1-5完成
+    //float3 lig = ambientLight.ambient;
+
+    // 3. 環境光 + 拡散反射光 + 鏡面反射光 の結果の lig を渡す
+    albedoColor.xyz *= lig;
+
+    // 2. 環境光 + 拡散反射光 の結果の lig を渡す
+    //albedoColor.xyz *= lig;
+
+    // 1. 環境光そのままのものの lig を渡す(一律で環境光を上げる)
+    //albedoColor.xyz *= lig;
+    //-----------------------------------------//
+    
 
     // TODO: add lighting. For example, start with ambient:
     //   float3 ambient = float3(0.3, 0.3, 0.3);

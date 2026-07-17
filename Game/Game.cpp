@@ -6,7 +6,7 @@ namespace {
 	/** 移動速度 */
 	constexpr float MOVE_SPEED = 1.0f;
 	/** 回転速度 */
-	constexpr float ROTATE_SPEED = 5.0f;
+	constexpr float ROTATE_SPEED = 2.0f;
 	/** 拡縮速度 */
 	constexpr float SCALE_SPEED = 0.01f;
 	/** 初期位置 */
@@ -18,6 +18,7 @@ namespace {
 
 Game::Game()
 	: spriteRender_(nullptr)
+	, modelRender_(nullptr)
 	, position_(Vector3::Zero)
 	, rotation_(Quaternion::Identity)
 	, scale_(Vector3::One)
@@ -31,32 +32,44 @@ Game::~Game()
 		delete spriteRender_;
 		spriteRender_ = nullptr;
 	}
+	if (modelRender_ != nullptr)
+	{
+		delete modelRender_;
+		modelRender_ = nullptr;
+	}
 }
 
 
 bool Game::Start()
 {
-	// Step1-1完成。(Step1-2にてSpriteRenderを自作)
+	// Step1-1完成(Step1-2にてSpriteRenderを自作)
 	//spriteInitData_.m_fxFilePath = "Assets/shader/sprite.fx";
 	//spriteInitData_.m_ddsFilePath[0] = "Assets/texture/texture.dds";
 	//spriteInitData_.m_width = 128;
 	//spriteInitData_.m_height = 128;
 	//sprite_.Init(spriteInitData_);
 
-	// Step1-3完成。
-	// tkmファイルパスを設定
-	modelInitData_.m_tkmFilePath = "Assets/modelData/unityChan.tkm";
-	// fxファイブパスを設定
-	modelInitData_.m_fxFilePath = "Assets/shader/model.fx";
-	// モデルの初期化
-	model_.Init(modelInitData_);
-
-	//spriteRender_ = new SpriteRender;
-	//spriteRender_->Init("Assets/shader/sprite.fx", "Assets/texture/texture.dds", 128, 128);
+	// Step1-2完成
+	//spriteRender_ = new nsK2Engine::SpriteRender;
+	//spriteRender_->Init("Assets/shader/sprite.fx", "Assets/texture/texture.dds", 128.0f, 128.0f);
 	//spriteRender_->SetPosition(INITIALIZE_POSITION);
 	//spriteRender_->SetRotation(rotation_);
 	//spriteRender_->SetScale(INITIALIZE_SCALE);
 	//spriteRender_->Update();
+
+	// Step1-3完成
+	// tkmファイルパスを設定
+	//modelInitData_.m_tkmFilePath = "Assets/modelData/unityChan.tkm";
+	// fxファイブパスを設定
+	//modelInitData_.m_fxFilePath = "Assets/shader/model.fx";
+	// モデルの初期化
+	//model_.Init(modelInitData_);
+
+	// Step1-4完成
+	modelRender_ = new nsK2Engine::ModelRender;
+	modelRender_->Init("Assets/modelData/unityChan.tkm", "Assets/shader/model.fx");
+	modelRender_->SetTRS(position_, rotation_, scale_);
+	modelRender_->Update();
 
 	return true;
 }
@@ -64,16 +77,33 @@ bool Game::Start()
 
 void Game::Update()
 {
+	/** ModelRender */
+	// 位置、回転、スケールを適当に動かしてみた。
+	//position_.x += MOVE_SPEED;
+	//modelRender_->SetPosition(position_);
+
+	rotation_.AddRotationDegY(ROTATE_SPEED);
+	//rotation_.SetRotationDegY(180.0f);
+	modelRender_->SetRotation(rotation_);
+	
+	//bool isPressA = g_pad[0]->IsPress(enButtonA);
+	//bool isPressB = g_pad[0]->IsPress(enButtonB);
+	//if (isPressA) scale_ += Vector3::One * SCALE_SPEED;
+	//if (isPressB) scale_ -= Vector3::One * SCALE_SPEED;
+	//modelRender_->SetScale(scale_);
+	modelRender_->Update();
+
+	/** SpriteRender */
 	// 位置と回転と拡縮を適当に更新してみた。
 	//position_ = spriteRender_->GetPosition();
 	//rotation_ = spriteRender_->GetRotation();
 	//scale_ = spriteRender_->GetScale();
-	//
+	
 	//position_.x += MOVE_SPEED;
 	//rotation_.AddRotationDegZ(ROTATE_SPEED);
 	//scale_.x += SCALE_SPEED;
 	//scale_.y += SCALE_SPEED;
-	//
+	
 	//spriteRender_->SetTRS(position_, rotation_, scale_);
 	//spriteRender_->Update();
 }
@@ -86,8 +116,10 @@ void Game::Render(RenderContext& rc)
 	//spriteRender_->Draw(rc);
 
 	// デバックログ出力。
-	K2_LOG("TEST:\n");
+	//K2_LOG("TEST:\n");
 
-	// モデル描画。
-	model_.Draw(rc);
+	//model_.Draw(rc);
+
+	// モデル描画
+	modelRender_->Draw(rc);
 }

@@ -1,10 +1,13 @@
 ﻿#pragma once
 #include "SpriteRender.h"
+#include "ModelRender.h"
+
 
 // The starting point of your game.
 // This is a plain IGameObject running on K2EngineLow only.
 // Right now it draws nothing, so you will just see the gray clear color.
 // Add your own rendering (a triangle, a sprite, a model...) step by step.
+
 
 class Game : public IGameObject
 {
@@ -18,16 +21,22 @@ public:
 
 private:
 	/** スプライトレンダー */
-	SpriteRender* spriteRender_;
-	/** トランスフォーム系 */
+	nsK2Engine::SpriteRender* spriteRender_;
+	/** モデルレンダー */
+	nsK2Engine::ModelRender* modelRender_;
+	/** 位置 */
 	Vector3 position_;
+	/** 回転 */
 	Quaternion rotation_;
+	/** スケール */
 	Vector3 scale_;
 
 	/** モデル */
-	Model model_;
+	//Model model_;
 	/** モデル初期化データ */
-	ModelInitData modelInitData_;
+	//ModelInitData modelInitData_;
+	/** スプライト初期化データ */
 	//SpriteInitData spriteInitData_;
+	/** スプライト */
 	//Sprite sprite_;
 };
