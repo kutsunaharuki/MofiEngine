@@ -94,21 +94,51 @@ namespace nsK2EngineLow {
 			return instance;
 		}
 
+		//===============================================//
+		// ライトのAPI
+		//===============================================//
 		/**
 		 * @brief ライトの方向を設定
 		 * @param dir ライトの方向
 		 */
-		void SetDirection(const Vector3& dir);
+		void SetDirection(const Vector3& dir)
+		{
+			lightCB_.directionLight.direction = dir;
+			// 一旦正規化しておく
+			lightCB_.directionLight.direction.Normalize();
+		}
 		/**
 		 * @brief ライトの色を設定
 		 * @param color ライトの色
 		 */
-		void SetColor(const Vector3& color);
+		void SetColor(const Vector3& color)
+		{
+			lightCB_.directionLight.color = color;
+		}
 		/**
 		 * @brief 環境光を設定
 		 * @param ambient 環境光の色
 		 */
-		void SetAmbient(const Vector3& ambient);
+		void SetAmbient(const Vector3& ambient)
+		{
+			lightCB_.ambientLight.ambient = ambient;
+		}
+		
+		/**
+		 * @brief ライトの方向を取得
+		 * @param ライトの方向
+		 */
+		const Vector3& GetDirection() const { return lightCB_.directionLight.direction; }
+		/**
+		 * @brief ライトの色を取得
+		 * @param ライトの色
+		 */
+		const Vector3& GetColor() const { return lightCB_.directionLight.color; }
+		/**
+		 * @brief 環境光を取得
+		 * @param 環境光の色
+		 */
+		const Vector3& GetAmbient() const { return lightCB_.ambientLight.ambient; }
 
 		/**
 		 * @brief ライトの定数バッファを取得

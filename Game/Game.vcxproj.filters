@@ -42,7 +42,4 @@
       <Filter>Source\Core</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Game.rc" />
-  </ItemGroup>
 </Project>
