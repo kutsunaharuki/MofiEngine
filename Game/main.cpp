@@ -51,6 +51,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		g_engine->BeginFrame();		// Begin the frame: clear the screen, update input, etc.
 		g_engine->ExecuteUpdate();	// Update all game objects (IGameObject::Update).
 		g_engine->ExecuteRender();	// Render all game objects (IGameObject::Render).
+		RenderingEngine::GetInstance().Execute(g_graphicsEngine->GetRenderContext());
 		g_engine->EndFrame();		// End the frame: present the back buffer.
 	}
 

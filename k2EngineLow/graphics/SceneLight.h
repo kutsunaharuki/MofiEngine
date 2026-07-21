@@ -5,9 +5,8 @@
 #pragma once
 
 
-namespace nsK2EngineLow {
-
-
+namespace nsK2EngineLow 
+{
 	class SceneLight
 	{
 	public:
@@ -103,9 +102,9 @@ namespace nsK2EngineLow {
 		 */
 		void SetDirection(const Vector3& dir)
 		{
-			lightCB_.directionLight.direction = dir;
+			m_lightCB.directionLight.direction = dir;
 			// 一旦正規化しておく
-			lightCB_.directionLight.direction.Normalize();
+			m_lightCB.directionLight.direction.Normalize();
 		}
 		/**
 		 * @brief ライトの色を設定
@@ -113,7 +112,7 @@ namespace nsK2EngineLow {
 		 */
 		void SetColor(const Vector3& color)
 		{
-			lightCB_.directionLight.color = color;
+			m_lightCB.directionLight.color = color;
 		}
 		/**
 		 * @brief 環境光を設定
@@ -121,31 +120,31 @@ namespace nsK2EngineLow {
 		 */
 		void SetAmbient(const Vector3& ambient)
 		{
-			lightCB_.ambientLight.ambient = ambient;
+			m_lightCB.ambientLight.ambient = ambient;
 		}
 		
 		/**
 		 * @brief ライトの方向を取得
-		 * @param ライトの方向
+		 * @return ライトの方向
 		 */
-		const Vector3& GetDirection() const { return lightCB_.directionLight.direction; }
+		const Vector3& GetDirection() const { return m_lightCB.directionLight.direction; }
 		/**
 		 * @brief ライトの色を取得
-		 * @param ライトの色
+		 * @return ライトの色
 		 */
-		const Vector3& GetColor() const { return lightCB_.directionLight.color; }
+		const Vector3& GetColor() const { return m_lightCB.directionLight.color; }
 		/**
 		 * @brief 環境光を取得
-		 * @param 環境光の色
+		 * @return 環境光の色
 		 */
-		const Vector3& GetAmbient() const { return lightCB_.ambientLight.ambient; }
+		const Vector3& GetAmbient() const { return m_lightCB.ambientLight.ambient; }
 
 		/**
 		 * @brief ライトの定数バッファを取得
 		 * @return ライトの定数バッファ
 		 * @details: b1に渡す構造体
 		 */
-		LightCB& GetLightCB() { return lightCB_; }
+		LightCB& GetLightCB() { return m_lightCB; }
 
 
 	private:
@@ -157,6 +156,6 @@ namespace nsK2EngineLow {
 
 
 		/** ライトの定数バッファ */
-		LightCB lightCB_;
+		LightCB m_lightCB;
 	};
 }

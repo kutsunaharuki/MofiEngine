@@ -6,5 +6,7 @@
 #include "SceneLight.h"
 
 
-namespace nsK2EngineLow {
+namespace nsK2EngineLow 
+{
+
 }

@@ -72,6 +72,7 @@ static const int MAX_FPS = 60;	// Å‘åFPSBUSE_FPS_LIMITTER‚ª—LŒø‚È‚Æ‚«‚Ég—p‚³‚
 #include "graphics/Animation.h"
 #include "graphics/font/Font.h"
 #include "graphics/SceneLight.h"
+#include "graphics/RenderingEngine.h"
 
 #include "graphics/RenderContext_inline.h"
 #include "graphics/DescriptorHeap_inline.h"

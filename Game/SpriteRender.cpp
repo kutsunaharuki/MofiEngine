@@ -6,9 +6,8 @@
 #include "SpriteRender.h"
 
 
-namespace nsK2Engine{
-
-
+namespace nsK2Engine
+{
 	SpriteRender::SpriteRender()
 		: spriteInitData_()
 		, sprite_()

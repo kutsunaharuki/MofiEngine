@@ -21,15 +21,15 @@ public:
 
 private:
 	/** スプライトレンダー */
-	nsK2Engine::SpriteRender* spriteRender_;
+	nsK2Engine::SpriteRender* m_spriteRender;
 	/** モデルレンダー */
-	nsK2Engine::ModelRender* modelRender_;
+	nsK2Engine::ModelRender* m_modelRender;
 	/** 位置 */
-	Vector3 position_;
+	Vector3 m_position;
 	/** 回転 */
-	Quaternion rotation_;
+	Quaternion m_rotation;
 	/** スケール */
-	Vector3 scale_;
+	Vector3 m_scale;
 
 	/** モデル */
 	//Model model_;

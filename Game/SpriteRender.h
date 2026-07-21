@@ -5,9 +5,8 @@
 #pragma once
 
 
-namespace nsK2Engine {
-
-
+namespace nsK2Engine
+{
 	class SpriteRender
 	{
 	public:

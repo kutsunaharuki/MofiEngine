@@ -5,9 +5,8 @@
 #pragma once
 
 
-namespace nsK2Engine {
-	
-
+namespace nsK2Engine
+{
 	class ModelRender
 	{
 	public:
@@ -18,13 +17,24 @@ namespace nsK2Engine {
 		 * @brief モデルの初期化処理
 		 * @param tkmFilePath tkmファイルパス
 		 * @param fxFilePath fxファイルパス
+		 * @param isShadow 影を落とすかどうか
+		 * @param reShadow 影を受けるかどうか 
 		 */
-		void Init(const char* tkmFilePath, const char* fxFilePath);
+		void Init(const char* tkmFilePath, const char* fxFilePath, const bool isShadow, const bool reShadow);
 
 		/**
 		 * @brief モデルの更新処理
 		 */
 		void Update();
+
+		/**
+		 * @brief 影を落とすかどうかの設定
+		 * @param isShadow 影を落とすかどうか
+		 */
+		void SetShadow(bool reShadow)
+		{
+			m_isReceiveShadow = reShadow;
+		}
 
 		/**
 		 * @brief 描画処理
@@ -37,7 +47,7 @@ namespace nsK2Engine {
 		 */
 		void SetPosition(const Vector3& pos)
 		{
-			position_ = pos;
+			m_position = pos;
 		}
 
 		/**
@@ -46,7 +56,7 @@ namespace nsK2Engine {
 		 */
 		void SetRotation(const Quaternion& rot)
 		{
-			rotation_ = rot;
+			m_rotation = rot;
 		}
 
 		/**
@@ -55,7 +65,7 @@ namespace nsK2Engine {
 		 */
 		void SetScale(const Vector3& scl)
 		{
-			scale_ = scl;
+			m_scale = scl;
 		}
 
 		/**
@@ -83,16 +93,20 @@ namespace nsK2Engine {
 		///** ライトの構造体 */
 		//Light light_;
 		///** ライトの定数バッファ */
-		//LightCB lightCB_;
+		//LightCB m_lightCB;
+		/** 影を落とすかどうか */
+		bool m_isShadow;
+		/** 影を受けるかどうか */
+		bool m_isReceiveShadow;
 		/** モデル初期化データ */
-		ModelInitData modelInitData_;
+		ModelInitData m_modelInitData;
 		/** モデル */
-		Model model_;
+		Model m_model;
 		/** 位置 */
-		Vector3 position_;
+		Vector3 m_position;
 		/** 回転 */
-		Quaternion rotation_;
+		Quaternion m_rotation;
 		/** スケール */
-		Vector3 scale_;
+		Vector3 m_scale;
 	};
 }

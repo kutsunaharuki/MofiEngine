@@ -17,25 +17,25 @@ namespace {
 
 
 Game::Game()
-	: spriteRender_(nullptr)
-	, modelRender_(nullptr)
-	, position_(Vector3::Zero)
-	, rotation_(Quaternion::Identity)
-	, scale_(Vector3::One)
+	: m_spriteRender(nullptr)
+	, m_modelRender(nullptr)
+	, m_position(Vector3::Zero)
+	, m_rotation(Quaternion::Identity)
+	, m_scale(Vector3::One)
 {}
 
 
 Game::~Game()
 {
-	if (spriteRender_ != nullptr)
+	if (m_spriteRender != nullptr)
 	{
-		delete spriteRender_;
-		spriteRender_ = nullptr;
+		delete m_spriteRender;
+		m_spriteRender = nullptr;
 	}
-	if (modelRender_ != nullptr)
+	if (m_modelRender != nullptr)
 	{
-		delete modelRender_;
-		modelRender_ = nullptr;
+		delete m_modelRender;
+		m_modelRender = nullptr;
 	}
 }
 
@@ -66,10 +66,10 @@ bool Game::Start()
 	//model_.Init(modelInitData_);
 
 	// Step1-4完成
-	modelRender_ = new nsK2Engine::ModelRender;
-	modelRender_->Init("Assets/modelData/unityChan.tkm", "Assets/shader/model.fx");
-	modelRender_->SetTRS(position_, rotation_, scale_);
-	modelRender_->Update();
+	m_modelRender = new nsK2Engine::ModelRender;
+	m_modelRender->Init("Assets/modelData/unityChan.tkm", "Assets/shader/model.fx", true, false);
+	m_modelRender->SetTRS(m_position, m_rotation, m_scale);
+	m_modelRender->Update();
 
 	return true;
 }
@@ -80,18 +80,18 @@ void Game::Update()
 	/** ModelRender */
 	// 位置、回転、スケールを適当に動かしてみた。
 	//position_.x += MOVE_SPEED;
-	//modelRender_->SetPosition(position_);
+	//m_modelRender->SetPosition(m_position);
 
-	rotation_.AddRotationDegY(ROTATE_SPEED);
-	//rotation_.SetRotationDegY(180.0f);
-	modelRender_->SetRotation(rotation_);
+	m_rotation.AddRotationDegY(ROTATE_SPEED);
+	//m_rotation.SetRotationDegY(180.0f);
+	m_modelRender->SetRotation(m_rotation);
 	
 	//bool isPressA = g_pad[0]->IsPress(enButtonA);
 	//bool isPressB = g_pad[0]->IsPress(enButtonB);
 	//if (isPressA) scale_ += Vector3::One * SCALE_SPEED;
 	//if (isPressB) scale_ -= Vector3::One * SCALE_SPEED;
 	//modelRender_->SetScale(scale_);
-	modelRender_->Update();
+	m_modelRender->Update();
 
 	/** SpriteRender */
 	// 位置と回転と拡縮を適当に更新してみた。
@@ -121,5 +121,5 @@ void Game::Render(RenderContext& rc)
 	//model_.Draw(rc);
 
 	// モデル描画
-	modelRender_->Draw(rc);
+	m_modelRender->Draw(rc);
 }
