@@ -6,10 +6,13 @@ namespace nsK2Engine
 {
 	ModelRender::ModelRender()
 		: m_modelInitData()
+		, m_shadowModelInitData()
 		, m_model()
 		, m_position(Vector3::Zero)
 		, m_rotation(Quaternion::Identity)
 		, m_scale(Vector3::One)
+		, m_isShadowCaster(false)
+		, m_isReceiveShadow(false)
 	{}
 
 
@@ -17,16 +20,38 @@ namespace nsK2Engine
 	{}
 
 
-	void ModelRender::Init(const char* tkmFilePath, const char* fxFilePath, const bool isShadow, const bool reShadow)
+	void ModelRender::Init(const char* tkmFilePath, const bool isShadow, const bool reShadow, const char* fxFilePath)
 	{
 		// tkmファイルパスを設定
 		m_modelInitData.m_tkmFilePath = tkmFilePath;
 		// fxファイルパスを設定
 		m_modelInitData.m_fxFilePath = fxFilePath;
 		// 影を落とすかどうかを設定
-		m_isShadow = isShadow;
+		m_isShadowCaster = isShadow;
 		// 影を受けるかどうかを設定
 		m_isReceiveShadow = reShadow;
+		
+		// 影を落とす(シャドウキャスター)場合
+		if (m_isShadowCaster == true)
+		{
+			m_shadowModelInitData.m_tkmFilePath = tkmFilePath;
+			m_shadowModelInitData.m_fxFilePath = "Assets/shader/drawShadowMap.fx";
+			m_shadowModel.Init(m_shadowModelInitData);
+		}
+
+		//m_modelInitData.m_expandShaderResoruceView[0] =
+		//	&nsK2EngineLow::RenderingEngine::GetInstance().GetShadowMapTexture();
+
+		// 影を受ける(シャドウレシーバー)場合
+		if (m_isReceiveShadow == true)
+		{
+			// シャドウマップのテクスチャを設定(t10に届く)
+			m_modelInitData.m_expandShaderResoruceView[0] =
+				&nsK2EngineLow::RenderingEngine::GetInstance().GetShadowMapTexture();
+
+			// モデルを初期化
+			//m_model.Init(m_modelInitData);
+		}
 
 		// Step1-5完成(環境光 ← ambient)
 		// 定数バッファを設定
@@ -46,11 +71,16 @@ namespace nsK2Engine
 		// 定数バッファのサイズを設定
 		//m_modelInitData.m_expandConstantBufferSize = sizeof(m_lightCB);
 		
-		// Step1-10
+		// Step1-10完成
 		// ユーザ拡張の定数バッファにライトの定数バッファを設定
 		m_modelInitData.m_expandConstantBuffer = &SceneLight::GetInstance().GetLightCB();
 		// ユーザー拡張の定数バッファのサイズを設定
 		m_modelInitData.m_expandConstantBufferSize = sizeof(SceneLight::LightCB);
+		
+		//SceneLight::GetInstance().SetAmbient(Vector3(1.0f, -0.5f, 1.0f));
+		//SceneLight::GetInstance().SetColor(Vector3(1.0f,1.0f,1.0f));
+		//SceneLight::GetInstance().SetDirection(Vector3(-1.0f,-1.0f,-1.0f));
+
 		// モデルを初期化
 		m_model.Init(m_modelInitData);
 	}
@@ -60,6 +90,11 @@ namespace nsK2Engine
 	{
 		// ワールド行列の更新
 		m_model.UpdateWorldMatrix(m_position, m_rotation, m_scale);
+
+		if (m_isShadowCaster)
+		{
+			m_shadowModel.UpdateWorldMatrix(m_position, m_rotation, m_scale);
+		}
 	}
 
 
@@ -70,5 +105,10 @@ namespace nsK2Engine
 
 		// モデルを直接描画からモデルを登録に変更
 		nsK2EngineLow::RenderingEngine::GetInstance().AddModel(m_model);
+
+		if (m_isShadowCaster) {
+			// シャドウキャスターを登録
+			nsK2EngineLow::RenderingEngine::GetInstance().AddShadowCaster(m_shadowModel);
+		}
 	}
 }

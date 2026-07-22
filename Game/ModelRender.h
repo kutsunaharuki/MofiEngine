@@ -20,7 +20,7 @@ namespace nsK2Engine
 		 * @param isShadow 影を落とすかどうか
 		 * @param reShadow 影を受けるかどうか 
 		 */
-		void Init(const char* tkmFilePath, const char* fxFilePath, const bool isShadow, const bool reShadow);
+		void Init(const char* tkmFilePath, const bool isShadow, const bool reShadow, const char* fxFilePath = "Assets/shader/model.fx");
 
 		/**
 		 * @brief モデルの更新処理
@@ -31,9 +31,17 @@ namespace nsK2Engine
 		 * @brief 影を落とすかどうかの設定
 		 * @param isShadow 影を落とすかどうか
 		 */
-		void SetShadow(bool reShadow)
+		void SetShadow(bool shadowCaster)
 		{
-			m_isReceiveShadow = reShadow;
+			m_isShadowCaster = shadowCaster;
+		}
+		/**
+		 * @brief 影を受けるかどうかの設定
+		 * @param receiveShadow 影を受けるかどうか
+		 */
+		void SetReceiveShadow(bool receiveShadow)
+		{
+			m_isReceiveShadow = receiveShadow;
 		}
 
 		/**
@@ -86,22 +94,18 @@ namespace nsK2Engine
 
 		
 	private:
-		///** 環境光の構造体 */
-		//AmbientLight ambientLight_;
-		///** ディレクションライトの構造体 */
-		//DirectionLight directionLight_;
-		///** ライトの構造体 */
-		//Light light_;
-		///** ライトの定数バッファ */
-		//LightCB m_lightCB;
 		/** 影を落とすかどうか */
-		bool m_isShadow;
+		bool m_isShadowCaster;
 		/** 影を受けるかどうか */
 		bool m_isReceiveShadow;
 		/** モデル初期化データ */
 		ModelInitData m_modelInitData;
 		/** モデル */
 		Model m_model;
+		/** シャドウモデルの初期化データ */
+		ModelInitData m_shadowModelInitData;
+		/** シャドウモデル */
+		Model m_shadowModel;
 		/** 位置 */
 		Vector3 m_position;
 		/** 回転 */

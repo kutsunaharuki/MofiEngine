@@ -35,6 +35,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	// Create the Game object.
 	NewGO<Game>(0, "game");
 
+	RenderingEngine::GetInstance().InitializeLight();
 	//////////////////////////////////////
 	// End of start-up code.
 	//////////////////////////////////////

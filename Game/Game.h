@@ -24,6 +24,8 @@ private:
 	nsK2Engine::SpriteRender* m_spriteRender;
 	/** モデルレンダー */
 	nsK2Engine::ModelRender* m_modelRender;
+	/** 地面のモデルレンダー */
+	nsK2Engine::ModelRender* m_groundModelRender;
 	/** 位置 */
 	Vector3 m_position;
 	/** 回転 */
@@ -31,12 +33,7 @@ private:
 	/** スケール */
 	Vector3 m_scale;
 
-	/** モデル */
-	//Model model_;
-	/** モデル初期化データ */
-	//ModelInitData modelInitData_;
-	/** スプライト初期化データ */
-	//SpriteInitData spriteInitData_;
-	/** スプライト */
-	//Sprite sprite_;
+	Vector3 m_gPosition;
+	Vector3 m_gScale;
+	Quaternion m_gRotation;
 };

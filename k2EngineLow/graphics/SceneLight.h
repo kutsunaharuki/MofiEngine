@@ -73,12 +73,14 @@ namespace nsK2EngineLow
 			DirectionLight directionLight;	// ディレクションライト
 			AmbientLight ambientLight;		// 環境光
 			Light light;					// ライト
+			Matrix mLVP;					// ライトビュープロジェクション行列
 
 
 			LightCB()
 				: directionLight(DirectionLight())
 				, ambientLight(AmbientLight())
 				, light(Light())
+				, mLVP(Matrix::Identity)
 			{}
 		};
 
@@ -122,7 +124,16 @@ namespace nsK2EngineLow
 		{
 			m_lightCB.ambientLight.ambient = ambient;
 		}
-		
+
+		/**
+		 * @brief ライトビュープロジェクション行列を設定
+		 * @param mLVP ライトビュープロジェクション行列
+		 */
+		void SetLightProjMatrix(const Matrix& mlvp)
+		{
+			m_lightCB.mLVP = mlvp;
+		}
+
 		/**
 		 * @brief ライトの方向を取得
 		 * @return ライトの方向
@@ -138,6 +149,11 @@ namespace nsK2EngineLow
 		 * @return 環境光の色
 		 */
 		const Vector3& GetAmbient() const { return m_lightCB.ambientLight.ambient; }
+		/**
+		 * @brief ライトビュープロジェクション行列を取得
+		 * @return ライトビュープロジェクション行列
+		 */
+		const Matrix& GetLightProjMatrix() const { return m_lightCB.mLVP; }
 
 		/**
 		 * @brief ライトの定数バッファを取得

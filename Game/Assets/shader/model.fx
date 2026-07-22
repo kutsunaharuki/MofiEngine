@@ -87,6 +87,7 @@ cbuffer LightCB : register(b1)
     DirectionLight directionLight;  // ディレクションライト
     AmbientLight ambientLight;      // 環境光
     Light light;                    // ライト
+    float4x4 mLVP;                  // ライトビュープロジェクション行列
 };
 
 
@@ -102,6 +103,9 @@ Texture2D<float4> normalMap : register(t1);     // テクスチャ
 
 // スぺキュラマップ
 Texture2D<float4> specularMap : register(t2);   // テクスチャ2
+
+// シャドウマップ
+Texture2D<float4> g_shadowMap : register(t10);  // ModelRenderが t10に繋いだシャドウマップ
 
 sampler Sampler : register(s0);                 // サンプラー
 
@@ -204,14 +208,40 @@ float4 PSMain(SPSIn In) : SV_Target0
     // 1. 環境光を渡す
     //float3 lig = ambientLight.ambient;
 
+    //------------------------------------------//
+    // Step2-2
+    // ライトから見た位置へ変換
+    float4 posInLVP = mul(mLVP,float4(In.worldPos,1.0f));
+
+    // -1 ~ 1 の範囲に
+    float2 shadowMapUV = posInLVP.xy / posInLVP.w;
+    shadowMapUV *= float2(0.5f, -0.5f);
+
+    // 0~1のUVに変換(Yは上下反転)
+    shadowMapUV += 0.5f;
+
+    // 素のモデルのテクスチャの色
     float4 albedoColor = albedoTexture.Sample(Sampler, In.uv);
+
+    // 最終的な色
+    float4 finalColor = albedoColor;
+
+    // シャドウマップに写っている範囲だけ
+    if(shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
+    {
+        float3 shadow = g_shadowMap.Sample(Sampler,shadowMapUV).xyz;
+        // 黒(0)が描かれていたら暗くなって、白(1)ならそのまま
+        finalColor.xyz *= shadow;
+    }
+
 
     //-----------------------------------------//
     // Step1-5完成
     //float3 lig = ambientLight.ambient;
 
+
     // 3. 環境光 + 拡散反射光 + 鏡面反射光 の結果の lig を渡す
-    albedoColor.xyz *= lig;
+    finalColor.xyz *= lig;
 
     // 2. 環境光 + 拡散反射光 の結果の lig を渡す
     //albedoColor.xyz *= lig;
@@ -225,5 +255,5 @@ float4 PSMain(SPSIn In) : SV_Target0
     //   float3 ambient = float3(0.3, 0.3, 0.3);
     //   albedoColor.xyz *= ambient;
 
-    return albedoColor;
+    return finalColor;
 }
