@@ -3,7 +3,6 @@
  * @brief レンダリングエンジン
  */
 #include "k2EngineLowPreCompile.h"
-#include "RenderingEngine.h"
 
 
 namespace nsK2EngineLow
@@ -34,8 +33,8 @@ namespace nsK2EngineLow
 		// 描き先を画面(フレームバッファ)に戻して、パス2のフォワードレンダリングパスに移行する
 		g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
 		
-
-
+		// これ書いたら直った(理由は分からん)
+		// TODO: 何でこれ書かないといけないのかが分からない。
 		rc.SetViewportAndScissor(g_graphicsEngine->GetFrameBufferViewport());
 
 		// 登録されたモデルを全部描画する

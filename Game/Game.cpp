@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "Game.h"
+#include "GameCamera.h"
 
 
 namespace {
@@ -25,6 +26,8 @@ Game::Game()
 	, m_gPosition(Vector3::Zero)
 	, m_gRotation(Quaternion::Identity)
 	, m_gScale(Vector3::One)
+	, m_gameCamera(nullptr)
+	, m_groundModelRender(nullptr)
 {}
 
 
@@ -40,17 +43,22 @@ Game::~Game()
 		delete m_modelRender;
 		m_modelRender = nullptr;
 	}
+	if (m_gameCamera != nullptr)
+	{
+		delete m_gameCamera;
+		m_gameCamera = nullptr;
+	}
 }
 
 
 bool Game::Start()
 {
 	// Step1-1完成(Step1-2にてSpriteRenderを自作)
-	//spriteInitData_.m_fxFilePath = "Assets/shader/sprite.fx";
-	//spriteInitData_.m_ddsFilePath[0] = "Assets/texture/texture.dds";
-	//spriteInitData_.m_width = 128;
-	//spriteInitData_.m_height = 128;
-	//sprite_.Init(spriteInitData_);
+	//m_spriteInitData.m_fxFilePath = "Assets/shader/sprite.fx";
+	//m_spriteInitData.m_ddsFilePath[0] = "Assets/texture/texture.dds";
+	//m_spriteInitData.m_width = 128;
+	//m_spriteInitData.m_height = 128;
+	//m_sprite.Init(m_spriteInitData);
 
 	// Step1-2完成
 	//spriteRender_ = new nsK2Engine::SpriteRender;
@@ -70,16 +78,23 @@ bool Game::Start()
 
 	// Step1-4完成
 	// 第3引数 が影を落とすかどうかのフラグで 第4引数 が影を受けるかどうかのフラグ。
-	m_modelRender = new nsK2Engine::ModelRender;
+	m_modelRender = new ModelRender;
 	m_modelRender->Init("Assets/modelData/unityChan.tkm", true, false);
 	m_modelRender->SetTRS(m_position, m_rotation, m_scale);
 	m_modelRender->Update();
 
 	// 地面のモデルレンダーを初期化
-	m_groundModelRender = new nsK2Engine::ModelRender;
+	m_groundModelRender = new ModelRender;
 	m_groundModelRender->Init("Assets/modelData/ground.tkm", false, true);
 	m_groundModelRender->SetTRS(m_gPosition, m_gRotation, m_gScale);
 	m_groundModelRender->Update();
+
+	// 後々に響きそうなのでゲームカメラを作成しておく。
+	m_gameCamera = new app::camera::GameCamera;
+	m_gameCamera->Start();
+	m_gameCamera->SetTarget(m_modelRender);
+	m_gameCamera->Update();
+
 	return true;
 }
 
@@ -101,8 +116,8 @@ void Game::Update()
 	//	m_position.x -= MOVE_SPEED;
 	//}
 
-	//m_rotation.SetRotationDegY(180.0f);
-	m_rotation.AddRotationDegY(ROTATE_SPEED);
+	m_rotation.SetRotationDegY(180.0f);
+	//m_rotation.AddRotationDegY(ROTATE_SPEED);
 	//m_gRotation.AddRotationDegY(ROTATE_SPEED);
 	//m_rotation.SetRotationDegY(180.0f);
 	m_modelRender->SetRotation(m_rotation);
@@ -116,6 +131,8 @@ void Game::Update()
 	//if (isPressB) scale_ -= Vector3::One * SCALE_SPEED;
 	//modelRender_->SetScale(scale_);
 	m_modelRender->Update();
+
+	m_gameCamera->Update();
 
 	/** SpriteRender */
 	// 位置と回転と拡縮を適当に更新してみた。
@@ -134,7 +151,7 @@ void Game::Update()
 
 void Game::Render(RenderContext& rc)
 {
-	//sprite_.Draw(rc);
+	//m_sprite.Draw(rc);
 
 	// スプライト描画
 	//spriteRender_->Draw(rc);

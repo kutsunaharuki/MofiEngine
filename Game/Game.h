@@ -1,6 +1,4 @@
 ﻿#pragma once
-#include "SpriteRender.h"
-#include "ModelRender.h"
 
 
 // The starting point of your game.
@@ -8,6 +6,13 @@
 // Right now it draws nothing, so you will just see the gray clear color.
 // Add your own rendering (a triangle, a sprite, a model...) step by step.
 
+namespace app
+{
+	namespace camera
+	{
+		class GameCamera;
+	}
+}
 
 class Game : public IGameObject
 {
@@ -20,12 +25,14 @@ public:
 
 
 private:
+	/** ゲームカメラ */
+	app::camera::GameCamera* m_gameCamera;
 	/** スプライトレンダー */
-	nsK2Engine::SpriteRender* m_spriteRender;
+	SpriteRender* m_spriteRender;
 	/** モデルレンダー */
-	nsK2Engine::ModelRender* m_modelRender;
+	ModelRender* m_modelRender;
 	/** 地面のモデルレンダー */
-	nsK2Engine::ModelRender* m_groundModelRender;
+	ModelRender* m_groundModelRender;
 	/** 位置 */
 	Vector3 m_position;
 	/** 回転 */

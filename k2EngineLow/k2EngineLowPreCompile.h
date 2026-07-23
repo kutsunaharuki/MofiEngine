@@ -79,6 +79,8 @@ static const int MAX_FPS = 60;	// Å‘åFPSBUSE_FPS_LIMITTER‚ª—LŒø‚È‚Æ‚«‚Ég—p‚³‚
 
 #include "graphics/Sprite.h"
 #include "graphics/Model.h"
+#include "graphics/SpriteRender.h"
+#include "graphics/ModelRender.h"
 #include "HID/GamePad.h"
 
 #include "graphics/GaussianBlur.h"

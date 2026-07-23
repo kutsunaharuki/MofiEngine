@@ -278,6 +278,7 @@
     <ClCompile Include="graphics\Material.cpp" />
     <ClCompile Include="graphics\MeshParts.cpp" />
     <ClCompile Include="graphics\Model.cpp" />
+    <ClCompile Include="graphics\ModelRender.cpp" />
     <ClCompile Include="graphics\NullTextureMaps.cpp" />
     <ClCompile Include="graphics\PipelineState.cpp" />
     <ClCompile Include="graphics\raytracing\BLASBuffer.cpp" />
@@ -296,6 +297,7 @@
     <ClCompile Include="graphics\Shader.cpp" />
     <ClCompile Include="graphics\Skeleton.cpp" />
     <ClCompile Include="graphics\Sprite.cpp" />
+    <ClCompile Include="graphics\SpriteRender.cpp" />
     <ClCompile Include="graphics\StructuredBuffer.cpp" />
     <ClCompile Include="graphics\Texture.cpp" />
     <ClCompile Include="graphics\VertexBuffer.cpp" />
@@ -370,6 +372,7 @@
     <ClInclude Include="graphics\Material.h" />
     <ClInclude Include="graphics\MeshParts.h" />
     <ClInclude Include="graphics\Model.h" />
+    <ClInclude Include="graphics\ModelRender.h" />
     <ClInclude Include="graphics\NullTextureMaps.h" />
     <ClInclude Include="graphics\PipelineState.h" />
     <ClInclude Include="graphics\raytracing\BLASBuffer.h" />
@@ -392,6 +395,7 @@
     <ClInclude Include="graphics\Shader.h" />
     <ClInclude Include="graphics\Skeleton.h" />
     <ClInclude Include="graphics\Sprite.h" />
+    <ClInclude Include="graphics\SpriteRender.h" />
     <ClInclude Include="graphics\StructuredBuffer.h" />
     <ClInclude Include="graphics\Texture.h" />
     <ClInclude Include="graphics\VertexBuffer.h" />

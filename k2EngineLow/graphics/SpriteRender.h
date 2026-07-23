@@ -5,7 +5,7 @@
 #pragma once
 
 
-namespace nsK2Engine
+namespace nsK2EngineLow
 {
 	class SpriteRender
 	{
@@ -28,7 +28,7 @@ namespace nsK2Engine
 		 */
 		const Vector3& GetPosition() const
 		{
-			return position_;
+			return m_position;
 		}
 
 		/**
@@ -37,7 +37,7 @@ namespace nsK2Engine
 		 */
 		const Quaternion& GetRotation() const
 		{
-			return rotation_;
+			return m_rotation;
 		}
 
 		/**
@@ -46,7 +46,7 @@ namespace nsK2Engine
 		 */
 		const Vector3& GetScale() const
 		{
-			return scale_;
+			return m_scale;
 		}
 
 		/**
@@ -55,7 +55,7 @@ namespace nsK2Engine
 		 */
 		void SetPosition(const Vector3& pos)
 		{
-			position_ = pos;
+			m_position = pos;
 		}
 
 		/**
@@ -64,7 +64,7 @@ namespace nsK2Engine
 		 */
 		void SetRotation(const Quaternion& rot)
 		{
-			rotation_ = rot;
+			m_rotation = rot;
 		}
 
 		/**
@@ -73,7 +73,7 @@ namespace nsK2Engine
 		 */
 		void SetScale(const Vector3& scale)
 		{
-			scale_ = scale;
+			m_scale = scale;
 		}
 
 		/**
@@ -98,14 +98,14 @@ namespace nsK2Engine
 
 	private:
 		/** 画像の初期化データ */
-		SpriteInitData spriteInitData_;
+		SpriteInitData m_spriteInitData;
 		/** 画像の描画データ */
-		Sprite sprite_;
+		Sprite m_sprite;
 		/** 位置 */
-		Vector3 position_;
+		Vector3 m_position;
 		/** 回転 */
-		Quaternion rotation_;
+		Quaternion m_rotation;
 		/** 拡縮 */
-		Vector3 scale_;
+		Vector3 m_scale;
 	};
 }

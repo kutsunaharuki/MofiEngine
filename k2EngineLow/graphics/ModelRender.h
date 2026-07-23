@@ -5,7 +5,7 @@
 #pragma once
 
 
-namespace nsK2Engine
+namespace nsK2EngineLow
 {
 	class ModelRender
 	{
@@ -92,7 +92,23 @@ namespace nsK2Engine
 			SetScale(scl);
 		}
 
-		
+		/**
+		 * @brief 位置を取得
+		 * @return 位置
+		 */
+		const Vector3& GetPosition() const { return m_position; }
+		/**
+		 * @brief 回転を取得
+		 * @return 回転
+		 */
+		const Quaternion& GetRotation() const { return m_rotation; }
+		/**
+		 * @brief スケールを取得
+		 * @return スケール
+		 */
+		const Vector3& GetScale() const { return m_scale; }
+
+
 	private:
 		/** 影を落とすかどうか */
 		bool m_isShadowCaster;

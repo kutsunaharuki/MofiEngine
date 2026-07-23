@@ -1,13 +1,18 @@
-#include "stdafx.h"
-#include "ModelRender.h"
+/**
+ * @file ModelRender.cpp
+ * @brief モデルレンダークラスの実装
+ */
+#include "k2EngineLowPreCompile.h"
+//#include "ModelRender.h"
 
 
-namespace nsK2Engine
+namespace nsK2EngineLow
 {
 	ModelRender::ModelRender()
 		: m_modelInitData()
 		, m_shadowModelInitData()
 		, m_model()
+		, m_shadowModel()
 		, m_position(Vector3::Zero)
 		, m_rotation(Quaternion::Identity)
 		, m_scale(Vector3::One)

@@ -24,11 +24,11 @@
       <Filter>system</Filter>
     </ClCompile>
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="SpriteRender.cpp" />
-    <ClCompile Include="ModelRender.cpp" />
     <ClCompile Include="Source\Core\Transform.cpp">
       <Filter>Source\Core</Filter>
     </ClCompile>
+    <ClCompile Include="GameCamera.cpp" />
+    <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -36,10 +36,14 @@
       <Filter>system</Filter>
     </ClInclude>
     <ClInclude Include="Game.h" />
-    <ClInclude Include="SpriteRender.h" />
-    <ClInclude Include="ModelRender.h" />
     <ClInclude Include="Source\Core\Transform.h">
       <Filter>Source\Core</Filter>
     </ClInclude>
+    <ClInclude Include="GameCamera.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Game.rc" />
   </ItemGroup>
 </Project>
