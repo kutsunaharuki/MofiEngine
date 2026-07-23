@@ -209,7 +209,7 @@ float4 PSMain(SPSIn In) : SV_Target0
     //float3 lig = ambientLight.ambient;
 
     //------------------------------------------//
-    // Step2-2
+    // Step2-2完成
     // ライトから見た位置へ変換
     float4 posInLVP = mul(mLVP,float4(In.worldPos,1.0f));
 
