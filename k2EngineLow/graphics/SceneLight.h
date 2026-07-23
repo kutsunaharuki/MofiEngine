@@ -54,6 +54,7 @@ namespace nsK2EngineLow
 			Vector3 eyePos;		// 視点の位置
 			float specPower;	// スぺキュラの絞り
 			float reflectPower;	// 反射の強さ
+			Vector3 pad3;		// パディング(空けるだけ)
 
 
 			Light()

@@ -10,16 +10,12 @@ namespace nsK2EngineLow
 {
 	namespace
 	{
-		/** ライトの向きに乗算させる数 */
-		constexpr float LIGHT_HEIGHT = -1000.0f;
 		/** 影の幅 */
-		constexpr float SHADOW_WIDTH = 2000.0f;
+		constexpr float SHADOW_WIDTH = 800.0f;
 		/** 影の高さ */
-		constexpr float SHADOW_HEIGHT = 2000.0f;
+		constexpr float SHADOW_HEIGHT = 800.0f;
 		/** カメラの向き */
 		const Vector3 CAMERA_DIR = { 1.0f,0.0f,0.0f };
-		/** ライトの位置 */
-		const Vector3 LIGHT_POSITION{ 0.0f,600.0f,0.0f };
 	}
 
 
@@ -90,7 +86,7 @@ namespace nsK2EngineLow
 			m_shadowMap.Create(
 				1024,1024,                        // 解像度
 				1,1,							  // ミップマップ数、配列数(1でよい)
-				DXGI_FORMAT_R8G8B8A8_UNORM,		  // カラーのフォーマット
+				DXGI_FORMAT_R32_FLOAT,			  // DXGI_FORMAT_R8G8B8A8_UNORMから変わった(float 1チャンネル)
 				DXGI_FORMAT_D32_FLOAT,			  // 深度バッファのフォーマット
 				clearColor						  // シャドウマップのクリアカラー
 			);

@@ -61,7 +61,7 @@ namespace nsK2EngineLow
 		scLight.SetDirection(lightDir);
 
 		// ライトの逆側・上空に置く
-		m_lightCamera.SetPosition(lightDir * -1000.0f);
+		m_lightCamera.SetPosition(lightDir * -100.0f);
 		// キャラのいるあたりを見る
 		m_lightCamera.SetTarget(Vector3::Zero);
 		// 真下を向くときはY以外の値を上げる(Yだと視線と平行になり行列が壊れるから)

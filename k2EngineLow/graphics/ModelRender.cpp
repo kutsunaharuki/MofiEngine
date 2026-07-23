@@ -41,6 +41,8 @@ namespace nsK2EngineLow
 		{
 			m_shadowModelInitData.m_tkmFilePath = tkmFilePath;
 			m_shadowModelInitData.m_fxFilePath = "Assets/shader/drawShadowMap.fx";
+			// フォーマットが合っていないとD3D12 が実行時エラーを出す
+			m_shadowModelInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R32_FLOAT;
 			m_shadowModel.Init(m_shadowModelInitData);
 		}
 
@@ -109,11 +111,11 @@ namespace nsK2EngineLow
 		//m_model.Draw(rc);
 
 		// モデルを直接描画からモデルを登録に変更
-		nsK2EngineLow::RenderingEngine::GetInstance().AddModel(m_model);
+		RenderingEngine::GetInstance().AddModel(m_model);
 
 		if (m_isShadowCaster) {
 			// シャドウキャスターを登録
-			nsK2EngineLow::RenderingEngine::GetInstance().AddShadowCaster(m_shadowModel);
+			RenderingEngine::GetInstance().AddShadowCaster(m_shadowModel);
 		}
 	}
 }

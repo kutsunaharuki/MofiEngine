@@ -79,7 +79,7 @@ bool Game::Start()
 	// Step1-4完成
 	// 第3引数 が影を落とすかどうかのフラグで 第4引数 が影を受けるかどうかのフラグ。
 	m_modelRender = new ModelRender;
-	m_modelRender->Init("Assets/modelData/unityChan.tkm", true, false);
+	m_modelRender->Init("Assets/modelData/unityChan.tkm", true, true);
 	m_modelRender->SetTRS(m_position, m_rotation, m_scale);
 	m_modelRender->Update();
 

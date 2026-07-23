@@ -1,41 +1,38 @@
-/**
- * @file drawShadow.fx
- * @brief 何が来ても絶対に黒色にする(値を黒で返す)
- */
 ////////////////////////////////////////////////
 // Pixel shader input.
 ////////////////////////////////////////////////
 struct SPSIn
 {
     float4 pos      : SV_POSITION;  // Clip-space position.
-    float3 normal   : NORMAL;       // World-space normal.
-    float3 tangent  : TANGENT;      // World-space tangent   (for normal mapping later).
-    float3 biNormal : BINORMAL;     // World-space binormal  (for normal mapping later).
-    float2 uv       : TEXCOORD0;    // UV.
-    float3 worldPos : TEXCOORD1;    // World-space position  (for specular later).
+    float4 posInLVP : TEXCOORD2;    // ライトビュープロジェクション空間の座標
 };
 
 
-///////////////////////////////////////
-// Common vertex shader code.
-// Provides: ModelCb(b0: mWorld/mView/mProj), SVSIn, bone matrices (t3),
-//           and the entry points VSMain / VSMainSkin / VSMainInstancing, etc.
-///////////////////////////////////////
-#include "ModelVSCommon.h" // ModelCB : register(b0)はこの中に入ってる ※ b0は共通で使っているので被ってはならない
+struct SVSIn
+{
+    float4 pos      : POSITION;
+};
+
+// モデルの定数バッファ
+cbuffer ModelCB : register(b0)
+{
+    float4x4 mWorld;
+    float4x4 mView;
+    float4x4 mProj;
+};
 
 
-
-////////////////////////////////////////////////
-// Vertex shader core (called by the VSMain* entry points in ModelVSCommon.h).
-////////////////////////////////////////////////
-SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputedVertexBuffer)
+/// <summary>
+/// 頂点シェーダー
+/// <summary>
+SPSIn VSMain(SVSIn vsIn)
 {
     SPSIn psIn;
-    psIn.pos = CalcVertexPositionInWorldSpace(vsIn.pos, mWorldLocal, isUsePreComputedVertexBuffer);
+    psIn.pos = mul(mWorld, vsIn.pos);
     psIn.pos = mul(mView, psIn.pos);
     psIn.pos = mul(mProj, psIn.pos);
-    psIn.uv = vsIn.uv;
-    psIn.normal = mul((float3x3)mWorldLocal, vsIn.normal);
+    // ライトカメラで描いているため、pos　が「ライトから見た座標」になる
+    psIn.posInLVP = psIn.pos;
     return psIn;
 }
 
@@ -43,7 +40,10 @@ SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputed
 // Pixel shader.
 // For now: just output the albedo texture. Add your lighting here.
 ////////////////////////////////////////////////
+
 float4 PSMain(SPSIn In) : SV_Target0
 {
-    return float4(0.0f,0.0f,0.0f,1.0f); // 何が来ても絶対に黒
+    // 深度(ライトから近いほど小さい値) を 「色」 として書き込む
+    return In.posInLVP.z / In.posInLVP.w;   // R32_FLOAT なので .rだけ記録される
+    //return float4(0.0f,0.0f,0.0f,1.0f); // 何が来ても絶対に黒
 }

@@ -30,6 +30,7 @@ struct SPSIn
     float3 worldPos : TEXCOORD1;    // World-space position  (for specular later).
 };
 
+/////////////////////////////////////////////////////////////////
 
 /** ディレクションライト */
 // ライトの方向とライトの色のみの情報を持つ
@@ -56,6 +57,7 @@ struct Light
     float3 eyePos;                 // 視点の位置
     float specPower;               // スぺキュラの絞り
     float reflectPower;            // 反射の強さ
+    float3 pad3;                   // 空き
 };
 
 
@@ -64,7 +66,7 @@ struct Light
 // Provides: ModelCb(b0: mWorld/mView/mProj), SVSIn, bone matrices (t3),
 //           and the entry points VSMain / VSMainSkin / VSMainInstancing, etc.
 ///////////////////////////////////////
-#include "ModelVSCommon.h" // ModelCB : register(b0)はこの中に入ってる ※ b0は共通で使っているので被ってはならない
+#include "ModelVSCommon.hlsli" // ModelCB : register(b0)はこの中に入ってる ※ b0は共通で使っているので被ってはならない
 
 /** 環境光の定数バッファ */
 // cbuffer AmbientLightCB : register(b1)
@@ -151,7 +153,7 @@ float4 PSMain(SPSIn In) : SV_Target0
 
     // 法線マップに書き込まれている法線は0.0~-1.0で、
     // 負の数になっていないので負の数にする
-    localNormal = (localNormal, -0.5f) * 2.0f;
+    localNormal = (localNormal * 2.0f) -1.0f;
 
     // 法線を回転させて、オブジェクト空間からワールド空間に変換する
     float3 normal = normalize(
@@ -229,11 +231,22 @@ float4 PSMain(SPSIn In) : SV_Target0
     // シャドウマップに写っている範囲だけ
     if(shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
     {
-        float3 shadow = g_shadowMap.Sample(Sampler,shadowMapUV).xyz;
-        // 黒(0)が描かれていたら暗くなって、白(1)ならそのまま
-        finalColor.xyz *= shadow;
-    }
+        // ライトから見た「自分」の深度
+        float zInLVP = posInLVP.z / posInLVP.w;
 
+        // 「ライトに一番近い面」の深度
+        float zInShadowMap = g_shadowMap.Sample(Sampler, shadowMapUV).r;
+        if(zInLVP > zInShadowMap + 0.001f)
+        {
+            // 自分より手前に何かある = 遮られている = 影の中
+            // 影の濃さ
+            finalColor.xyz *= 0.5f;
+        }
+        // 黒が書いているかを見ていた
+        //float3 shadow = g_shadowMap.Sample(Sampler,shadowMapUV).xyz;
+        // 黒(0)が描かれていたら暗くなって、白(1)ならそのまま
+        //finalColor.xyz *= shadow;
+    }
 
     //-----------------------------------------//
     // Step1-5完成
