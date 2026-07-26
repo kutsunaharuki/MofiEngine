@@ -111,6 +111,9 @@ Texture2D<float4> g_shadowMap : register(t10);  // ModelRenderが t10に繋い�
 
 sampler Sampler : register(s0);                 // サンプラー
 
+// シャドウマップサンプリング用のサンプラーステート
+SamplerComparisonState g_shadowMapSampler : register(s1);  // サンプラーステート
+
 ////////////////////////////////////////////////
 // Vertex shader core (called by the VSMain* entry points in ModelVSCommon.h).
 ////////////////////////////////////////////////
@@ -228,6 +231,8 @@ float4 PSMain(SPSIn In) : SV_Target0
     // 最終的な色
     float4 finalColor = albedoColor;
 
+    float shadow = 0.0f;
+
     // シャドウマップに写っている範囲だけ
     if(shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
     {
@@ -242,6 +247,26 @@ float4 PSMain(SPSIn In) : SV_Target0
             // 影の濃さ
             finalColor.xyz *= 0.5f;
         }
+
+        // Step2-4(ソフトシャドウ)
+        // float shadow = g_shadowMap.SampleCmpLevelZero(
+        //     g_shadowMapSampler,   // 使用するサンプラーステート
+        //     shadowMapUV,          // シャドウマップにアクセスするUV座標
+        //     zInLVP                // 比較するZ値。比較するテクセルの値より大きければ1.0、小さければ0.0
+        // );
+
+        float3 shadowColor = finalColor.xyz * 0.5f;
+        
+        float L = normalize(directionLight.direction);
+        // PCF
+        // 傾斜依存バイアス(これを使わないと、モデルに模様が出る)
+        float bias = max(0.005f * (1.0f - dot(normal, -L)), 0.0001f);
+ 
+        shadow = g_shadowMap.SampleCmpLevelZero(
+        g_shadowMapSampler, shadowMapUV, zInLVP - bias);
+ 
+        //finalColor.xyz = finalColor.xyz, shadowColor, shadow;
+
         // 黒が書いているかを見ていた
         //float3 shadow = g_shadowMap.Sample(Sampler,shadowMapUV).xyz;
         // 黒(0)が描かれていたら暗くなって、白(1)ならそのまま
@@ -252,9 +277,13 @@ float4 PSMain(SPSIn In) : SV_Target0
     // Step1-5完成
     //float3 lig = ambientLight.ambient;
 
+    // 環境光を覗いた 拡散反射光と鏡面反射光を求める
+    float3 nonAmbientLig = diffuseLig + specularLig;
 
     // 3. 環境光 + 拡散反射光 + 鏡面反射光 の結果の lig を渡す
-    finalColor.xyz *= lig;
+    //finalColor.xyz *= lig;
+
+    finalColor.xyz = albedoColor.xyz * (ambientLight.ambient + nonAmbientLig * (1.0f - shadow));
 
     // 2. 環境光 + 拡散反射光 の結果の lig を渡す
     //albedoColor.xyz *= lig;
