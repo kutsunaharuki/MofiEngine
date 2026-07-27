@@ -61,9 +61,7 @@ namespace nsK2EngineLow
 		// 影を受けるかどうかを設定
 		m_isReceiveShadow = reShadow;
 
-		/** 3. 影用モデルにもスケルトンのアドレスを渡す */
-		// ※ これを渡さないと影だけTぽーすになってしまう
-		m_shadowModelInitData.m_skeleton = &m_skeleton;
+		
 
 		/** 4. アニメーション(クリップが渡された時のみ) */
 		if (animationClips != nullptr)
@@ -77,6 +75,10 @@ namespace nsK2EngineLow
 		{
 			m_shadowModelInitData.m_tkmFilePath = tkmFilePath;
 			m_shadowModelInitData.m_fxFilePath = "Assets/shader/drawShadowMap.fx";
+			/** 3. 影用モデルにもスケルトンのアドレスを渡す */
+			// ※ これを渡さないと影だけTぽーすになってしまう
+			m_shadowModelInitData.m_skeleton = &m_skeleton;
+			m_shadowModelInitData.m_vsSkinEntryPointFunc = "VSMainSkin";
 			// フォーマットが合っていないとD3D12 が実行時エラーを出す
 			m_shadowModelInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R32_FLOAT;
 			m_shadowModel.Init(m_shadowModelInitData);

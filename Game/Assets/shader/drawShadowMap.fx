@@ -7,33 +7,24 @@ struct SPSIn
     float4 posInLVP : TEXCOORD2;    // ライトビュープロジェクション空間の座標
 };
 
-
-struct SVSIn
-{
-    float4 pos      : POSITION;
-};
-
-// モデルの定数バッファ
-cbuffer ModelCB : register(b0)
-{
-    float4x4 mWorld;
-    float4x4 mView;
-    float4x4 mProj;
-};
+#include "ModelVSCommon.hlsli"
 
 /// <summary>
 /// 頂点シェーダー
 /// <summary>
-SPSIn VSMain(SVSIn vsIn)
+SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputedVertexBuffer)
 {
     SPSIn psIn;
-    psIn.pos = mul(mWorld, vsIn.pos);
+
+    psIn.pos = mul(mWorldLocal, vsIn.pos);
     psIn.pos = mul(mView, psIn.pos);
     psIn.pos = mul(mProj, psIn.pos);
+
     // ライトカメラで描いているため、pos　が「ライトから見た座標」になる
     psIn.posInLVP = psIn.pos;
     return psIn;
 }
+
 
 ////////////////////////////////////////////////
 // Pixel shader.

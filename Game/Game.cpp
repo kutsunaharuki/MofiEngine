@@ -86,6 +86,17 @@ void Game::Update()
 {
 	m_rotation.SetRotationDegY(180.0f);
 	m_modelRender->SetRotation(m_rotation);
+	
+
+	if (g_pad[0]->IsPress(enButtonA))
+	{
+		m_modelRender->PlayAnimation(1, 0.3f);
+	}
+	else
+	{
+		m_modelRender->PlayAnimation(0, 0.3f);
+	}
+
 	m_modelRender->Update();
 	m_gameCamera->Update();
 }
