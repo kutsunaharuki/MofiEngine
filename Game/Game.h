@@ -27,10 +27,6 @@ public:
 
 
 private:
-	/** アニメーションの配列 */
-	//std::vector<AnimationClip> m_animClips;
-
-
 	/** アニメーションクリップ */
 	AnimationClip m_animClips[2];
 	/** ゲームカメラ */

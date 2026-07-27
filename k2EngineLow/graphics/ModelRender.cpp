@@ -20,6 +20,7 @@ namespace nsK2EngineLow
 		, m_isReceiveShadow(false)
 		, m_animationSpeed(1.0f)
 		, m_isAnimted(false)
+		, m_skeleton()
 	{}
 
 
@@ -30,11 +31,12 @@ namespace nsK2EngineLow
 	void ModelRender::Init(
 		const char* tkmFilePath,
 		AnimationClip* animationClips,
+		EnModelUpAxis upAxis,
 		int numAnimClips,
-		const bool isShadow, 
-		const bool reShadow,
-		const char* fxFilePath)
+		const bool isShadow,
+		const bool reShadow)
 	{
+		// Step3-1
 		/** 1. スケルトンの初期化 */
 		// 同じ階層のtksファイルを読むため
 		std::string skeletonFilePath = tkmFilePath;
@@ -46,15 +48,19 @@ namespace nsK2EngineLow
 		/** 2. Modelにスケルトンを渡す(骨の行列がt3に送られる) */
 		// tkmファイルパスを設定
 		m_modelInitData.m_tkmFilePath = tkmFilePath;
+		// モデルの上方向を設定
+		m_modelInitData.m_modelUpAxis = upAxis;
 		// fxファイルパスを設定
-		m_modelInitData.m_fxFilePath = fxFilePath;
+		m_modelInitData.m_fxFilePath = "Assets/shader/model.fx";
 		// スケルトンを設定(骨のアドレス)
 		m_modelInitData.m_skeleton = &m_skeleton;
+		// エントリーポイントを設定(スキンあり頂点シェーダー)
+		m_modelInitData.m_vsSkinEntryPointFunc = "VSMainSkin";
 		// 影を落とすかどうかを設定
 		m_isShadowCaster = isShadow;
 		// 影を受けるかどうかを設定
 		m_isReceiveShadow = reShadow;
-		
+
 		/** 3. 影用モデルにもスケルトンのアドレスを渡す */
 		// ※ これを渡さないと影だけTぽーすになってしまう
 		m_shadowModelInitData.m_skeleton = &m_skeleton;
@@ -63,6 +69,7 @@ namespace nsK2EngineLow
 		if (animationClips != nullptr)
 		{
 			m_animation.Init(m_skeleton, animationClips, numAnimClips);
+			m_isAnimted = true;
 		}
 
 		// 影を落とす(シャドウキャスター)場合
@@ -75,49 +82,20 @@ namespace nsK2EngineLow
 			m_shadowModel.Init(m_shadowModelInitData);
 		}
 
-		//m_modelInitData.m_expandShaderResoruceView[0] =
-		//	&nsK2EngineLow::RenderingEngine::GetInstance().GetShadowMapTexture();
-
 		// 影を受ける(シャドウレシーバー)場合
 		if (m_isReceiveShadow == true)
 		{
 			// シャドウマップのテクスチャを設定(t10に届く)
 			m_modelInitData.m_expandShaderResoruceView[0] =
 				&nsK2EngineLow::RenderingEngine::GetInstance().GetShadowMapTexture();
-
-			// モデルを初期化
-			//m_model.Init(m_modelInitData);
 		}
 
-		// Step1-5完成(環境光 ← ambient)
-		// 定数バッファを設定
-		//m_modelInitData.m_expandConstantBuffer = &ambientLight_;
-		// 定数バッファのサイズを設定
-		//m_modelInitData.m_expandConstantBufferSize = sizeof(ambientLight_);
-
-		// Step1-6完成(拡散反射光 ← lambert)
-		// 定数バッファを設定
-		//m_modelInitData.m_expandConstantBuffer = &directionLight_;
-		// 定数バッファのサイズを設定
-		//m_modelInitData.m_expandConstantBufferSize = sizeof(directionLight_);
-
-		// Step1-7(鏡面反射光 ← phong)
-		// 定数バッファを設定
-		//m_modelInitData.m_expandConstantBuffer = &m_lightCB;
-		// 定数バッファのサイズを設定
-		//m_modelInitData.m_expandConstantBufferSize = sizeof(m_lightCB);
-		
 		// Step1-10完成
 		// ユーザ拡張の定数バッファにライトの定数バッファを設定
 		m_modelInitData.m_expandConstantBuffer = &SceneLight::GetInstance().GetLightCB();
 		// ユーザー拡張の定数バッファのサイズを設定
 		m_modelInitData.m_expandConstantBufferSize = sizeof(SceneLight::LightCB);
-		
-		//SceneLight::GetInstance().SetAmbient(Vector3(1.0f, -0.5f, 1.0f));
-		//SceneLight::GetInstance().SetColor(Vector3(1.0f,1.0f,1.0f));
-		//SceneLight::GetInstance().SetDirection(Vector3(-1.0f,-1.0f,-1.0f));
-
-		// モデルを初期化
+		// モデルの初期化
 		m_model.Init(m_modelInitData);
 	}
 
@@ -148,9 +126,6 @@ namespace nsK2EngineLow
 
 	void ModelRender::Draw(RenderContext& rc)
 	{
-		// 描画
-		//m_model.Draw(rc);
-
 		// モデルを直接描画からモデルを登録に変更
 		RenderingEngine::GetInstance().AddModel(m_model);
 

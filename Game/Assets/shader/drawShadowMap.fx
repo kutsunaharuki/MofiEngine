@@ -21,7 +21,6 @@ cbuffer ModelCB : register(b0)
     float4x4 mProj;
 };
 
-
 /// <summary>
 /// 頂点シェーダー
 /// <summary>

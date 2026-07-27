@@ -68,20 +68,6 @@ struct Light
 ///////////////////////////////////////
 #include "ModelVSCommon.hlsli" // ModelCB : register(b0)はこの中に入ってる ※ b0は共通で使っているので被ってはならない
 
-/** 環境光の定数バッファ */
-// cbuffer AmbientLightCB : register(b1)
-// {
-//     AmbientLight ambientLight; // 環境光
-// };
-
-
-/** ディレクションライトの定数バッファ */
-// cbuffer DirectionLightCB : register(b1)
-// {
-//    DirectionLight directionLight; // ディレクションライト
-// };
-
-
 /** ライトの定数バッファ */
 // 環境光とか平行光源とかをまとめて所持する
 cbuffer LightCB : register(b1)
@@ -169,8 +155,6 @@ float4 PSMain(SPSIn In) : SV_Target0
 
     //-----------------------------------------//
     // Step1-6完成
-    // 補間で長さが縮むので正規化する
-    //float3 normal = normalize(In.normal);
 
     // ピクセルの法線とライトの方向の内積を計算
     float t0 = max(0.0f,dot(normal, -directionLight.direction));

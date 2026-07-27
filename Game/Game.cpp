@@ -44,26 +44,31 @@ Game::~Game()
 		delete m_modelRender;
 		m_modelRender = nullptr;
 	}
-	if (m_gameCamera != nullptr)
+	if (m_groundModelRender != nullptr)
 	{
-		delete m_gameCamera;
-		m_gameCamera = nullptr;
+		delete m_groundModelRender;
+		m_groundModelRender = nullptr;
 	}
 }
 
 
 bool Game::Start()
-{
+{	
 	// Step1-4完成
-	// 第3引数 が影を落とすかどうかのフラグで 第4引数 が影を受けるかどうかのフラグ。
 	m_modelRender = new ModelRender;
-	m_modelRender->Init("Assets/modelData/unityChan.tkm", nullptr, 0, true, true);
-	m_modelRender->SetTRS(m_position, m_rotation, m_scale);
-	m_modelRender->Update();
+	m_animClips[0].Load("Assets/animData/idle.tka");
+	m_animClips[0].SetLoopFlag(true);
+	m_animClips[1].Load("Assets/animData/run.tka");
+	m_animClips[1].SetLoopFlag(true);
 
+	m_modelRender->Init("Assets/modelData/unityChan.tkm", m_animClips, enModelUpAxisY, 2);
+	m_modelRender->SetTRS(m_position, m_rotation, m_scale);
+	m_modelRender->PlayAnimation(0);
+	m_modelRender->Update();
+	
 	// 地面のモデルレンダーを初期化
 	m_groundModelRender = new ModelRender;
-	m_groundModelRender->Init("Assets/modelData/ground.tkm", nullptr, 0, false, true);
+	m_groundModelRender->Init("Assets/modelData/ground.tkm", nullptr, enModelUpAxisZ, 0, false, true);
 	m_groundModelRender->SetTRS(m_gPosition, m_gRotation, m_gScale);
 	m_groundModelRender->Update();
 

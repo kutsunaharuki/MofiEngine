@@ -17,22 +17,23 @@ namespace nsK2EngineLow
 		 * @brief モデルの初期化処理
 		 * @param tkmFilePath tkmファイルパス
 		 * @param animClips アニメーションクリップ配列
+		 * @param upAxis モデルの上方向の軸
 		 * @param numAnimClips アニメーションクリップ配列の番号
 		 * @param isShadow 影を落とすかどうか
 		 * @param reShadow 影を受けるかどうか
-		 * @param fxFilePath fxファイルパス
 		 */
 		void Init(
 			const char* tkmFilePath,
 			AnimationClip* animClips = nullptr,
+			EnModelUpAxis upAxis = EnModelUpAxis::enModelUpAxisZ,
 			int numAnimClips = 0,
-			const bool isShadow,
-			const bool reShadow,
-			const char* fxFilePath = "Assets/shader/model.fx");
+			const bool isShadow = true,
+			const bool reShadow = true);
 
 		/**
 		 * @brief アニメーションの再生
 		 * @param clipNo Initで渡した配列の番号
+		 * @param interpolateTime 補間時間(単位: 秒)
 		 */
 		void PlayAnimation(int clipNo, float interpolateTime = 0.0f)
 		{
