@@ -3,7 +3,8 @@
 #include "GameCamera.h"
 
 
-namespace {
+namespace
+{
 	/** 移動速度 */
 	constexpr float MOVE_SPEED = 1.0f;
 	/** 回転速度 */
@@ -53,39 +54,16 @@ Game::~Game()
 
 bool Game::Start()
 {
-	// Step1-1完成(Step1-2にてSpriteRenderを自作)
-	//m_spriteInitData.m_fxFilePath = "Assets/shader/sprite.fx";
-	//m_spriteInitData.m_ddsFilePath[0] = "Assets/texture/texture.dds";
-	//m_spriteInitData.m_width = 128;
-	//m_spriteInitData.m_height = 128;
-	//m_sprite.Init(m_spriteInitData);
-
-	// Step1-2完成
-	//spriteRender_ = new nsK2Engine::SpriteRender;
-	//spriteRender_->Init("Assets/shader/sprite.fx", "Assets/texture/texture.dds", 128.0f, 128.0f);
-	//spriteRender_->SetPosition(INITIALIZE_POSITION);
-	//spriteRender_->SetRotation(rotation_);
-	//spriteRender_->SetScale(INITIALIZE_SCALE);
-	//spriteRender_->Update();
-
-	// Step1-3完成
-	// tkmファイルパスを設定
-	//modelInitData_.m_tkmFilePath = "Assets/modelData/unityChan.tkm";
-	// fxファイブパスを設定
-	//modelInitData_.m_fxFilePath = "Assets/shader/model.fx";
-	// モデルの初期化
-	//model_.Init(modelInitData_);
-
 	// Step1-4完成
 	// 第3引数 が影を落とすかどうかのフラグで 第4引数 が影を受けるかどうかのフラグ。
 	m_modelRender = new ModelRender;
-	m_modelRender->Init("Assets/modelData/unityChan.tkm", true, true);
+	m_modelRender->Init("Assets/modelData/unityChan.tkm", nullptr, 0, true, true);
 	m_modelRender->SetTRS(m_position, m_rotation, m_scale);
 	m_modelRender->Update();
 
 	// 地面のモデルレンダーを初期化
 	m_groundModelRender = new ModelRender;
-	m_groundModelRender->Init("Assets/modelData/ground.tkm", false, true);
+	m_groundModelRender->Init("Assets/modelData/ground.tkm", nullptr, 0, false, true);
 	m_groundModelRender->SetTRS(m_gPosition, m_gRotation, m_gScale);
 	m_groundModelRender->Update();
 
@@ -101,66 +79,14 @@ bool Game::Start()
 
 void Game::Update()
 {
-	/** ModelRender */
-	// 位置、回転、スケールを適当に動かしてみた。
-	//position_.x += MOVE_SPEED;
-	//m_modelRender->SetPosition(m_position);
-
-	//if (g_pad[0]->IsPress(enButtonA))
-	//{
-	//	m_position.x += MOVE_SPEED;
-	//}
-
-	//if (g_pad[0]->IsPress(enButtonB))
-	//{
-	//	m_position.x -= MOVE_SPEED;
-	//}
-
 	m_rotation.SetRotationDegY(180.0f);
-	//m_rotation.AddRotationDegY(ROTATE_SPEED);
-	//m_gRotation.AddRotationDegY(ROTATE_SPEED);
-	//m_rotation.SetRotationDegY(180.0f);
 	m_modelRender->SetRotation(m_rotation);
-	//m_modelRender->SetPosition(m_position);
-	
-	//m_groundModelRender->SetRotation(m_gRotation);
-
-	//bool isPressA = g_pad[0]->IsPress(enButtonA);
-	//bool isPressB = g_pad[0]->IsPress(enButtonB);
-	//if (isPressA) scale_ += Vector3::One * SCALE_SPEED;
-	//if (isPressB) scale_ -= Vector3::One * SCALE_SPEED;
-	//modelRender_->SetScale(scale_);
 	m_modelRender->Update();
-
 	m_gameCamera->Update();
-
-	/** SpriteRender */
-	// 位置と回転と拡縮を適当に更新してみた。
-	//position_ = spriteRender_->GetPosition();
-	//rotation_ = spriteRender_->GetRotation();
-	//scale_ = spriteRender_->GetScale();
-	
-	//position_.x += MOVE_SPEED;
-	//rotation_.AddRotationDegZ(ROTATE_SPEED);
-	//scale_.x += SCALE_SPEED;
-	//scale_.y += SCALE_SPEED;
-	
-	//spriteRender_->SetTRS(position_, rotation_, scale_);
-	//spriteRender_->Update();
 }
 
 void Game::Render(RenderContext& rc)
 {
-	//m_sprite.Draw(rc);
-
-	// スプライト描画
-	//spriteRender_->Draw(rc);
-
-	// デバックログ出力。
-	//K2_LOG("TEST:\n");
-
-	//model_.Draw(rc);
-
 	// モデル描画(ユニティちゃん)
 	m_modelRender->Draw(rc);
 	// モデル描画(地面)

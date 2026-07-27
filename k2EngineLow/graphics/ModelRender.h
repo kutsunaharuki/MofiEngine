@@ -16,11 +16,34 @@ namespace nsK2EngineLow
 		/**
 		 * @brief モデルの初期化処理
 		 * @param tkmFilePath tkmファイルパス
-		 * @param fxFilePath fxファイルパス
+		 * @param animClips アニメーションクリップ配列
+		 * @param numAnimClips アニメーションクリップ配列の番号
 		 * @param isShadow 影を落とすかどうか
-		 * @param reShadow 影を受けるかどうか 
+		 * @param reShadow 影を受けるかどうか
+		 * @param fxFilePath fxファイルパス
 		 */
-		void Init(const char* tkmFilePath, const bool isShadow, const bool reShadow, const char* fxFilePath = "Assets/shader/model.fx");
+		void Init(
+			const char* tkmFilePath,
+			AnimationClip* animClips = nullptr,
+			int numAnimClips = 0,
+			const bool isShadow,
+			const bool reShadow,
+			const char* fxFilePath = "Assets/shader/model.fx");
+
+		/**
+		 * @brief アニメーションの再生
+		 * @param clipNo Initで渡した配列の番号
+		 */
+		void PlayAnimation(int clipNo, float interpolateTime = 0.0f)
+		{
+			m_animation.Play(clipNo, interpolateTime);
+		}
+
+		/**
+		 * @brief アニメーション再生速度の設定
+		 * @param speed 再生速度
+		 */
+		void SetAnimationSpeed(float speed) { m_animationSpeed = speed; }
 
 		/**
 		 * @brief モデルの更新処理
@@ -110,10 +133,10 @@ namespace nsK2EngineLow
 
 
 	private:
-		/** 影を落とすかどうか */
-		bool m_isShadowCaster;
-		/** 影を受けるかどうか */
-		bool m_isReceiveShadow;
+		/** 骨 */
+		Skeleton m_skeleton;
+		/** アニメーション */
+		Animation m_animation;
 		/** モデル初期化データ */
 		ModelInitData m_modelInitData;
 		/** モデル */
@@ -128,5 +151,13 @@ namespace nsK2EngineLow
 		Quaternion m_rotation;
 		/** スケール */
 		Vector3 m_scale;
+		/** 影を落とすかどうか */
+		bool m_isShadowCaster;
+		/** 影を受けるかどうか */
+		bool m_isReceiveShadow;
+		/** クリップを渡されたかどうか */
+		bool m_isAnimted;
+		/** アニメーション再生速度 */
+		float m_animationSpeed;
 	};
 }

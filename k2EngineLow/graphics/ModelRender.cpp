@@ -18,6 +18,8 @@ namespace nsK2EngineLow
 		, m_scale(Vector3::One)
 		, m_isShadowCaster(false)
 		, m_isReceiveShadow(false)
+		, m_animationSpeed(1.0f)
+		, m_isAnimted(false)
 	{}
 
 
@@ -25,17 +27,44 @@ namespace nsK2EngineLow
 	{}
 
 
-	void ModelRender::Init(const char* tkmFilePath, const bool isShadow, const bool reShadow, const char* fxFilePath)
+	void ModelRender::Init(
+		const char* tkmFilePath,
+		AnimationClip* animationClips,
+		int numAnimClips,
+		const bool isShadow, 
+		const bool reShadow,
+		const char* fxFilePath)
 	{
+		/** 1. スケルトンの初期化 */
+		// 同じ階層のtksファイルを読むため
+		std::string skeletonFilePath = tkmFilePath;
+		// replaceでtksに置き換える
+		skeletonFilePath.replace(skeletonFilePath.length() - 3, 3, "tks");
+		// スケルトン初期化
+		m_skeleton.Init(skeletonFilePath.c_str());
+
+		/** 2. Modelにスケルトンを渡す(骨の行列がt3に送られる) */
 		// tkmファイルパスを設定
 		m_modelInitData.m_tkmFilePath = tkmFilePath;
 		// fxファイルパスを設定
 		m_modelInitData.m_fxFilePath = fxFilePath;
+		// スケルトンを設定(骨のアドレス)
+		m_modelInitData.m_skeleton = &m_skeleton;
 		// 影を落とすかどうかを設定
 		m_isShadowCaster = isShadow;
 		// 影を受けるかどうかを設定
 		m_isReceiveShadow = reShadow;
 		
+		/** 3. 影用モデルにもスケルトンのアドレスを渡す */
+		// ※ これを渡さないと影だけTぽーすになってしまう
+		m_shadowModelInitData.m_skeleton = &m_skeleton;
+
+		/** 4. アニメーション(クリップが渡された時のみ) */
+		if (animationClips != nullptr)
+		{
+			m_animation.Init(m_skeleton, animationClips, numAnimClips);
+		}
+
 		// 影を落とす(シャドウキャスター)場合
 		if (m_isShadowCaster == true)
 		{
@@ -101,6 +130,18 @@ namespace nsK2EngineLow
 		if (m_isShadowCaster)
 		{
 			m_shadowModel.UpdateWorldMatrix(m_position, m_rotation, m_scale);
+		}
+
+		// 初期化済みかをチェック
+		if (m_skeleton.IsInited())
+		{
+			m_skeleton.Update(m_model.GetWorldMatrix());
+		}
+
+		// アニメーションの時間を進める(1フレーム分)
+		if (m_isAnimted)
+		{
+			m_animation.Progress(g_gameTime->GetFrameDeltaTime() * m_animationSpeed);
 		}
 	}
 

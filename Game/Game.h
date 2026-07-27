@@ -6,6 +6,7 @@
 // Right now it draws nothing, so you will just see the gray clear color.
 // Add your own rendering (a triangle, a sprite, a model...) step by step.
 
+
 namespace app
 {
 	namespace camera
@@ -13,6 +14,7 @@ namespace app
 		class GameCamera;
 	}
 }
+
 
 class Game : public IGameObject
 {
@@ -25,6 +27,12 @@ public:
 
 
 private:
+	/** アニメーションの配列 */
+	//std::vector<AnimationClip> m_animClips;
+
+
+	/** アニメーションクリップ */
+	AnimationClip m_animClips[2];
 	/** ゲームカメラ */
 	app::camera::GameCamera* m_gameCamera;
 	/** スプライトレンダー */
