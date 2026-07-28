@@ -1,18 +1,80 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "system.h"
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx12.h"
+
+
+struct ExampleDescriptorHeapAllocator
+{
+	ID3D12DescriptorHeap* Heap = nullptr;
+	D3D12_DESCRIPTOR_HEAP_TYPE  HeapType = D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
+	D3D12_CPU_DESCRIPTOR_HANDLE HeapStartCpu;
+	D3D12_GPU_DESCRIPTOR_HANDLE HeapStartGpu;
+	UINT                        HeapHandleIncrement;
+	ImVector<int>               FreeIndices;
+
+	void Create(ID3D12Device* device, ID3D12DescriptorHeap* heap)
+	{
+		IM_ASSERT(Heap == nullptr && FreeIndices.empty());
+		Heap = heap;
+		D3D12_DESCRIPTOR_HEAP_DESC desc = heap->GetDesc();
+		HeapType = desc.Type;
+		HeapStartCpu = Heap->GetCPUDescriptorHandleForHeapStart();
+		HeapStartGpu = Heap->GetGPUDescriptorHandleForHeapStart();
+		HeapHandleIncrement = device->GetDescriptorHandleIncrementSize(HeapType);
+		FreeIndices.reserve((int)desc.NumDescriptors);
+		for (int n = desc.NumDescriptors; n > 0; n--)
+			FreeIndices.push_back(n - 1);
+	}
+	void Destroy()
+	{
+		Heap = nullptr;
+		FreeIndices.clear();
+	}
+	void Alloc(D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_desc_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_desc_handle)
+	{
+		IM_ASSERT(FreeIndices.Size > 0);
+		int idx = FreeIndices.back();
+		FreeIndices.pop_back();
+		out_cpu_desc_handle->ptr = HeapStartCpu.ptr + (idx * HeapHandleIncrement);
+		out_gpu_desc_handle->ptr = HeapStartGpu.ptr + (idx * HeapHandleIncrement);
+	}
+	void Free(D3D12_CPU_DESCRIPTOR_HANDLE out_cpu_desc_handle, D3D12_GPU_DESCRIPTOR_HANDLE out_gpu_desc_handle)
+	{
+		int cpu_idx = (int)((out_cpu_desc_handle.ptr - HeapStartCpu.ptr) / HeapHandleIncrement);
+		int gpu_idx = (int)((out_gpu_desc_handle.ptr - HeapStartGpu.ptr) / HeapHandleIncrement);
+		IM_ASSERT(cpu_idx == gpu_idx);
+		FreeIndices.push_back(cpu_idx);
+	}
+};
+
 
 HWND			g_hWnd = NULL;				// Window handle.
+
+ID3D12DescriptorHeap* g_imguiSrvHeap = nullptr;
+
+static ExampleDescriptorHeapAllocator g_imguiSrvHeapAllocator = {};
 
 // The one and only low-level engine instance.
 // K2EngineLow::Init() sets the global g_engine to point at this object,
 // so after InitGame() you can drive the frame with g_engine->BeginFrame() etc.
 static K2EngineLow* g_k2EngineLow = nullptr;
 
+// 追加
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 ///////////////////////////////////////////////////////////////////
 // Window message procedure.
 ///////////////////////////////////////////////////////////////////
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+	{
+		// imguiがが処理した入力はここで終わり
+		return true;
+	}
+
 	switch (msg)
 	{
 	case WM_DESTROY:
@@ -87,6 +149,43 @@ void InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, in
 	// later shows up on screen. Change this freely once you have your own camera.
 	g_camera3D->SetPosition({ 0.0f, 100.0f, -200.0f });
 	g_camera3D->SetTarget({ 0.0f, 50.0f, 0.0f });
+
+	// 1. imgui本体
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	// 見た目のテーマ
+	ImGui::StyleColorsLight();
+
+	// 2. Win32バックエンド
+	// ウィンドウハンドルはsystem.cppが持っている
+	ImGui_ImplWin32_Init(g_hWnd);
+
+
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	// SRV用のテクスチャ
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	// 窓口の数
+	desc.NumDescriptors = 64;
+	// シェーダーから見えるようにするためのもの
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	g_graphicsEngine->GetD3DDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_imguiSrvHeap));
+	// ExampleDescriptorHeapAllocatorをCreateして、g_imguiSrvHeapを渡す
+	g_imguiSrvHeapAllocator.Create(g_graphicsEngine->GetD3DDevice(), g_imguiSrvHeap);
+
+	// 3. DX12 バックエンド
+	ImGui_ImplDX12_InitInfo initInfo = {};
+	initInfo.Device = g_graphicsEngine->GetD3DDevice();
+	initInfo.CommandQueue = g_graphicsEngine->GetCommandQueue();
+	initInfo.NumFramesInFlight = 2;
+	initInfo.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	initInfo.SrvDescriptorHeap = g_imguiSrvHeap;
+	initInfo.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_handle) {
+		g_imguiSrvHeapAllocator.Alloc(out_cpu_handle, out_gpu_handle);
+		};
+	initInfo.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle) {
+		g_imguiSrvHeapAllocator.Free(cpu_handle, gpu_handle);
+		};
+	ImGui_ImplDX12_Init(&initInfo);
 }
 
 // Destroy the low-level engine.

@@ -1,4 +1,7 @@
 #include "stdafx.h"
+
+#include "imgui_impl_dx12.h"
+#include "imgui_impl_win32.h"
 #include "system/system.h"
 
 #include<InitGUID.h>
@@ -50,9 +53,26 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		// Drive one frame of the low-level engine yourself.
 		// (K2Engine used to hide this behind K2Engine::Execute().)
 		g_engine->BeginFrame();		// Begin the frame: clear the screen, update input, etc.
+
+		// imguiのフレーム開始
+		ImGui_ImplDX12_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+
 		g_engine->ExecuteUpdate();	// Update all game objects (IGameObject::Update).
 		g_engine->ExecuteRender();	// Render all game objects (IGameObject::Render).
 		RenderingEngine::GetInstance().Execute(g_graphicsEngine->GetRenderContext());
+
+		// デモウィンドウを表示
+		ImGui::ShowDemoWindow();
+
+		// imguiの描画(フレームの一番最後 = 全部の絵の上に重ねる)
+		ImGui::Render();
+		auto* cmdList = g_graphicsEngine->GetCommandList();
+		// imguiのSRVヒープを設定する(設定しないと表示されない)
+		cmdList->SetDescriptorHeaps(1, &g_imguiSrvHeap);
+		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmdList);
+
 		g_engine->EndFrame();		// End the frame: present the back buffer.
 	}
 
