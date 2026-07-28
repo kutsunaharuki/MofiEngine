@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include "Game.h"
 #include "GameCamera.h"
+#include "imgui.h"
 
 
 namespace
@@ -84,6 +85,17 @@ bool Game::Start()
 
 void Game::Update()
 {
+	// ライト調整ウィンドウ
+	ImGui::Begin("Light");
+	auto light = SceneLight::GetInstance().GetLightCB();
+	// ウィンドウの幅と高さを設定
+	ImGui::SetNextWindowSize(ImVec2(800,600), ImGuiCond_Once);
+	ImGui::SliderFloat3("Direction", &light.directionLight.direction.x, -1.0f, 1.0f);
+	ImGui::ColorEdit3("Color", &light.directionLight.color.x);
+	ImGui::ColorEdit3("Ambient", &light.ambientLight.ambient.x);
+	ImGui::SliderFloat("Spec Power", &light.light.specPower, 1.0f, 200.0f);
+	ImGui::End();
+
 	m_rotation.SetRotationDegY(180.0f);
 	m_modelRender->SetRotation(m_rotation);
 	

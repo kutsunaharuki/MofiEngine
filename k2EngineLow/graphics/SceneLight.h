@@ -100,7 +100,7 @@ namespace nsK2EngineLow
 		// ライトのAPI
 		//===============================================//
 		/**
-		 * @brief ライトの方向を設定
+		 * @brief ライトの方向を設定(Vector3用)
 		 * @param dir ライトの方向
 		 */
 		void SetDirection(const Vector3& dir)
@@ -109,16 +109,18 @@ namespace nsK2EngineLow
 			// 一旦正規化しておく
 			m_lightCB.directionLight.direction.Normalize();
 		}
+
 		/**
-		 * @brief ライトの色を設定
+		 * @brief ライトの色を設定(Vector3用)
 		 * @param color ライトの色
 		 */
 		void SetColor(const Vector3& color)
 		{
 			m_lightCB.directionLight.color = color;
 		}
+
 		/**
-		 * @brief 環境光を設定
+		 * @brief 環境光を設定(Vector3用)
 		 * @param ambient 環境光の色
 		 */
 		void SetAmbient(const Vector3& ambient)
@@ -140,16 +142,27 @@ namespace nsK2EngineLow
 		 * @return ライトの方向
 		 */
 		const Vector3& GetDirection() const { return m_lightCB.directionLight.direction; }
+		float GetDirectionX() const { return m_lightCB.directionLight.direction.x; }
+		float GetDirectionY() const { return m_lightCB.directionLight.direction.y; }
+		float GetDirectionZ() const { return m_lightCB.directionLight.direction.z; }
 		/**
 		 * @brief ライトの色を取得
 		 * @return ライトの色
 		 */
 		const Vector3& GetColor() const { return m_lightCB.directionLight.color; }
+		float GetColorR() const { return m_lightCB.directionLight.color.x; }
+		float GetColorG() const { return m_lightCB.directionLight.color.y; }
+		float GetColorB() const { return m_lightCB.directionLight.color.z; }
+
 		/**
 		 * @brief 環境光を取得
 		 * @return 環境光の色
 		 */
 		const Vector3& GetAmbient() const { return m_lightCB.ambientLight.ambient; }
+		float GetAmbientR() const { return m_lightCB.ambientLight.ambient.x; }
+		float GetAmbientG() const { return m_lightCB.ambientLight.ambient.y; }
+		float GetAmbientB() const { return m_lightCB.ambientLight.ambient.z; }
+
 		/**
 		 * @brief ライトビュープロジェクション行列を取得
 		 * @return ライトビュープロジェクション行列
