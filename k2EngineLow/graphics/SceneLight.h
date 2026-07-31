@@ -66,19 +66,53 @@ namespace nsK2EngineLow
 
 
 		/**
+		 * @brief シャドウパラメータの構造体
+		 */
+		struct ShadowParam
+		{
+			float shadowBias;               // シャドウバイアス
+			Vector3 pad4;                   // パディング(空けるだけ)
+			float shadowBiasMin;            // シャドウバイアスの最小値
+			Vector3 pad5;                   // パディング(空けるだけ)
+
+			ShadowParam()
+				: shadowBias(0.005f)
+				, shadowBiasMin(0.0001f)
+			{}
+		};
+
+
+		/**
+		 * @brief ポイントライトの構造体
+		 */
+		struct PTLight
+		{
+			Vector3 ptPosition;            // ポイントライトの位置
+			float ptRange;				   // 影響範囲(距離で明るさが0になる)
+			Vector3 ptColor;			   // 色
+			float pad6;
+
+
+			PTLight()
+				: ptPosition(Vector3(0.0f, 0.0f, 0.0f))
+				, ptRange(10.0f)
+				, ptColor(Vector3(1.0f, 1.0f, 1.0f))
+			{}
+		};
+
+
+		/**
 		 * @brief ライトの定数バッファの構造体
 		 * @details: これまで入れた物をまとめて定数バッファに入れるための構造体
 		 */
 		struct LightCB
 		{
-			DirectionLight directionLight;	// ディレクションライト
-			AmbientLight ambientLight;		// 環境光
-			Light light;					// ライト
-			Matrix mLVP;					// ライトビュープロジェクション行列
-			float shadowBias;               // シャドウバイアス
-			Vector3 pad4;                   // パディング(空けるだけ)
-			float shadowBiasMin;            // シャドウバイアスの最小値
-			Vector3 pad5;                   // パディング(空けるだけ)
+			DirectionLight directionLight;		   // ディレクションライト
+			AmbientLight ambientLight;			   // 環境光
+			Light light;						   // ライト
+			Matrix mLVP;						   // ライトビュープロジェクション行列
+			ShadowParam shadowParam;			   // シャドウパラメータ
+			PTLight ptLight;					   // ポイントライト
 
 
 			LightCB()
@@ -86,8 +120,8 @@ namespace nsK2EngineLow
 				, ambientLight(AmbientLight())
 				, light(Light())
 				, mLVP(Matrix::Identity)
-				, shadowBias(0.005f)
-				, shadowBiasMin(0.0001f)
+				, shadowParam(ShadowParam())
+				, ptLight(PTLight())
 			{}
 		};
 
@@ -149,7 +183,7 @@ namespace nsK2EngineLow
 		 */
 		void SetShadowBias(float bias)
 		{
-			m_lightCB.shadowBias = bias;
+			m_lightCB.shadowParam.shadowBias = bias;
 		}
 
 		/**
@@ -158,7 +192,34 @@ namespace nsK2EngineLow
 		 */
 		void SetShadowBiasMin(float biasMin)
 		{
-			m_lightCB.shadowBiasMin = biasMin;
+			m_lightCB.shadowParam.shadowBiasMin = biasMin;
+		}
+
+		/**
+		 * @brief ポイントライトの位置を設定
+		 * @param ptPos ポイントライトの位置
+		 */
+		void SetPointLightPosition(const Vector3& ptPos)
+		{
+			m_lightCB.ptLight.ptPosition = ptPos;
+		}
+
+		/**
+		 * @brief ポイントライトの影響範囲を設定
+		 * @param ptRange ポイントライトの影響範囲
+		 */
+		void SetPointLightRange(float ptRange)
+		{
+			m_lightCB.ptLight.ptRange = ptRange;
+		}
+
+		/**
+		 * @brief ポイントライトの色を設定
+		 * @param ptColor ポイントライトの色
+		 */
+		void SetPointLightColor(const Vector3& ptColor)
+		{
+			m_lightCB.ptLight.ptColor = ptColor;
 		}
 
 		/**

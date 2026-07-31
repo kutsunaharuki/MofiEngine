@@ -60,6 +60,23 @@ struct Light
     float3 pad3;                   // 空き
 };
 
+/** 影 */
+struct ShadowParam
+{
+    float shadowBias;               // 傾斜に応じたバイアス
+    float3 pad4;                    // 空き
+    float shadowBiasMin;            // バイアスが0にならないようにする値
+    float3 pad5;                    // 空き
+};
+
+/** ポイントライト(点光源) */
+struct PTLight
+{
+    float3 ptPosition;              // ポイントライトの位置
+    float ptRange;                  // 影響範囲
+    float3 ptColor;                 // 色
+    float pad6;                     // パディング
+};
 
 ///////////////////////////////////////
 // Common vertex shader code.
@@ -76,10 +93,8 @@ cbuffer LightCB : register(b1)
     AmbientLight ambientLight;      // 環境光
     Light light;                    // ライト
     float4x4 mLVP;                  // ライトビュープロジェクション行列
-    float shadowBias;               // 傾斜に応じたバイアス
-    float3 pad4;                    // 空き
-    float shadowBiasMin;            // バイアスが0にならないようにする値
-    float3 pad5;                    // 空き
+    ShadowParam shadowParam;        // 影の調整
+    PTLight ptLight;                // ポイントライト
 };
 
 
@@ -198,6 +213,26 @@ float CalcShadow(float4 posInLVP, float3 normal, float3 lightDir, float shadowBi
     return shadowMap.SampleCmpLevelZero(shadowSampler, shadowMapUV, zInLVP - bias);
 }
 
+//////////////////////////////////////////////////
+// ポイントライトの拡散反射光を計算
+//////////////////////////////////////////////////
+float3 CalcPointLight(PTLight pt, float3 normal, float3 worldPos)
+{
+     // ライト → ピクセルの向き
+    float3 ptLigDir = normalize(worldPos - pt.ptPosition);
+    // ライトまでの距離
+    float ptDistance = length(worldPos - pt.ptPosition);
+    
+    // 距離減衰 近い = 1 範囲の端 = 0
+    // saturateは0~1に切り詰め
+    float affect = saturate(1.0f - ptDistance / pt.ptRange);
+    // 減衰カーブ(3乗してそれっぽく見せてるだけ)
+    affect = pow(affect, 3.0f);
+
+    float t = max(0.0f,dot(normal, -ptLigDir));
+    return pt.ptColor * t * affect;
+}
+
 ////////////////////////////////////////////////
 // Pixel shader.
 // For now: just output the albedo texture. Add your lighting here.
@@ -213,10 +248,13 @@ float4 PSMain(SPSIn In) : SV_Target0
     float specularPower = specularMap.Sample(Sampler, In.uv).r;
     // 鏡面反射光
     float3 specularLig = CalcSpecularLight(directionLight,light, normal, In.worldPos, specularPower);
+    // ポイントライトの拡散反射光を計算
+    float3 ptDiffuse = CalcPointLight(ptLight, normal, In.worldPos);
+
     // ライトビュープロジェクション行列
     float4 posInLVP = mul(mLVP, float4(In.worldPos, 1.0f));
     // 影の強さ
-    float shadow = CalcShadow(posInLVP, normal, directionLight.direction, shadowBias, shadowBiasMin, g_shadowMap, g_shadowMapSampler);
+    float shadow = CalcShadow(posInLVP, normal, directionLight.direction, shadowParam.shadowBias, shadowParam.shadowBiasMin, g_shadowMap, g_shadowMapSampler);
     // アルベドカラー
     float4 albedoColor = albedoTexture.Sample(Sampler, In.uv);
     // 環境光を除いたライト
@@ -224,8 +262,8 @@ float4 PSMain(SPSIn In) : SV_Target0
     
     // 最終的な色
     float4 finalColor = albedoColor;
-    finalColor.xyz = albedoColor.xyz * (ambientLight.ambient + nonAmbientLig * (1.0f - shadow));
-
+    finalColor.xyz = albedoColor.xyz * (ambientLight.ambient + nonAmbientLig * (1.0f - shadow)) + ptDiffuse;
+    
     // TODO: add lighting. For example, start with ambient:
     //   float3 ambient = float3(0.3, 0.3, 0.3);
     //   albedoColor.xyz *= ambient;

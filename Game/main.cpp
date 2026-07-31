@@ -64,7 +64,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		RenderingEngine::GetInstance().Execute(g_graphicsEngine->GetRenderContext());
 
 		// デモウィンドウを表示
-		ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow();
 
 		// imguiの描画(フレームの一番最後 = 全部の絵の上に重ねる)
 		ImGui::Render();

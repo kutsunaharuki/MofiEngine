@@ -89,7 +89,7 @@ void Game::Update()
 	ImGui::Begin("Light");
 	auto& light = SceneLight::GetInstance().GetLightCB();
 	// ウィンドウの幅と高さを設定
-	ImGui::SetNextWindowSize(ImVec2(800,600), ImGuiCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(800,300), ImGuiCond_Once);
 	ImGui::SliderFloat3("Direction", &light.directionLight.direction.x, -1.0f, 1.0f);
 	ImGui::ColorEdit3("Color", &light.directionLight.color.x);
 	ImGui::ColorEdit3("Ambient", &light.ambientLight.ambient.x);
@@ -98,11 +98,18 @@ void Game::Update()
 
 	// 影調整ウィンドウ
 	ImGui::Begin("Shadow");
-	ImGui::SetNextWindowSize(ImVec2(800,600), ImGuiCond_Once);
-	ImGui::SliderFloat("Shadow Bias", &light.shadowBias, 0.0f, 1.0f);
-	ImGui::SliderFloat("Shadow Bias Min", &light.shadowBiasMin, 0.0f, 1.0f);
+	ImGui::SetNextWindowSize(ImVec2(800,300), ImGuiCond_Once);
+	ImGui::SliderFloat("Shadow Bias", &light.shadowParam.shadowBias, 0.0f, 1.0f);
+	ImGui::SliderFloat("Shadow Bias Min", &light.shadowParam.shadowBiasMin, 0.0f, 1.0f);
 	ImGui::End();
 
+	// ポイントライト調整ウィンドウ
+	ImGui::Begin("PointLight");
+	ImGui::SetNextWindowSize(ImVec2(800, 300), ImGuiCond_Once);
+	ImGui::SliderFloat3("PointLight Position", &light.ptLight.ptPosition.x, -300.0f, 300.0f);
+	ImGui::SliderFloat("PointLight Range", &light.ptLight.ptRange, 0.0f, 1000.0f);
+	ImGui::ColorEdit3("PointLight Color", &light.ptLight.ptColor.x);
+	ImGui::End();
 
 	m_rotation.SetRotationDegY(180.0f);
 	m_modelRender->SetRotation(m_rotation);
