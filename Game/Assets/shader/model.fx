@@ -94,7 +94,9 @@ cbuffer LightCB : register(b1)
     Light light;                    // ライト
     float4x4 mLVP;                  // ライトビュープロジェクション行列
     ShadowParam shadowParam;        // 影の調整
-    PTLight ptLight;                // ポイントライト
+    PTLight ptLight[4];             // ポイントライトの配列(4個)
+    int numPtLights;                // 今使っているポイントライトの数
+    float3 pad7;                    // 空き(パディング)
 };
 
 
@@ -218,7 +220,8 @@ float CalcShadow(float4 posInLVP, float3 normal, float3 lightDir, float shadowBi
 //////////////////////////////////////////////////
 float3 CalcPointLight(PTLight pt, float3 normal, float3 worldPos)
 {
-     // ライト → ピクセルの向き
+    
+    // ライト → ピクセルの向き
     float3 ptLigDir = normalize(worldPos - pt.ptPosition);
     // ライトまでの距離
     float ptDistance = length(worldPos - pt.ptPosition);
@@ -226,10 +229,10 @@ float3 CalcPointLight(PTLight pt, float3 normal, float3 worldPos)
     // 距離減衰 近い = 1 範囲の端 = 0
     // saturateは0~1に切り詰め
     float affect = saturate(1.0f - ptDistance / pt.ptRange);
-    // 減衰カーブ(3乗してそれっぽく見せてるだけ)
+    // 減衰カーブ
     affect = pow(affect, 3.0f);
 
-    float t = max(0.0f,dot(normal, -ptLigDir));
+    float t = max(0.0f, dot(normal, -ptLigDir));
     return pt.ptColor * t * affect;
 }
 
@@ -248,8 +251,16 @@ float4 PSMain(SPSIn In) : SV_Target0
     float specularPower = specularMap.Sample(Sampler, In.uv).r;
     // 鏡面反射光
     float3 specularLig = CalcSpecularLight(directionLight,light, normal, In.worldPos, specularPower);
-    // ポイントライトの拡散反射光を計算
-    float3 ptDiffuse = CalcPointLight(ptLight, normal, In.worldPos);
+    
+    // 外に出しておく
+    float3 ptDiffuse = float3(0.0f,0.0f,0.0f);
+
+    // ポイントライトの数分ループする
+    for(int i = 0; i < numPtLights; i++)
+    {
+        // ポイントライトの拡散反射光を計算
+        ptDiffuse = CalcPointLight(ptLight[i], normal, In.worldPos);
+    }
 
     // ライトビュープロジェクション行列
     float4 posInLVP = mul(mLVP, float4(In.worldPos, 1.0f));

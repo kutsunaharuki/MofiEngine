@@ -112,7 +112,11 @@ namespace nsK2EngineLow
 			Light light;						   // ライト
 			Matrix mLVP;						   // ライトビュープロジェクション行列
 			ShadowParam shadowParam;			   // シャドウパラメータ
-			PTLight ptLight;					   // ポイントライト
+			
+			static const int MAX_POINT_LIGHTS = 4; // 最大ポイントライト数
+			PTLight ptLights[MAX_POINT_LIGHTS];     // ポイントライト
+			int numPointLights;                    // 今使っているポイントライトの数
+			Vector3 pad7;                          // パディング(空けるだけ)
 
 
 			LightCB()
@@ -121,10 +125,10 @@ namespace nsK2EngineLow
 				, light(Light())
 				, mLVP(Matrix::Identity)
 				, shadowParam(ShadowParam())
-				, ptLight(PTLight())
+				, numPointLights(0)
 			{}
 		};
-
+		
 		/**
 		 * @brief シーンライトのインスタンスを取得
 		 * @return シーンライトのインスタンス
@@ -193,33 +197,6 @@ namespace nsK2EngineLow
 		void SetShadowBiasMin(float biasMin)
 		{
 			m_lightCB.shadowParam.shadowBiasMin = biasMin;
-		}
-
-		/**
-		 * @brief ポイントライトの位置を設定
-		 * @param ptPos ポイントライトの位置
-		 */
-		void SetPointLightPosition(const Vector3& ptPos)
-		{
-			m_lightCB.ptLight.ptPosition = ptPos;
-		}
-
-		/**
-		 * @brief ポイントライトの影響範囲を設定
-		 * @param ptRange ポイントライトの影響範囲
-		 */
-		void SetPointLightRange(float ptRange)
-		{
-			m_lightCB.ptLight.ptRange = ptRange;
-		}
-
-		/**
-		 * @brief ポイントライトの色を設定
-		 * @param ptColor ポイントライトの色
-		 */
-		void SetPointLightColor(const Vector3& ptColor)
-		{
-			m_lightCB.ptLight.ptColor = ptColor;
 		}
 
 		/**

@@ -105,11 +105,22 @@ void Game::Update()
 
 	// ポイントライト調整ウィンドウ
 	ImGui::Begin("PointLight");
-	ImGui::SetNextWindowSize(ImVec2(800, 300), ImGuiCond_Once);
-	ImGui::SliderFloat3("PointLight Position", &light.ptLight.ptPosition.x, -300.0f, 300.0f);
-	ImGui::SliderFloat("PointLight Range", &light.ptLight.ptRange, 0.0f, 1000.0f);
-	ImGui::ColorEdit3("PointLight Color", &light.ptLight.ptColor.x);
+	ImGui::SliderInt("Count", &light.numPointLights, 0, 4);
+	for (int i = 0; i < light.numPointLights; i++)
+	{
+		ImGui::PushID(i);
+		if (ImGui::TreeNode("", "Light %d", i))
+		{
+			ImGui::SetNextWindowSize(ImVec2(800, 300), ImGuiCond_Once);
+			ImGui::DragFloat3("Position", &light.ptLights[i].ptPosition.x, 5.0f);
+			ImGui::ColorEdit3("Color", &light.ptLights[i].ptColor.x);
+			ImGui::DragFloat("Range", &light.ptLights[i].ptRange, 5.0f, 0.0f, 2000.0f);
+			ImGui::TreePop();
+		}
+		ImGui::PopID();
+	}
 	ImGui::End();
+
 
 	m_rotation.SetRotationDegY(180.0f);
 	m_modelRender->SetRotation(m_rotation);
