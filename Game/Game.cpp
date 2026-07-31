@@ -87,7 +87,7 @@ void Game::Update()
 {
 	// ライト調整ウィンドウ
 	ImGui::Begin("Light");
-	auto light = SceneLight::GetInstance().GetLightCB();
+	auto& light = SceneLight::GetInstance().GetLightCB();
 	// ウィンドウの幅と高さを設定
 	ImGui::SetNextWindowSize(ImVec2(800,600), ImGuiCond_Once);
 	ImGui::SliderFloat3("Direction", &light.directionLight.direction.x, -1.0f, 1.0f);
@@ -95,6 +95,14 @@ void Game::Update()
 	ImGui::ColorEdit3("Ambient", &light.ambientLight.ambient.x);
 	ImGui::SliderFloat("Spec Power", &light.light.specPower, 1.0f, 200.0f);
 	ImGui::End();
+
+	// 影調整ウィンドウ
+	ImGui::Begin("Shadow");
+	ImGui::SetNextWindowSize(ImVec2(800,600), ImGuiCond_Once);
+	ImGui::SliderFloat("Shadow Bias", &light.shadowBias, 0.0f, 1.0f);
+	ImGui::SliderFloat("Shadow Bias Min", &light.shadowBiasMin, 0.0f, 1.0f);
+	ImGui::End();
+
 
 	m_rotation.SetRotationDegY(180.0f);
 	m_modelRender->SetRotation(m_rotation);

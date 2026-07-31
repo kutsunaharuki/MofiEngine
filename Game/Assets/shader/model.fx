@@ -76,6 +76,10 @@ cbuffer LightCB : register(b1)
     AmbientLight ambientLight;      // 環境光
     Light light;                    // ライト
     float4x4 mLVP;                  // ライトビュープロジェクション行列
+    float shadowBias;               // 傾斜に応じたバイアス
+    float3 pad4;                    // 空き
+    float shadowBiasMin;            // バイアスが0にならないようにする値
+    float3 pad5;                    // 空き
 };
 
 
@@ -131,151 +135,96 @@ SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputed
     return psIn;
 }
 
+///////////////////////////////////////////////
+// 法線マップからワールド空間の法線を復元する
+///////////////////////////////////////////////
+float3 CalcNormalFromMap(Texture2D<float4> map, sampler samp, float2 uv, float3 tangent, float3 biNormal, float3 normal)
+{
+    float3 localNormal = map.Sample(samp, uv).xyz;
+    localNormal = (localNormal * 2.0f) - 1.0f;
+
+    return normalize(
+          tangent  * localNormal.x
+        + biNormal * localNormal.y
+        + normal   * localNormal.z
+    );
+}
+
+/////////////////////////////////////////////////
+// 拡散反射光を計算
+/////////////////////////////////////////////////
+float3 CalcDiffuseLight(DirectionLight dirLig, float3 normal)
+{
+    float t = max(0.0f,(dot(normal, -dirLig.direction)));
+    return dirLig.color * t;
+}
+
+/////////////////////////////////////////////////
+// 鏡面反射光を計算
+/////////////////////////////////////////////////
+float3 CalcSpecularLight(DirectionLight dirLig, Light light, float3 normal, float3 worldPos, float specPower)
+{
+    float3 refVec = reflect(dirLig.direction, normal);
+    float3 toEye = normalize(light.eyePos - worldPos);
+
+    float t = pow(max(0.0f,dot(refVec, toEye)), light.specPower);
+
+    float3 specLig = dirLig.color * t;
+    specLig *= specPower * light.reflectPower;
+    return specLig;
+}
+
+/////////////////////////////////////////////////
+// シャドウマップから影の強さ(0 ~ 1)を計算する
+// 0 = 影なし 1 = 影
+/////////////////////////////////////////////////
+float CalcShadow(float4 posInLVP, float3 normal, float3 lightDir, float shadowBias , float shadowBiasMin ,Texture2D<float4> shadowMap, SamplerComparisonState shadowSampler)
+{
+    float2 shadowMapUV = posInLVP.xy / posInLVP.w;
+    shadowMapUV *= float2 (0.5, -0.5f);
+    shadowMapUV += 0.5f;
+
+    // 範囲外は何もなし
+    if(shadowMapUV.x < 0.0f || shadowMapUV.x > 1.0f || shadowMapUV.y < 0.0f || shadowMapUV.y > 1.0f)
+    {
+        return 0.0f;
+    }
+
+    float zInLVP = posInLVP.z / posInLVP.w;
+
+    float3 L = normalize(lightDir);
+    float bias = max(shadowBias * (1.0f - dot(normal, -L)), shadowBiasMin);
+
+    return shadowMap.SampleCmpLevelZero(shadowSampler, shadowMapUV, zInLVP - bias);
+}
+
 ////////////////////////////////////////////////
 // Pixel shader.
 // For now: just output the albedo texture. Add your lighting here.
 ////////////////////////////////////////////////
 float4 PSMain(SPSIn In) : SV_Target0
 {
-    // Step1-6よりnormalを使っていたのをlocalNormalに変更する
-    float3 localNormal = normalMap.Sample(Sampler,In.uv).xyz;
-
-    // 法線マップに書き込まれている法線は0.0~-1.0で、
-    // 負の数になっていないので負の数にする
-    localNormal = (localNormal * 2.0f) -1.0f;
-
-    // 法線を回転させて、オブジェクト空間からワールド空間に変換する
-    float3 normal = normalize(
-          In.tangent  * localNormal.x  // 接線
-        + In.biNormal * localNormal.y  // 従法線
-        + In.normal   * localNormal.z  // 元の法線
-    );
-    // 上記のnormalをdiffuse と specular で扱う
-
-
-    //-----------------------------------------//
-    // Step1-6完成
-
-    // ピクセルの法線とライトの方向の内積を計算
-    float t0 = max(0.0f,dot(normal, -directionLight.direction));
-
-    // 拡散反射光を求める
-    float3 diffuseLig = directionLight.color * t0;
-    //-----------------------------------------//
-
-    // Step1-7完成
-    // 反射ベクトルを求める
-    float3 refVec = reflect(directionLight.direction, normal);
-
-    // 視点に伸びるベクトルを求めてついでに正規化する
-    float3 toEye = normalize(light.eyePos - In.worldPos);
-
-    // refVec と toEyeの内積から鏡面反射の光を絞る(specPowerはC++側で値の変更を容易にした)
-    float t1 = pow(max(0.0f,dot(refVec, toEye)), light.specPower);
-
-    // Step1-8完成
-    // スぺキュラマップからスぺキュラ反射光をサンプリングする
+    // 長かったから関数を作って省略
+    // 法線を復元
+    float3 normal = CalcNormalFromMap(normalMap, Sampler, In.uv, In.tangent, In.biNormal, In.normal);
+    // 拡散反射光
+    float3 diffuseLig = CalcDiffuseLight(directionLight, normal);
+    // スぺキュラマップをサンプリング
     float specularPower = specularMap.Sample(Sampler, In.uv).r;
-
-    // 鏡面反射光を求める
-    float3 specularLig = directionLight.color * t1;
-
-    // 鏡面反射光に乗算する
-    specularLig *= specularPower * light.reflectPower;
-    //------------------------------------------//
-
-    // 3. 環境光と拡散反射光と鏡面反射光を足し算して、最終的な光を求める
-    float3 lig = ambientLight.ambient + diffuseLig + specularLig;
-    //------------------------------------------//
-
-    // (お試し) 鏡面反射光と拡散反射光を足し算してみた
-    //float3 lig = diffuseLig + specularLig;
-
-    // 2.環境光と拡散反射光を足し算して光を求める
-    //float3 lig = ambient + diffuseLig;
-
-    // 1. 環境光を渡す
-    //float3 lig = ambientLight.ambient;
-
-    //------------------------------------------//
-    // Step2-2完成
-    // ライトから見た位置へ変換
-    float4 posInLVP = mul(mLVP,float4(In.worldPos,1.0f));
-
-    // -1 ~ 1 の範囲に
-    float2 shadowMapUV = posInLVP.xy / posInLVP.w;
-    shadowMapUV *= float2(0.5f, -0.5f);
-
-    // 0~1のUVに変換(Yは上下反転)
-    shadowMapUV += 0.5f;
-
-    // 素のモデルのテクスチャの色
+    // 鏡面反射光
+    float3 specularLig = CalcSpecularLight(directionLight,light, normal, In.worldPos, specularPower);
+    // ライトビュープロジェクション行列
+    float4 posInLVP = mul(mLVP, float4(In.worldPos, 1.0f));
+    // 影の強さ
+    float shadow = CalcShadow(posInLVP, normal, directionLight.direction, shadowBias, shadowBiasMin, g_shadowMap, g_shadowMapSampler);
+    // アルベドカラー
     float4 albedoColor = albedoTexture.Sample(Sampler, In.uv);
-
+    // 環境光を除いたライト
+    float3 nonAmbientLig = diffuseLig + specularLig;
+    
     // 最終的な色
     float4 finalColor = albedoColor;
-
-    float shadow = 0.0f;
-
-    // シャドウマップに写っている範囲だけ
-    if(shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
-    {
-        // ライトから見た「自分」の深度
-        float zInLVP = posInLVP.z / posInLVP.w;
-
-        // 「ライトに一番近い面」の深度
-        float zInShadowMap = g_shadowMap.Sample(Sampler, shadowMapUV).r;
-        if(zInLVP > zInShadowMap + 0.001f)
-        {
-            // 自分より手前に何かある = 遮られている = 影の中
-            // 影の濃さ
-            finalColor.xyz *= 0.5f;
-        }
-
-        // Step2-4(ソフトシャドウ)
-        // float shadow = g_shadowMap.SampleCmpLevelZero(
-        //     g_shadowMapSampler,   // 使用するサンプラーステート
-        //     shadowMapUV,          // シャドウマップにアクセスするUV座標
-        //     zInLVP                // 比較するZ値。比較するテクセルの値より大きければ1.0、小さければ0.0
-        // );
-
-        float3 shadowColor = finalColor.xyz * 0.5f;
-        
-        float L = normalize(directionLight.direction);
-        // PCF
-        // 傾斜依存バイアス(これを使わないと、モデルに模様が出る)
-        float bias = max(0.005f * (1.0f - dot(normal, -L)), 0.0001f);
- 
-        shadow = g_shadowMap.SampleCmpLevelZero(
-        g_shadowMapSampler, shadowMapUV, zInLVP - bias);
- 
-        //finalColor.xyz = finalColor.xyz, shadowColor, shadow;
-
-        // 黒が書いているかを見ていた
-        //float3 shadow = g_shadowMap.Sample(Sampler,shadowMapUV).xyz;
-        // 黒(0)が描かれていたら暗くなって、白(1)ならそのまま
-        //finalColor.xyz *= shadow;
-    }
-
-    //-----------------------------------------//
-    // Step1-5完成
-    //float3 lig = ambientLight.ambient;
-
-    // 環境光を覗いた 拡散反射光と鏡面反射光を求める
-    float3 nonAmbientLig = diffuseLig + specularLig;
-
-    // 3. 環境光 + 拡散反射光 + 鏡面反射光 の結果の lig を渡す
-    //finalColor.xyz *= lig;
-
     finalColor.xyz = albedoColor.xyz * (ambientLight.ambient + nonAmbientLig * (1.0f - shadow));
-
-    // 2. 環境光 + 拡散反射光 の結果の lig を渡す
-    //albedoColor.xyz *= lig;
-
-    // 1. 環境光そのままのものの lig を渡す(一律で環境光を上げる)
-    //albedoColor.xyz *= lig;
-    //-----------------------------------------//
-    
 
     // TODO: add lighting. For example, start with ambient:
     //   float3 ambient = float3(0.3, 0.3, 0.3);

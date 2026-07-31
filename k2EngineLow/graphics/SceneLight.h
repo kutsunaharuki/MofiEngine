@@ -75,6 +75,10 @@ namespace nsK2EngineLow
 			AmbientLight ambientLight;		// 環境光
 			Light light;					// ライト
 			Matrix mLVP;					// ライトビュープロジェクション行列
+			float shadowBias;               // シャドウバイアス
+			Vector3 pad4;                   // パディング(空けるだけ)
+			float shadowBiasMin;            // シャドウバイアスの最小値
+			Vector3 pad5;                   // パディング(空けるだけ)
 
 
 			LightCB()
@@ -82,6 +86,8 @@ namespace nsK2EngineLow
 				, ambientLight(AmbientLight())
 				, light(Light())
 				, mLVP(Matrix::Identity)
+				, shadowBias(0.005f)
+				, shadowBiasMin(0.0001f)
 			{}
 		};
 
@@ -138,36 +144,22 @@ namespace nsK2EngineLow
 		}
 
 		/**
-		 * @brief ライトの方向を取得
-		 * @return ライトの方向
+		 * @brief シャドウバイアスを設定
+		 * @param bias シャドウバイアス
 		 */
-		const Vector3& GetDirection() const { return m_lightCB.directionLight.direction; }
-		float GetDirectionX() const { return m_lightCB.directionLight.direction.x; }
-		float GetDirectionY() const { return m_lightCB.directionLight.direction.y; }
-		float GetDirectionZ() const { return m_lightCB.directionLight.direction.z; }
-		/**
-		 * @brief ライトの色を取得
-		 * @return ライトの色
-		 */
-		const Vector3& GetColor() const { return m_lightCB.directionLight.color; }
-		float GetColorR() const { return m_lightCB.directionLight.color.x; }
-		float GetColorG() const { return m_lightCB.directionLight.color.y; }
-		float GetColorB() const { return m_lightCB.directionLight.color.z; }
+		void SetShadowBias(float bias)
+		{
+			m_lightCB.shadowBias = bias;
+		}
 
 		/**
-		 * @brief 環境光を取得
-		 * @return 環境光の色
+		 * @brief シャドウバイアスの最小値を設定
+		 * @param biasMin シャドウバイアスの最小値
 		 */
-		const Vector3& GetAmbient() const { return m_lightCB.ambientLight.ambient; }
-		float GetAmbientR() const { return m_lightCB.ambientLight.ambient.x; }
-		float GetAmbientG() const { return m_lightCB.ambientLight.ambient.y; }
-		float GetAmbientB() const { return m_lightCB.ambientLight.ambient.z; }
-
-		/**
-		 * @brief ライトビュープロジェクション行列を取得
-		 * @return ライトビュープロジェクション行列
-		 */
-		const Matrix& GetLightProjMatrix() const { return m_lightCB.mLVP; }
+		void SetShadowBiasMin(float biasMin)
+		{
+			m_lightCB.shadowBiasMin = biasMin;
+		}
 
 		/**
 		 * @brief ライトの定数バッファを取得
