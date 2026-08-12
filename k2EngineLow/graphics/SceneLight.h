@@ -91,12 +91,16 @@ namespace nsK2EngineLow
 			float ptRange;				   // 影響範囲(距離で明るさが0になる)
 			Vector3 ptColor;			   // 色
 			float pad6;
+			Vector3 ptDirection;
+			float ptAngle;				   // ライトの角度(照らす円錐の広さ)
 
 
 			PTLight()
 				: ptPosition(Vector3(0.0f, 0.0f, 0.0f))
 				, ptRange(10.0f)
 				, ptColor(Vector3(1.0f, 1.0f, 1.0f))
+				, ptDirection(Vector3(0.0f, -1.0f, 0.0f))
+				, ptAngle(30.0f)
 			{}
 		};
 
@@ -197,6 +201,40 @@ namespace nsK2EngineLow
 		void SetShadowBiasMin(float biasMin)
 		{
 			m_lightCB.shadowParam.shadowBiasMin = biasMin;
+		}
+
+		/**
+		 * @brief スポットライトの角度を設定
+		 * @param angle 角度
+		 * @param index ライトのインデックス
+		 */
+		void SetSpotLightAngle(float angle, int index)
+		{
+			for (int i = 0; i < m_lightCB.numPointLights; i++)
+			{
+				if (i == index)
+				{
+					m_lightCB.ptLights[i].ptAngle = angle;
+					break;
+				}
+			}
+		}
+
+		/**
+		 * @brief スポットライトの方向を設定
+		 * @param dir 方向
+		 * @param index ライトのインデックス
+		 */
+		void SetSpotLightDirection(const Vector3& dir, int index)
+		{
+			for (int i = 0; i < m_lightCB.numPointLights; i++)
+			{
+				if (i == index)
+				{
+					m_lightCB.ptLights[i].ptDirection = dir;
+					break;
+				}
+			}
 		}
 
 		/**

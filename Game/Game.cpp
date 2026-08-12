@@ -115,6 +115,8 @@ void Game::Update()
 			ImGui::DragFloat3("Position", &light.ptLights[i].ptPosition.x, 5.0f);
 			ImGui::ColorEdit3("Color", &light.ptLights[i].ptColor.x);
 			ImGui::DragFloat("Range", &light.ptLights[i].ptRange, 5.0f, 0.0f, 2000.0f);
+			ImGui::DragFloat3("Direction", &light.ptLights[i].ptDirection.x, 0.01f, -1.0f, 1.0f);
+			ImGui::DragFloat("Angle", &light.ptLights[i].ptAngle, 1.0f, 0.0f, 180.0f);
 			ImGui::TreePop();
 		}
 		ImGui::PopID();

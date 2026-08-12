@@ -76,6 +76,8 @@ struct PTLight
     float ptRange;                  // 影響範囲
     float3 ptColor;                 // 色
     float pad6;                     // パディング
+    float3 ptDirection;             // ポイントライトの向き
+    float ptAngle;                  // ポイントライトの角度(照らす円錐の広さ)
 };
 
 ///////////////////////////////////////
@@ -220,7 +222,6 @@ float CalcShadow(float4 posInLVP, float3 normal, float3 lightDir, float shadowBi
 //////////////////////////////////////////////////
 float3 CalcPointLight(PTLight pt, float3 normal, float3 worldPos)
 {
-    
     // ライト → ピクセルの向き
     float3 ptLigDir = normalize(worldPos - pt.ptPosition);
     // ライトまでの距離
@@ -231,10 +232,41 @@ float3 CalcPointLight(PTLight pt, float3 normal, float3 worldPos)
     float affect = saturate(1.0f - ptDistance / pt.ptRange);
     // 減衰カーブ
     affect = pow(affect, 3.0f);
-
     float t = max(0.0f, dot(normal, -ptLigDir));
     return pt.ptColor * t * affect;
 }
+
+
+///////////////////////////////////////////////////
+// スポットライトの拡散反射光を計算
+///////////////////////////////////////////////////
+float3 CalcSpotLight(PTLight pt, float3 normal, float3 worldPos)
+{
+    float3 ligDir = normalize(worldPos - pt.ptPosition);
+    float ligDis = length(worldPos - pt.ptPosition);
+
+    // 距離による減衰
+    float disAffect = saturate(1.0f - ligDis / pt.ptRange);
+    disAffect = pow(disAffect, 3.0f);
+
+    // 角度による減衰
+    float cosAngle = dot(ligDir, normalize(pt.ptDirection));
+    cosAngle = clamp(cosAngle, -1.0f, 1.0f);
+    float angle = abs(acos(cosAngle));
+    
+    float angleAffect = saturate(1.0f - angle / radians(pt.ptAngle));
+    angleAffect = pow(angleAffect, 0.5f);
+
+    return float3(angleAffect, angleAffect, angleAffect);
+
+    // 拡散反射光
+    float t = max(0.0f,dot(normal, -ligDir));
+    float3 diffuse = pt.ptColor * t;
+    
+    // 距離と角度の両方の影響をかける
+    return diffuse * disAffect * angleAffect;
+}
+
 
 ////////////////////////////////////////////////
 // Pixel shader.
@@ -252,14 +284,15 @@ float4 PSMain(SPSIn In) : SV_Target0
     // 鏡面反射光
     float3 specularLig = CalcSpecularLight(directionLight,light, normal, In.worldPos, specularPower);
     
-    // 外に出しておく
     float3 ptDiffuse = float3(0.0f,0.0f,0.0f);
 
     // ポイントライトの数分ループする
     for(int i = 0; i < numPtLights; i++)
     {
         // ポイントライトの拡散反射光を計算
-        ptDiffuse = CalcPointLight(ptLight[i], normal, In.worldPos);
+        //ptDiffuse = CalcPointLight(ptLight[i], normal, In.worldPos);
+        // スポットライトの拡散反射光を計算
+        ptDiffuse += CalcSpotLight(ptLight[i], normal, In.worldPos);
     }
 
     // ライトビュープロジェクション行列
