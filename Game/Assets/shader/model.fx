@@ -94,7 +94,7 @@ cbuffer LightCB : register(b1)
     DirectionLight directionLight;  // ディレクションライト
     AmbientLight ambientLight;      // 環境光
     Light light;                    // ライト
-    float4x4 mLVP;                  // ライトビュープロジェクション行列
+    float4x4 mLVP[4];               // ライトビュープロジェクション行列
     ShadowParam shadowParam;        // 影の調整
     PTLight ptLight[4];             // ポイントライトの配列(4個)
     int numPtLights;                // 今使っているポイントライトの数
@@ -251,13 +251,13 @@ float3 CalcSpotLight(PTLight pt, float3 normal, float3 worldPos)
 
     // 角度による減衰
     float cosAngle = dot(ligDir, normalize(pt.ptDirection));
-    cosAngle = clamp(cosAngle, -1.0f, 1.0f);
+    //cosAngle = clamp(cosAngle, -1.0f, 1.0f);
     float angle = abs(acos(cosAngle));
     
     float angleAffect = saturate(1.0f - angle / radians(pt.ptAngle));
     angleAffect = pow(angleAffect, 0.5f);
 
-    return float3(angleAffect, angleAffect, angleAffect);
+    //return float3(angleAffect, angleAffect, angleAffect);
 
     // 拡散反射光
     float t = max(0.0f,dot(normal, -ligDir));
@@ -295,18 +295,28 @@ float4 PSMain(SPSIn In) : SV_Target0
         ptDiffuse += CalcSpotLight(ptLight[i], normal, In.worldPos);
     }
 
-    // ライトビュープロジェクション行列
-    float4 posInLVP = mul(mLVP, float4(In.worldPos, 1.0f));
-    // 影の強さ
-    float shadow = CalcShadow(posInLVP, normal, directionLight.direction, shadowParam.shadowBias, shadowParam.shadowBiasMin, g_shadowMap, g_shadowMapSampler);
+    // 最大数
+    const int MAX_SHADOW = 2;
+    // 合計値
+    float shadowSum = 0.0f;
+    for(int k = 0; k < MAX_SHADOW; k++)
+    {
+        // ライトビュープロジェクション行列
+        float4 posInLVP = mul(mLVP[k], float4(In.worldPos, 1.0f));
+        // 影の強さ
+        float shadow = CalcShadow(posInLVP, normal, directionLight.direction, shadowParam.shadowBias, shadowParam.shadowBiasMin, g_shadowMap, g_shadowMapSampler);
+
+        shadowSum += shadow;
+    }
+    
     // アルベドカラー
     float4 albedoColor = albedoTexture.Sample(Sampler, In.uv);
     // 環境光を除いたライト
     float3 nonAmbientLig = diffuseLig + specularLig;
-    
+
     // 最終的な色
     float4 finalColor = albedoColor;
-    finalColor.xyz = albedoColor.xyz * (ambientLight.ambient + nonAmbientLig * (1.0f - shadow)) + ptDiffuse;
+    finalColor.xyz = albedoColor.xyz * (ambientLight.ambient + nonAmbientLig * (1.0f - shadowSum)) + ptDiffuse;
     
     // TODO: add lighting. For example, start with ambient:
     //   float3 ambient = float3(0.3, 0.3, 0.3);

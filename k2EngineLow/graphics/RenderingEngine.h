@@ -59,18 +59,24 @@ namespace nsK2EngineLow
 		 * @brief ライトカメラを取得
 		 * @return ライトカメラ
 		 */
-		Camera& GetLightCamera() { return m_lightCamera; }
+		Camera& GetLightCamera(int index) { return m_lightCamera[index]; }
 		/**
 		 * @brief シャドウマップのレンダリングターゲットとなるテクスチャを取得
 		 * @return シャドウマップのレンダリングターゲットとなるテクスチャ
 		 * @details: 「影を受けたい人(モデル)」向けの窓口(API)。RenderTarget をどう持っているかは隠蔽する。
 		 */
-		Texture& GetShadowMapTexture() { return m_shadowMap.GetRenderTargetTexture(); }
+		Texture& GetShadowMapTexture(int index) { return m_shadowMap[index].GetRenderTargetTexture(); }
 
 		/**
 		 * @brief ライトカメラの初期化
 		 */
 		void InitializeLight();
+
+		/**
+		 * @brief 最大影数を取得
+		 * @return 最大影数
+		 */
+		int GetMaxShadowCount() const { return MAX_SHADOW; }
 
 
 	private:
@@ -82,20 +88,27 @@ namespace nsK2EngineLow
 		{
 			// シャドウマップのクリアカラーを白に設定
 			float clearColor[4] = { 1.0f,1.0f,1.0f,1.0f };
-			// シャドウマップのレンダリングターゲットを作成
-			m_shadowMap.Create(
-				1024,1024,                        // 解像度
-				1,1,							  // ミップマップ数、配列数(1でよい)
-				DXGI_FORMAT_R32_FLOAT,			  // DXGI_FORMAT_R8G8B8A8_UNORMから変わった(float 1チャンネル)
-				DXGI_FORMAT_D32_FLOAT,			  // 深度バッファのフォーマット
-				clearColor						  // シャドウマップのクリアカラー
-			);
+			for (int i = 0; i < MAX_SHADOW; i++)
+			{
+				// シャドウマップのレンダリングターゲットを作成
+				m_shadowMap[i].Create(
+					1024, 1024,                       // 解像度
+					1, 1,							  // ミップマップ数、配列数(1でよい)
+					DXGI_FORMAT_R32_FLOAT,			  // DXGI_FORMAT_R8G8B8A8_UNORMから変わった(float 1チャンネル)
+					DXGI_FORMAT_D32_FLOAT,			  // 深度バッファのフォーマット
+					clearColor						  // シャドウマップのクリアカラー
+				);
+			}
 		}
 
+		std::function<void(Texture&)> m_textureFunc;
+
+		/** 最大影数 */
+		static const int MAX_SHADOW = 4;
 		/** ライトカメラ */
-		Camera m_lightCamera;
+		Camera m_lightCamera[MAX_SHADOW];
 		/** シャドウマップ */
-		RenderTarget m_shadowMap;
+		RenderTarget m_shadowMap[MAX_SHADOW];
 		/** 影を落とすモデル(毎フレーム登録) */
 		std::vector<Model*> m_shadowCasters;
 		/** モデルのリスト */

@@ -114,11 +114,11 @@ namespace nsK2EngineLow
 			DirectionLight directionLight;		   // ディレクションライト
 			AmbientLight ambientLight;			   // 環境光
 			Light light;						   // ライト
-			Matrix mLVP;						   // ライトビュープロジェクション行列
+			Matrix mLVP[4];						   // ライトビュープロジェクション行列
 			ShadowParam shadowParam;			   // シャドウパラメータ
 			
 			static const int MAX_POINT_LIGHTS = 4; // 最大ポイントライト数
-			PTLight ptLights[MAX_POINT_LIGHTS];     // ポイントライト
+			PTLight ptLights[MAX_POINT_LIGHTS];    // ポイントライト
 			int numPointLights;                    // 今使っているポイントライトの数
 			Vector3 pad7;                          // パディング(空けるだけ)
 
@@ -127,7 +127,7 @@ namespace nsK2EngineLow
 				: directionLight(DirectionLight())
 				, ambientLight(AmbientLight())
 				, light(Light())
-				, mLVP(Matrix::Identity)
+				, mLVP()
 				, shadowParam(ShadowParam())
 				, numPointLights(0)
 			{}
@@ -178,11 +178,12 @@ namespace nsK2EngineLow
 
 		/**
 		 * @brief ライトビュープロジェクション行列を設定
+		 * @param index 何番目のライトか
 		 * @param mLVP ライトビュープロジェクション行列
 		 */
-		void SetLightProjMatrix(const Matrix& mlvp)
+		void SetLightProjMatrix(int index, const Matrix& mlvp)
 		{
-			m_lightCB.mLVP = mlvp;
+			m_lightCB.mLVP[index] = mlvp;
 		}
 
 		/**
@@ -201,40 +202,6 @@ namespace nsK2EngineLow
 		void SetShadowBiasMin(float biasMin)
 		{
 			m_lightCB.shadowParam.shadowBiasMin = biasMin;
-		}
-
-		/**
-		 * @brief スポットライトの角度を設定
-		 * @param angle 角度
-		 * @param index ライトのインデックス
-		 */
-		void SetSpotLightAngle(float angle, int index)
-		{
-			for (int i = 0; i < m_lightCB.numPointLights; i++)
-			{
-				if (i == index)
-				{
-					m_lightCB.ptLights[i].ptAngle = angle;
-					break;
-				}
-			}
-		}
-
-		/**
-		 * @brief スポットライトの方向を設定
-		 * @param dir 方向
-		 * @param index ライトのインデックス
-		 */
-		void SetSpotLightDirection(const Vector3& dir, int index)
-		{
-			for (int i = 0; i < m_lightCB.numPointLights; i++)
-			{
-				if (i == index)
-				{
-					m_lightCB.ptLights[i].ptDirection = dir;
-					break;
-				}
-			}
 		}
 
 		/**
