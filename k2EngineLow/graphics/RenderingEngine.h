@@ -68,6 +68,18 @@ namespace nsK2EngineLow
 		Texture& GetShadowMapTexture(int index) { return m_shadowMap[index].GetRenderTargetTexture(); }
 
 		/**
+		 * @brief シャドウマップのテクスチャをクエリ
+		 * @param queryFunc クエリ関数
+		 */
+		void QueryShadowMapTexture(std::function<void(Texture&)> queryFunc)
+		{
+			for (int i = 0; i < MAX_SHADOW; i++)
+			{
+				queryFunc(m_shadowMap[i].GetRenderTargetTexture());
+			}
+		}
+
+		/**
 		 * @brief ライトカメラの初期化
 		 */
 		void InitializeLight();

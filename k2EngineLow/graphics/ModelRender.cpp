@@ -87,13 +87,14 @@ namespace nsK2EngineLow
 		// 影を受ける(シャドウレシーバー)場合
 		if (m_isReceiveShadow == true)
 		{
-			// シャドウライトの数だけSRVを設定
-			for (int i = 0; i < RenderingEngine::GetInstance().GetMaxShadowCount(); i++)
+			int srvNo = 0;
+
+			// 来た順に拡張SRVに詰めるような処理になる(これで枚数を知らずに入れることができるようになった)
+			RenderingEngine::GetInstance().QueryShadowMapTexture([&](Texture& shadowMap)
 			{
-				m_modelInitData.m_expandShaderResoruceView[i] 
-					= &nsK2EngineLow::RenderingEngine::GetInstance().GetShadowMapTexture(i);
-				m_model.Init(m_modelInitData);
-			}
+				m_modelInitData.m_expandShaderResoruceView[srvNo] = &shadowMap;
+				srvNo++;
+			});
 		}
 
 		// ユーザ拡張の定数バッファにライトの定数バッファを設定
