@@ -96,24 +96,14 @@ namespace nsK2EngineLow
 		 * @brief コンストラクタ
 		 * @details: シングルトンパターンを採用しているため、外部からのインスタンス化を禁止するためにprivateにしている
 		 */
-		RenderingEngine() 
-		{
-			// シャドウマップのクリアカラーを白に設定
-			float clearColor[4] = { 1.0f,1.0f,1.0f,1.0f };
-			for (int i = 0; i < MAX_SHADOW; i++)
-			{
-				// シャドウマップのレンダリングターゲットを作成
-				m_shadowMap[i].Create(
-					1024, 1024,                       // 解像度
-					1, 1,							  // ミップマップ数、配列数(1でよい)
-					DXGI_FORMAT_R32_FLOAT,			  // DXGI_FORMAT_R8G8B8A8_UNORMから変わった(float 1チャンネル)
-					DXGI_FORMAT_D32_FLOAT,			  // 深度バッファのフォーマット
-					clearColor						  // シャドウマップのクリアカラー
-				);
-			}
-		}
+		RenderingEngine();
 
-		std::function<void(Texture&)> m_textureFunc;
+		/** メインレンダリングターゲット */
+		RenderTarget m_mainRenderTarget;
+		/** 最後に画面へ運ぶだけのスプライト */
+		Sprite m_copyToFrameBufferSprite;
+		/** スプライトの初期化データ */
+		SpriteInitData m_spriteInitData;
 
 		/** 最大影数 */
 		static const int MAX_SHADOW = 4;

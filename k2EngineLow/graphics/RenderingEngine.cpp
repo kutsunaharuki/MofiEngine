@@ -36,9 +36,14 @@ namespace nsK2EngineLow
 			rc.WaitUntilFinishDrawingToRenderTarget(m_shadowMap[i]);
 		}
 		
-		// 描き先を画面(フレームバッファ)に戻して、パス2のフォワードレンダリングパスに移行する
-		g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
-		rc.SetViewportAndScissor(g_graphicsEngine->GetFrameBufferViewport());
+		// =============================================
+		// フォワードレンダリングパス
+		// =============================================
+		
+		// 描き先をメインレンダリングターゲットに切り替える
+		rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
+		rc.SetRenderTargetAndViewport(m_mainRenderTarget);
+		rc.ClearRenderTargetView(m_mainRenderTarget);
 
 		// カメラ視点で描画する
 		for (auto* model : m_models)
@@ -46,8 +51,58 @@ namespace nsK2EngineLow
 			model->Draw(rc);
 		}
 
+		rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
+		
+		// ここにポストプロセスのパスが入る
+
+
+		// ============================================
+		// コピーパス
+		// ============================================
+		
+		g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
+		m_copyToFrameBufferSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+		m_copyToFrameBufferSprite.Draw(rc);
+
+		// ===========================================
+		// 2Dパス(スプライト・フォント・imguiはこの後 = 加工の影響を受けない)
+		// ===========================================
+		
 		// 毎フレームリストを空にする
 		m_models.clear();
+	}
+
+
+	RenderingEngine::RenderingEngine()
+	{
+		// メインレンダリングターゲットの初期化
+		m_mainRenderTarget.Create(
+			FRAME_BUFFER_W, FRAME_BUFFER_H,
+			1, 1,
+			DXGI_FORMAT_R16G16B16A16_FLOAT, // HDR フォーマット
+			DXGI_FORMAT_D32_FLOAT
+		);
+
+		// スプライトの初期化
+		m_spriteInitData.m_width = FRAME_BUFFER_W;
+		m_spriteInitData.m_height = FRAME_BUFFER_H;
+		m_spriteInitData.m_fxFilePath = "Assets/shader/sprite.fx";
+		m_spriteInitData.m_textures[0] = &m_mainRenderTarget.GetRenderTargetTexture();
+		m_copyToFrameBufferSprite.Init(m_spriteInitData);
+
+		// シャドウマップのクリアカラーを白に設定
+		float clearColor[4] = { 1.0f,1.0f,1.0f,1.0f };
+		for (int i = 0; i < MAX_SHADOW; i++)
+		{
+			// シャドウマップのレンダリングターゲットを作成
+			m_shadowMap[i].Create(
+				1024, 1024,                       // 解像度
+				1, 1,							  // ミップマップ数、配列数(1でよい)
+				DXGI_FORMAT_R32_FLOAT,			  // DXGI_FORMAT_R8G8B8A8_UNORMから変わった(float 1チャンネル)
+				DXGI_FORMAT_D32_FLOAT,			  // 深度バッファのフォーマット
+				clearColor						  // シャドウマップのクリアカラー
+			);
+		}
 	}
 
 
@@ -82,20 +137,5 @@ namespace nsK2EngineLow
 
 			scLight.SetLightProjMatrix(i, m_lightCamera[i].GetViewProjectionMatrix());
 		}
-
-
-		//m_lightCamera.SetPosition(lightDir * -100.0f);
-		//// キャラのいるあたりを見る
-		//m_lightCamera.SetTarget(Vector3::Zero);
-		//// 真下を向くときはY以外の値を上げる(Yだと視線と平行になり行列が壊れるから)
-		//m_lightCamera.SetUp({ 1.0f,0.0f,0.0f });
-		//// 平行投影
-		//m_lightCamera.SetUpdateProjMatrixFunc(Camera::enUpdateProjMatrixFunc_Ortho);
-		//// 影を写す範囲の幅
-		//m_lightCamera.SetWidth(SHADOW_WIDTH);
-		//// 影を写す範囲の高さ(この範囲外には影はできない)
-		//m_lightCamera.SetHeight(SHADOW_HEIGHT);
-		//// ライトカメラの更新
-		//m_lightCamera.Update();
 	}
 }
