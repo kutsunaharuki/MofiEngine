@@ -60,9 +60,29 @@ namespace nsK2EngineLow
 		// コピーパス
 		// ============================================
 		
+		if (m_screenBlurPower > 0.0f)
+		{
+			m_screenBlur.ExecuteOnGPU(rc, m_screenBlurPower);
+		}
+
 		g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
-		m_copyToFrameBufferSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
-		m_copyToFrameBufferSprite.Draw(rc);
+
+		if (m_screenBlurPower > 0.0f)
+		{
+			// コピーパスは「ボケ版スプライト」を描く
+			m_bokeSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+			m_bokeSprite.Draw(rc);
+		}
+		else
+		{
+			// コピーパスは今まで通り「通常版スプライト」を描く
+			m_copyToFrameBufferSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+			m_copyToFrameBufferSprite.Draw(rc);
+		}
+
+		//g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
+		//m_copyToFrameBufferSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+		//m_copyToFrameBufferSprite.Draw(rc);
 
 		// ===========================================
 		// 2Dパス(スプライト・フォント・imguiはこの後 = 加工の影響を受けない)
@@ -74,6 +94,7 @@ namespace nsK2EngineLow
 
 
 	RenderingEngine::RenderingEngine()
+		: m_screenBlurPower(0.0f)
 	{
 		// メインレンダリングターゲットの初期化
 		m_mainRenderTarget.Create(
@@ -89,6 +110,16 @@ namespace nsK2EngineLow
 		m_spriteInitData.m_fxFilePath = "Assets/shader/sprite.fx";
 		m_spriteInitData.m_textures[0] = &m_mainRenderTarget.GetRenderTargetTexture();
 		m_copyToFrameBufferSprite.Init(m_spriteInitData);
+
+		// スクリーンブラーの初期化
+		m_screenBlur.Init(&m_mainRenderTarget.GetRenderTargetTexture(), false, false);
+
+		// ボケスプライトの初期化
+		m_bokeSpriteInitData.m_width = FRAME_BUFFER_W;
+		m_bokeSpriteInitData.m_height = FRAME_BUFFER_H;
+		m_bokeSpriteInitData.m_fxFilePath = "Assets/shader/sprite.fx";
+		m_bokeSpriteInitData.m_textures[0] = &m_screenBlur.GetBokeTexture();
+		m_bokeSprite.Init(m_bokeSpriteInitData);
 
 		// シャドウマップのクリアカラーを白に設定
 		float clearColor[4] = { 1.0f,1.0f,1.0f,1.0f };

@@ -90,6 +90,12 @@ namespace nsK2EngineLow
 		 */
 		int GetMaxShadowCount() const { return MAX_SHADOW; }
 
+		/**
+		 * @brief スクリーンブラーのぼかしの強さを取得
+		 * @return スクリーンブラーのぼかしの強さ
+		 */
+		float& GetScreenBlurPower() { return m_screenBlurPower; }
+
 
 	private:
 		/**
@@ -97,6 +103,15 @@ namespace nsK2EngineLow
 		 * @details: シングルトンパターンを採用しているため、外部からのインスタンス化を禁止するためにprivateにしている
 		 */
 		RenderingEngine();
+
+		/** ガウシアンブラー */
+		GaussianBlur m_screenBlur;
+		float m_screenBlurPower;
+
+		/** ボケスプライト */
+		Sprite m_bokeSprite;
+		/** ボケスプライトの初期化データ */
+		SpriteInitData m_bokeSpriteInitData;
 
 		/** メインレンダリングターゲット */
 		RenderTarget m_mainRenderTarget;

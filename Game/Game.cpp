@@ -123,6 +123,11 @@ void Game::Update()
 	}
 	ImGui::End();
 
+	// スクリーンブラー(ガウシアンブラー)
+	ImGui::Begin("GaussianBlur");
+	ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_Once);
+	ImGui::DragFloat("Blur Power", &RenderingEngine::GetInstance().GetScreenBlurPower(), 0.1f, 0.0f, 1.0f);
+	ImGui::End();
 
 	m_rotation.SetRotationDegY(180.0f);
 	m_modelRender->SetRotation(m_rotation);
