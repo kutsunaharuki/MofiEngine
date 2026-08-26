@@ -89,12 +89,59 @@ namespace nsK2EngineLow
 		 * @return 最大影数
 		 */
 		int GetMaxShadowCount() const { return MAX_SHADOW; }
-
 		/**
 		 * @brief スクリーンブラーのぼかしの強さを取得
 		 * @return スクリーンブラーのぼかしの強さ
 		 */
 		float& GetScreenBlurPower() { return m_screenBlurPower; }
+		/**
+		 * @brief ブルーム効果の有効化
+		 * @return 有効か無効かどうか
+		 */
+		bool& IsEnableBloom() { return m_isEnableBloom; }
+		/**
+		 * @brief ブルーム効果の閾値を取得
+		 * @return ブルーム効果の閾値
+		 */
+		float& GetBloomThreshold() { return m_bloomCB.threshold; }
+		/**
+		 * @brief ブルーム効果の強さを取得
+		 * @return ブルーム効果の強さ
+		 */
+		float& GetBloomIntensity() { return m_bloomIntensity; }
+
+		/**
+		 * @brief ブルーム効果の閾値を設定
+		 * @param threshold ブルーム効果の閾値
+		 */
+		inline void SetBloomThreshold(float threshold)
+		{
+			m_bloomCB.threshold = threshold;
+		}
+		/**
+		 * @brief ブルーム効果の強さを取得
+		 * @param intensity ブルーム効果の強さ
+		 */
+		inline void SetBloomIntensity(float intensity)
+		{
+			m_bloomIntensity = intensity;
+			m_additiveBlendSprite.SetMulColor(Vector4(m_bloomIntensity, m_bloomIntensity, m_bloomIntensity, 1.0f));
+		}
+
+		/**
+		 * @brief ブルームのデータ
+		 */
+		struct BloomCB
+		{
+			float threshold;
+			Vector3 pad9;
+		};
+
+		/**
+		 * @brief ブルームのデータを取得
+		 * @return ブルームのデータ
+		 */
+		BloomCB& GetBloomCB() { return m_bloomCB; }
 
 
 	private:
@@ -107,6 +154,30 @@ namespace nsK2EngineLow
 		/** ガウシアンブラー */
 		GaussianBlur m_screenBlur;
 		float m_screenBlurPower;
+
+		/** ブルームのデータ */
+		BloomCB m_bloomCB;
+
+		/** 加算合成用スプライト */
+		Sprite m_additiveBlendSprite;
+
+		/** 輝度抽出の結果(画面サイズ) */
+		RenderTarget m_luminanceRT;
+		/** 輝度抽出のスプライト */
+		Sprite m_luminanceSprite;
+
+		/** ダウンさせる要素数 */
+		static const int NUM_DOWN = 4;
+		/** 1/2, 1/4, 1/8, 1/16 */
+		RenderTarget m_downRT[NUM_DOWN];
+		/** ブラーdownスプライト */
+		Sprite m_downSprites[NUM_DOWN];
+		/** アップさせる要素数 */
+		static const int NUM_UP = 4;
+		/** 1/8, 1/4, 1/2 */
+		RenderTarget m_upRT[NUM_UP];
+		/** ブラーupスプライト */
+		Sprite m_upSprites[NUM_UP];
 
 		/** ボケスプライト */
 		Sprite m_bokeSprite;
@@ -130,5 +201,12 @@ namespace nsK2EngineLow
 		std::vector<Model*> m_shadowCasters;
 		/** モデルのリスト */
 		std::vector<Model*> m_models;
+
+		/** ブルーム効果の有効化 */
+		bool m_isEnableBloom;
+		/** ブルーム効果の閾値 */
+		float m_bloomThreshold;
+		/** ブルーム効果の強さ */
+		float m_bloomIntensity;
 	};
 }

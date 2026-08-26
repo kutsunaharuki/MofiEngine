@@ -85,53 +85,79 @@ bool Game::Start()
 
 void Game::Update()
 {
-	// ライト調整ウィンドウ
-	ImGui::Begin("Light");
+	// ライトの定数バッファの参照を取得
 	auto& light = SceneLight::GetInstance().GetLightCB();
-	// ウィンドウの幅と高さを設定
-	ImGui::SetNextWindowSize(ImVec2(800,300), ImGuiCond_Once);
-	ImGui::SliderFloat3("Direction", &light.directionLight.direction.x, -1.0f, 1.0f);
-	ImGui::ColorEdit3("Color", &light.directionLight.color.x);
-	ImGui::ColorEdit3("Ambient", &light.ambientLight.ambient.x);
-	ImGui::SliderFloat("Spec Power", &light.light.specPower, 1.0f, 200.0f);
-	ImGui::End();
-
-	// 影調整ウィンドウ
-	ImGui::Begin("Shadow");
-	ImGui::SetNextWindowSize(ImVec2(800,300), ImGuiCond_Once);
-	ImGui::SliderFloat("Shadow Bias", &light.shadowParam.shadowBias, 0.0f, 1.0f);
-	ImGui::SliderFloat("Shadow Bias Min", &light.shadowParam.shadowBiasMin, 0.0f, 1.0f);
-	ImGui::End();
-
-	// ポイントライト調整ウィンドウ
-	ImGui::Begin("PointLight");
-	ImGui::SliderInt("Count", &light.numPointLights, 0, 4);
-	for (int i = 0; i < light.numPointLights; i++)
+	// ライト関連のImGuiウィンドウ(結果もここ)
+	ImGui::Begin("Lighting Settings");
+	if (ImGui::CollapsingHeader("Light"))
 	{
-		ImGui::PushID(i);
-		if (ImGui::TreeNode("", "Light %d", i))
-		{
-			ImGui::SetNextWindowSize(ImVec2(800, 300), ImGuiCond_Once);
-			ImGui::DragFloat3("Position", &light.ptLights[i].ptPosition.x, 5.0f);
-			ImGui::ColorEdit3("Color", &light.ptLights[i].ptColor.x);
-			ImGui::DragFloat("Range", &light.ptLights[i].ptRange, 5.0f, 0.0f, 2000.0f);
-			ImGui::DragFloat3("Direction", &light.ptLights[i].ptDirection.x, 0.01f, -1.0f, 1.0f);
-			ImGui::DragFloat("Angle", &light.ptLights[i].ptAngle, 1.0f, 0.0f, 180.0f);
-			ImGui::TreePop();
-		}
-		ImGui::PopID();
+		ImGui::SliderFloat3("Direction", &light.directionLight.direction.x, -1.0f, 1.0f);
+		ImGui::ColorEdit3("Color", &light.directionLight.color.x);
+		ImGui::ColorEdit3("Ambient", &light.ambientLight.ambient.x);
+		ImGui::SliderFloat("Spec Power", &light.light.specPower, 1.0f, 200.0f);
 	}
-	ImGui::End();
+	// 影の調整(調整しなくていい気がする)
+	if (ImGui::CollapsingHeader("Shadow"))
+	{
+		ImGui::SliderFloat("Shadow Bias", &light.shadowParam.shadowBias, 0.0f, 1.0f);
+		ImGui::SliderFloat("Shadow Bias Min", &light.shadowParam.shadowBiasMin, 0.0f, 1.0f);
+	}
+	// ポイントライトの調整
+	if (ImGui::CollapsingHeader("PointLight"))
+	{
+		ImGui::SliderInt("Count", &light.numPointLights, 0, 4);
+		for (int i = 0; i < light.numPointLights; i++)
+		{
+			ImGui::PushID(i);
+			if (ImGui::TreeNode("", "Light %d", i))
+			{
+				ImGui::DragFloat3("Position", &light.ptLights[i].ptPosition.x, 5.0f);
+				ImGui::ColorEdit3("Color", &light.ptLights[i].ptColor.x);
+				ImGui::DragFloat("Range", &light.ptLights[i].ptRange, 5.0f, 0.0f, 2000.0f);
+				ImGui::DragFloat3("Direction", &light.ptLights[i].ptDirection.x, 0.01f, -1.0f, 1.0f);
+				ImGui::DragFloat("Angle", &light.ptLights[i].ptAngle, 1.0f, 0.0f, 180.0f);
+				ImGui::TreePop();
+			}
+			ImGui::PopID();
+		}
+	}
+	// ガウシアンブラーの調整
+	if (ImGui::BeginTabBar("PostEffectTabs"))
+	{
+		if (ImGui::BeginTabItem("GaussianBlur"))
+		{
+			ImGui::DragFloat("Blur Power", &RenderingEngine::GetInstance().GetScreenBlurPower(), 0.1f, 0.0f, 1.0f);
+			ImGui::EndTabItem();
+		}
 
-	// スクリーンブラー(ガウシアンブラー)
-	ImGui::Begin("GaussianBlur");
-	ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_Once);
-	ImGui::DragFloat("Blur Power", &RenderingEngine::GetInstance().GetScreenBlurPower(), 0.1f, 0.0f, 1.0f);
+		// ブルームの調整
+		auto& re = RenderingEngine::GetInstance();
+		if (ImGui::BeginTabItem("Bloom"))
+		{
+			ImGui::Checkbox("Bloom Enable", &re.IsEnableBloom());
+
+			float threshold = re.GetBloomCB().threshold;
+			// ブルームの閾値
+			if (ImGui::SliderFloat("Threshold", &threshold, 0.0f, 3.0f))
+			{
+				re.SetBloomThreshold(threshold);
+			}
+
+			// ブルームの強さ
+			float intensity = re.GetBloomIntensity();
+			if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 3.0f))
+			{
+				re.SetBloomIntensity(intensity);
+			}
+			ImGui::EndTabItem();
+		}
+		ImGui::EndTabBar();
+	}
 	ImGui::End();
 
 	m_rotation.SetRotationDegY(180.0f);
 	m_modelRender->SetRotation(m_rotation);
-	
+
 
 	if (g_pad[0]->IsPress(enButtonA))
 	{

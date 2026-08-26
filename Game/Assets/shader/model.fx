@@ -296,7 +296,7 @@ float4 PSMain(SPSIn In) : SV_Target0
     }
 
     // 最大数
-    const int MAX_SHADOW = 2;
+    const int MAX_SHADOW = 4;
     // 合計値
     float shadowSum = 0.0f;
     for(int k = 0; k < MAX_SHADOW; k++)

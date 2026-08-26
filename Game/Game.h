@@ -43,8 +43,10 @@ private:
 	Quaternion m_rotation;
 	/** スケール */
 	Vector3 m_scale;
-
+	/** 地面の位置 */
 	Vector3 m_gPosition;
+	/** 地面の大きさ */
 	Vector3 m_gScale;
+	/** 地面の回転 */
 	Quaternion m_gRotation;
 };
