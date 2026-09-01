@@ -83,6 +83,7 @@ static const int MAX_FPS = 60;	// Å‘åFPSBUSE_FPS_LIMITTER‚ª—LŒø‚È‚Æ‚«‚Ég—p‚³‚
 #include "HID/GamePad.h"
 
 #include "graphics/GaussianBlur.h"
+#include "graphics/DualBlur.h"
 
 const UINT FRAME_BUFFER_W = 1920;	// ƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚Ì•B
 const UINT FRAME_BUFFER_H = 1080;	// ƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚Ì‚‚³B

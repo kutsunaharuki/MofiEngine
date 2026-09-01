@@ -66,44 +66,33 @@ namespace nsK2EngineLow
 		// 描き終わるまで待つ → 以後テクスチャとして読める
 		rc.WaitUntilFinishDrawingToRenderTarget(m_luminanceRT);
 
-		for (int i = 0; i < NUM_DOWN; i++)
-		{
-			// 書き込み可能になるまで待つ
-			rc.WaitUntilToPossibleSetRenderTarget(m_downRT[i]);
-			// 描き先を切り替える
-			rc.SetRenderTargetAndViewport(m_downRT[i]);
-			m_downSprites[i].Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
-			// 描画する
-			m_downSprites[i].Draw(rc);
-			// 描き終わるまで待つ → 以後テクスチャとして読める
-			rc.WaitUntilFinishDrawingToRenderTarget(m_downRT[i]);
-		}
-
-		for (int i = 0; i < NUM_UP; i++)
-		{
-			// 書き込み可能になるまで待つ
-			rc.WaitUntilToPossibleSetRenderTarget(m_upRT[i]);
-			// 描き先を切り替える
-			rc.SetRenderTargetAndViewport(m_upRT[i]);
-			m_upSprites[i].Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
-			// 描画
-			m_upSprites[i].Draw(rc);
-			// 描き終わるまで待つ → 以後テクスチャとして読める
-			rc.WaitUntilFinishDrawingToRenderTarget(m_upRT[i]);
-		}
-
 		// ============================================
 		// コピーパス : 加工が終わった絵を画面に出す
 		// ============================================
 
-		if (m_isEnableBloom)
+		//if (m_isEnableBloom)
+		//{
+		//	rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
+		//	rc.SetRenderTargetAndViewport(m_mainRenderTarget);
+
+		//	m_additiveBlendSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+		//	m_additiveBlendSprite.Draw(rc);
+
+		//	rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
+		//}
+
+		// DoFが有効ならDoFを無効ならブルームを描画する
+		if (m_isEnableDoF)
 		{
+			rc.WaitUntilToPossibleSetRenderTarget(m_luminanceRT);
+			rc.SetRenderTargetAndViewport(m_luminanceRT);
+			m_dofBlur.ExecuteOnGPU(rc); // DoFのぼかしを実行
+			rc.WaitUntilFinishDrawingToRenderTarget(m_luminanceRT);
+
 			rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
 			rc.SetRenderTargetAndViewport(m_mainRenderTarget);
-
-			m_additiveBlendSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
-			m_additiveBlendSprite.Draw(rc);
-
+			m_dofSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+			m_dofSprite.Draw(rc);
 			rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
 		}
 
@@ -123,6 +112,7 @@ namespace nsK2EngineLow
 	RenderingEngine::RenderingEngine()
 		: m_screenBlurPower(0.0f)
 		, m_isEnableBloom(true)
+		, m_isEnableDoF(false)
 		, m_bloomThreshold(1.0f)
 		, m_bloomIntensity(1.0f)
 	{
@@ -142,40 +132,6 @@ namespace nsK2EngineLow
 			DXGI_FORMAT_UNKNOWN
 		);
 
-		int w = FRAME_BUFFER_W;
-		int h = FRAME_BUFFER_H;
-
-		for (int i = 0; i < NUM_DOWN; i++)
-		{
-			// >>(ビットシフト演算子) → 2のn乗で割って、nbitずらす(小数点以下を切り捨てる)
-			w /= 2;
-			h /= 2;
-			//int w = FRAME_BUFFER_W >> (i + 1);
-			//int h = FRAME_BUFFER_H >> (i + 1);
-			// down専用レンダリングターゲットの初期化
-			m_downRT[i].Create(
-				w, h,
-				1, 1,
-				DXGI_FORMAT_R16G16B16A16_FLOAT,
-				DXGI_FORMAT_UNKNOWN
-			);
-		}
-
-		for (int i = 0; i < NUM_UP; i++)
-		{
-			w *= 2;
-			h *= 2;
-			//int w = FRAME_BUFFER_W >> (3 - i);
-			//int h = FRAME_BUFFER_H >> (3 - i);
-			// up専用レンダリングターゲットの初期化
-			m_upRT[i].Create(
-				w, h,
-				1, 1,
-				DXGI_FORMAT_R16G16B16A16_FLOAT,
-				DXGI_FORMAT_UNKNOWN
-			);
-		}
-
 		// スプライトの初期化
 		m_spriteInitData.m_width = FRAME_BUFFER_W;
 		m_spriteInitData.m_height = FRAME_BUFFER_H;
@@ -193,47 +149,33 @@ namespace nsK2EngineLow
 		luminanceSpriteInitData.m_expandConstantBufferSize = sizeof(BloomCB);
 		m_luminanceSprite.Init(luminanceSpriteInitData);
 
-		// 一つ前のテクスチャを取得
-		Texture* prevTexture = &m_luminanceRT.GetRenderTargetTexture();
-
-		// downスプライトの初期化
-		for (int i = 0; i < NUM_DOWN; i++)
-		{
-			SpriteInitData downSpriteInitData;
-			downSpriteInitData.m_width = FRAME_BUFFER_W >> (i + 1);
-			downSpriteInitData.m_height = FRAME_BUFFER_H >> (i + 1);
-			downSpriteInitData.m_fxFilePath = "Assets/shader/dualBlurDown.fx";
-			downSpriteInitData.m_textures[0] = prevTexture;
-			m_downSprites[i].Init(downSpriteInitData);
-			
-			// 次のループで使うために、prevTextureを更新
-			prevTexture = &m_downRT[i].GetRenderTargetTexture();
-		}
-
-		// upスプライトの初期化
-		for (int i = 0; i < NUM_UP; i++)
-		{
-			SpriteInitData upSpriteInitData;
-			upSpriteInitData.m_width = FRAME_BUFFER_W >> (3 - i);
-			upSpriteInitData.m_height = FRAME_BUFFER_H >> (3 - i);
-			upSpriteInitData.m_fxFilePath = "Assets/shader/dualBlurUp.fx";
-			upSpriteInitData.m_textures[0] = prevTexture;
-			m_upSprites[i].Init(upSpriteInitData);
-
-			// 一つ前のテクスチャを更新
-			prevTexture = &m_upRT[i].GetRenderTargetTexture();
-		}
+		// 輝度抽出の後の絵
+		m_bloomBlur.Init(&m_luminanceRT.GetRenderTargetTexture());
+		// mainRTを直接(輝度抽出にするとぼけない)
+		m_dofBlur.Init(&m_mainRenderTarget.GetRenderTargetTexture());
+		
 
 		// 加算合成スプライトの初期化
 		SpriteInitData additiveBlendSpriteInitData;
 		additiveBlendSpriteInitData.m_width = FRAME_BUFFER_W;
 		additiveBlendSpriteInitData.m_height = FRAME_BUFFER_H;
 		additiveBlendSpriteInitData.m_fxFilePath = "Assets/shader/sprite.fx";
-		// 最終結果のテクスチャを使用
-		additiveBlendSpriteInitData.m_textures[0] = &m_upRT[NUM_UP - 1].GetRenderTargetTexture();
+		// 1/2の解像度に縮小されたテクスチャを加算合成する
+		additiveBlendSpriteInitData.m_textures[0] = &m_bloomBlur.GetResultTexture();
 		// 加算合成にする
 		additiveBlendSpriteInitData.m_alphaBlendMode = AlphaBlendMode_Add;
 		m_additiveBlendSprite.Init(additiveBlendSpriteInitData);
+
+		// DoFスプライトの初期化
+		SpriteInitData dofSpriteInitData;
+		dofSpriteInitData.m_width = FRAME_BUFFER_W;
+		dofSpriteInitData.m_height = FRAME_BUFFER_H;
+		dofSpriteInitData.m_fxFilePath = "Assets/shader/dof.fx";
+		dofSpriteInitData.m_textures[0] = &m_mainRenderTarget.GetRenderTargetTexture();
+		dofSpriteInitData.m_textures[1] = &m_dofBlur.GetResultTexture();
+		dofSpriteInitData.m_expandConstantBuffer = &m_dofCB;
+		dofSpriteInitData.m_expandConstantBufferSize = sizeof(DoFCB);
+		m_dofSprite.Init(dofSpriteInitData);
 
 
 		// シャドウマップのクリアカラーを白に設定

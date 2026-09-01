@@ -18,6 +18,7 @@ namespace nsK2EngineLow
 		const Vector3 CAMERA_DIR = { 1.0f,0.0f,0.0f };
 	}
 
+	class DualBlur;
 
 	class RenderingEngine
 	{
@@ -100,6 +101,11 @@ namespace nsK2EngineLow
 		 */
 		bool& IsEnableBloom() { return m_isEnableBloom; }
 		/**
+		 * @brief DoFの有効化
+		 * @return 有効か無効かどうか
+		 */
+		bool& IsEnableDoF() { return m_isEnableDoF; }
+		/**
 		 * @brief ブルーム効果の閾値を取得
 		 * @return ブルーム効果の閾値
 		 */
@@ -143,6 +149,53 @@ namespace nsK2EngineLow
 		 */
 		BloomCB& GetBloomCB() { return m_bloomCB; }
 
+		/** DoFのデータ */
+		struct DoFCB
+		{
+			float focusDistance; // ピントが合う距離
+			float focusRange;    // ピントの合う幅
+			Vector2 pad0;        // パディング(空き)
+
+
+			DoFCB()
+				: focusDistance(1.0f)
+				, focusRange(100.0f)
+			{}
+		};
+
+		/**
+		 * @brief DoFのデータを取得
+		 * @return DoFのデータ
+		 */
+		DoFCB& GetDoFCB() { return m_dofCB; }
+		/**
+		 * @brief ピントが合う距離を取得
+		 * @return ピントが合う距離
+		 */
+		float& GetDoFFocusDistance() { return m_dofCB.focusDistance; }
+		/**
+		 * @brief ピントの合う幅を取得
+		 * @return ピントの合う幅
+		 */
+		float& GetDoFFocusRange() { return m_dofCB.focusRange; }
+
+		/**
+		 * @brief ピントが合う距離を設定
+		 * @param distance ピントが合う距離
+		 */
+		inline void SetDoFFocusDistance(float distance)
+		{
+			m_dofCB.focusDistance = distance;
+		}
+		/**
+	 	 * @brief ピントの合う幅を設定
+		 * @param range ピントの合う幅s
+		 */
+		inline void SetDoFFocusRange(float range)
+		{
+			m_dofCB.focusRange = range;
+		}
+
 
 	private:
 		/**
@@ -151,46 +204,39 @@ namespace nsK2EngineLow
 		 */
 		RenderingEngine();
 
+		/** ブルーム用 */
+		DualBlur m_bloomBlur;
+		/** DoF用 */
+		DualBlur m_dofBlur;
+
+		/** DoFのデータ */
+		DoFCB m_dofCB;
+		/** ブルームのデータ */
+		BloomCB m_bloomCB;
+
 		/** ガウシアンブラー */
 		GaussianBlur m_screenBlur;
 		float m_screenBlurPower;
 
-		/** ブルームのデータ */
-		BloomCB m_bloomCB;
-
 		/** 加算合成用スプライト */
 		Sprite m_additiveBlendSprite;
+		/** DoF用スプライト */
+		Sprite m_dofSprite;
 
 		/** 輝度抽出の結果(画面サイズ) */
 		RenderTarget m_luminanceRT;
 		/** 輝度抽出のスプライト */
 		Sprite m_luminanceSprite;
-
-		/** ダウンさせる要素数 */
-		static const int NUM_DOWN = 4;
-		/** 1/2, 1/4, 1/8, 1/16 */
-		RenderTarget m_downRT[NUM_DOWN];
-		/** ブラーdownスプライト */
-		Sprite m_downSprites[NUM_DOWN];
-		/** アップさせる要素数 */
-		static const int NUM_UP = 4;
-		/** 1/8, 1/4, 1/2 */
-		RenderTarget m_upRT[NUM_UP];
-		/** ブラーupスプライト */
-		Sprite m_upSprites[NUM_UP];
-
 		/** ボケスプライト */
 		Sprite m_bokeSprite;
 		/** ボケスプライトの初期化データ */
 		SpriteInitData m_bokeSpriteInitData;
-
 		/** メインレンダリングターゲット */
 		RenderTarget m_mainRenderTarget;
 		/** 最後に画面へ運ぶだけのスプライト */
 		Sprite m_copyToFrameBufferSprite;
 		/** スプライトの初期化データ */
 		SpriteInitData m_spriteInitData;
-
 		/** 最大影数 */
 		static const int MAX_SHADOW = 4;
 		/** ライトカメラ */
@@ -204,6 +250,8 @@ namespace nsK2EngineLow
 
 		/** ブルーム効果の有効化 */
 		bool m_isEnableBloom;
+		/** DoFの有効化フラグ */
+		bool m_isEnableDoF;
 		/** ブルーム効果の閾値 */
 		float m_bloomThreshold;
 		/** ブルーム効果の強さ */

@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "GameCamera.h"
 #include "imgui.h"
+#include "Source/Core/Transform.h"
 
 
 namespace
@@ -148,6 +149,27 @@ void Game::Update()
 			if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 3.0f))
 			{
 				re.SetBloomIntensity(intensity);
+			}
+			ImGui::EndTabItem();
+		}
+
+		// DoF(ピントのぼけ)の調整
+		if (ImGui::BeginTabItem("DoF"))
+		{
+			ImGui::Checkbox("DoF Enable", &re.IsEnableDoF());
+
+			// DoFのピント距離
+			float distance = re.GetDoFCB().focusDistance;
+			if (ImGui::SliderFloat("Distance", &distance, 0.0f, 3000.0f))
+			{
+				re.SetDoFFocusDistance(distance);
+			}
+			
+			// DoFのピントの合う幅
+			float range = re.GetDoFCB().focusRange;
+			if (ImGui::SliderFloat("Range", &range, 0.0f, 2000.0f))
+			{
+				re.SetDoFFocusRange(range);
 			}
 			ImGui::EndTabItem();
 		}

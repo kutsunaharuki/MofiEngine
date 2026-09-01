@@ -322,5 +322,5 @@ float4 PSMain(SPSIn In) : SV_Target0
     //   float3 ambient = float3(0.3, 0.3, 0.3);
     //   albedoColor.xyz *= ambient;
 
-    return finalColor;
+    return float4(finalColor.xyz, length(In.worldPos - light.eyePos));
 }
