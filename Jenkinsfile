@@ -68,7 +68,7 @@ pipeline {
                         ]]
                     ])
                     writeFile file: 'teams_payload.json', text: teamsPayload
-                    bat 'curl -s -H "Content-Type: application/json" -d @teams_payload.json %TEAMS_URL%'
+                    bat 'curl -s -H "Content-Type: application/json" -d @teams_payload.json "%TEAMS_URL%"'
                 }
             }
         }
