@@ -18,7 +18,7 @@ namespace nsK2EngineLow
 		const Vector3 CAMERA_DIR = { 1.0f,0.0f,0.0f };
 	}
 
-	class DualBlur;
+	
 
 	class RenderingEngine
 	{
@@ -222,6 +222,20 @@ namespace nsK2EngineLow
 		Sprite m_additiveBlendSprite;
 		/** DoF用スプライト */
 		Sprite m_dofSprite;
+
+		/** 素材の色 */
+		RenderTarget m_gAlbedoRT;
+		/** 法線 */
+		RenderTarget m_gNormalRT;
+		/** ワールド座標 */
+		RenderTarget m_gDepthRT;
+
+		/** 素材の色のスプライト */
+		Sprite m_albedoSprite;
+		/** 法線のスプライト */
+		Sprite m_normalSprite;
+		/** ワールド座標のスプライト */
+		Sprite m_depthSprite;
 
 		/** 輝度抽出の結果(画面サイズ) */
 		RenderTarget m_luminanceRT;

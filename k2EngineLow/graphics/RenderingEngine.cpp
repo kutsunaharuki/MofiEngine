@@ -40,61 +40,24 @@ namespace nsK2EngineLow
 		// フォワードレンダリングパス
 		// =============================================
 		
-		// RTとして利用できる状態になるまで待つ
-		rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
-		// 描き先を切り替える
-		rc.SetRenderTargetAndViewport(m_mainRenderTarget);
-		// RTをクリア
-		rc.ClearRenderTargetView(m_mainRenderTarget);
-		// カメラ視点で描画
+		RenderTarget* gBuffers[] = { &m_gAlbedoRT, &m_gNormalRT, &m_gDepthRT };
+		// 3枚同時に書き込める状態になるまで待つ
+		rc.WaitUntilToPossibleSetRenderTargets(3, gBuffers);
+		// 3枚同時にセットする(MRT = マルチレンダリングターゲット)
+		rc.SetRenderTargetsAndViewport(3, gBuffers);
+		// 3枚同時にクリアする
+		rc.ClearRenderTargetViews(3, gBuffers);
 		for (auto* model : m_models)
 		{
+			// カメラ視点で描画
+			// 書き込まれる先は素材3枚になる
 			model->Draw(rc);
 		}
-		// 描き終わるまで待つ → 以後テクスチャとして読める
-		rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
-		
-
-		// RTとして利用できる状態になるまで待つ
-		rc.WaitUntilToPossibleSetRenderTarget(m_luminanceRT);
-		// 描き先を切り替える
-		rc.SetRenderTargetAndViewport(m_luminanceRT);
-		// RTをクリア
-		rc.ClearRenderTargetView(m_luminanceRT);
-		// 描画
-		m_luminanceSprite.Draw(rc);
-		// 描き終わるまで待つ → 以後テクスチャとして読める
-		rc.WaitUntilFinishDrawingToRenderTarget(m_luminanceRT);
+		rc.WaitUntilFinishDrawingToRenderTargets(3, gBuffers);
 
 		// ============================================
 		// コピーパス : 加工が終わった絵を画面に出す
 		// ============================================
-
-		//if (m_isEnableBloom)
-		//{
-		//	rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
-		//	rc.SetRenderTargetAndViewport(m_mainRenderTarget);
-
-		//	m_additiveBlendSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
-		//	m_additiveBlendSprite.Draw(rc);
-
-		//	rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
-		//}
-
-		// DoFが有効ならDoFを無効ならブルームを描画する
-		if (m_isEnableDoF)
-		{
-			rc.WaitUntilToPossibleSetRenderTarget(m_luminanceRT);
-			rc.SetRenderTargetAndViewport(m_luminanceRT);
-			m_dofBlur.ExecuteOnGPU(rc); // DoFのぼかしを実行
-			rc.WaitUntilFinishDrawingToRenderTarget(m_luminanceRT);
-
-			rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
-			rc.SetRenderTargetAndViewport(m_mainRenderTarget);
-			m_dofSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
-			m_dofSprite.Draw(rc);
-			rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
-		}
 
 		g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
 		m_copyToFrameBufferSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
@@ -104,6 +67,17 @@ namespace nsK2EngineLow
 		// 2Dパス(スプライト・フォント・imguiはこの後 = 加工の影響を受けない)
 		// ===========================================
 		
+		// 3枚分のG-Bufferを画面に出す
+		// 符号付キャストを初めて知った。
+		m_albedoSprite.Update(Vector3(-static_cast<float>(FRAME_BUFFER_W) / 3.0f, 0.0f, 0.0f), Quaternion::Identity, Vector3::One);
+		m_albedoSprite.Draw(rc);
+		
+		m_normalSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+		m_normalSprite.Draw(rc);
+
+		m_depthSprite.Update(Vector3(static_cast<float>(FRAME_BUFFER_W) / 3.0f, 0.0f, 0.0f), Quaternion::Identity, Vector3::One);
+		m_depthSprite.Draw(rc);
+
 		// 毎フレームリストを空にする
 		m_models.clear();
 	}
@@ -124,6 +98,30 @@ namespace nsK2EngineLow
 			DXGI_FORMAT_D32_FLOAT
 		);
 
+		// G-bufferのアルベドのRTの初期化
+		m_gAlbedoRT.Create(
+			FRAME_BUFFER_W, FRAME_BUFFER_H,
+			1, 1,
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			DXGI_FORMAT_D32_FLOAT
+		);
+
+		// G-bufferの法線のRTの初期化
+		m_gNormalRT.Create(
+			FRAME_BUFFER_W, FRAME_BUFFER_H,
+			1, 1,
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			DXGI_FORMAT_UNKNOWN
+		);
+
+		// G-bufferのワールド座標のRTの初期化
+		m_gDepthRT.Create(
+			FRAME_BUFFER_W, FRAME_BUFFER_H,
+			1, 1,
+			DXGI_FORMAT_R32G32B32A32_FLOAT,
+			DXGI_FORMAT_UNKNOWN
+		);
+
 		// 輝度抽出のレンダリングターゲットの初期化
 		m_luminanceRT.Create(
 			FRAME_BUFFER_W, FRAME_BUFFER_H,
@@ -138,6 +136,27 @@ namespace nsK2EngineLow
 		m_spriteInitData.m_fxFilePath = "Assets/shader/sprite.fx";
 		m_spriteInitData.m_textures[0] = &m_mainRenderTarget.GetRenderTargetTexture();
 		m_copyToFrameBufferSprite.Init(m_spriteInitData);
+
+		SpriteInitData albedoInitData;
+		albedoInitData.m_width = FRAME_BUFFER_W / 3;
+		albedoInitData.m_height = FRAME_BUFFER_H / 3;
+		albedoInitData.m_fxFilePath = "Assets/shader/sprite.fx";
+		albedoInitData.m_textures[0] = &m_gAlbedoRT.GetRenderTargetTexture();
+		m_albedoSprite.Init(albedoInitData);
+
+		SpriteInitData normalInitData;
+		normalInitData.m_width = FRAME_BUFFER_W / 3;
+		normalInitData.m_height = FRAME_BUFFER_H / 3;
+		normalInitData.m_fxFilePath = "Assets/shader/sprite.fx";
+		normalInitData.m_textures[0] = &m_gNormalRT.GetRenderTargetTexture();
+		m_normalSprite.Init(normalInitData);
+
+		SpriteInitData depthInitData;
+		depthInitData.m_width = FRAME_BUFFER_W / 3;
+		depthInitData.m_height = FRAME_BUFFER_H / 3;
+		depthInitData.m_fxFilePath = "Assets/shader/sprite.fx";
+		depthInitData.m_textures[0] = &m_gDepthRT.GetRenderTargetTexture();
+		m_depthSprite.Init(depthInitData);
 
 		// 輝度抽出スプライトの初期化
 		SpriteInitData luminanceSpriteInitData;

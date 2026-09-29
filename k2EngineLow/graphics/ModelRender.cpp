@@ -3,7 +3,6 @@
  * @brief モデルレンダークラスの実装
  */
 #include "k2EngineLowPreCompile.h"
-//#include "ModelRender.h"
 
 
 namespace nsK2EngineLow
@@ -11,7 +10,7 @@ namespace nsK2EngineLow
 	ModelRender::ModelRender()
 		: m_modelInitData()
 		, m_shadowModelInitData()
-		, m_model()
+		, m_forwardModel()
 		, m_shadowModel()
 		, m_position(Vector3::Zero)
 		, m_rotation(Quaternion::Identity)
@@ -44,6 +43,19 @@ namespace nsK2EngineLow
 		skeletonFilePath.replace(skeletonFilePath.length() - 3, 3, "tks");
 		// スケルトン初期化
 		m_skeleton.Init(skeletonFilePath.c_str());
+
+
+		ModelInitData deferredInitData;
+		deferredInitData.m_tkmFilePath = tkmFilePath;
+		deferredInitData.m_fxFilePath = "Assets/shader/renderToGBuffer.fx";
+		deferredInitData.m_skeleton = &m_skeleton;
+		// パイプラインは絵描き先のフォーマットを知っている必要がある
+		deferredInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		deferredInitData.m_colorBufferFormat[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		deferredInitData.m_colorBufferFormat[2] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		deferredInitData.m_expandConstantBuffer = &SceneLight::GetInstance().GetLightCB();
+		deferredInitData.m_expandConstantBufferSize = sizeof(SceneLight::LightCB);
+		m_deferredModel.Init(deferredInitData);
 
 		/** 2. Modelにスケルトンを渡す(骨の行列がt3に送られる) */
 		// tkmファイルパスを設定
@@ -100,18 +112,24 @@ namespace nsK2EngineLow
 		}
 
 		// ユーザ拡張の定数バッファにライトの定数バッファを設定
-		m_modelInitData.m_expandConstantBuffer = &SceneLight::GetInstance().GetLightCB();
+		//m_modelInitData.m_expandConstantBuffer = &SceneLight::GetInstance().GetLightCB();
 		// ユーザー拡張の定数バッファのサイズを設定
-		m_modelInitData.m_expandConstantBufferSize = sizeof(SceneLight::LightCB);
+		//m_modelInitData.m_expandConstantBufferSize = sizeof(SceneLight::LightCB);
 		// モデルの初期化
-		m_model.Init(m_modelInitData);
+		//m_forwardModel.Init(m_modelInitData);
 	}
 
 
 	void ModelRender::Update()
 	{
+		for (int i = 0; i < 3; i++)
+		{
+			// ディファードのワールド行列の更新
+			m_deferredModel.UpdateWorldMatrix(m_position, m_rotation, m_scale);
+		}
+
 		// ワールド行列の更新
-		m_model.UpdateWorldMatrix(m_position, m_rotation, m_scale);
+		//m_forwardModel.UpdateWorldMatrix(m_position, m_rotation, m_scale);
 
 		if (m_isShadowCaster)
 		{
@@ -121,7 +139,7 @@ namespace nsK2EngineLow
 		// 初期化済みかをチェック
 		if (m_skeleton.IsInited())
 		{
-			m_skeleton.Update(m_model.GetWorldMatrix());
+			m_skeleton.Update(m_deferredModel.GetWorldMatrix());
 		}
 
 		// アニメーションの時間を進める(1フレーム分)
@@ -135,7 +153,7 @@ namespace nsK2EngineLow
 	void ModelRender::Draw(RenderContext& rc)
 	{
 		// モデルを直接描画からモデルを登録に変更
-		RenderingEngine::GetInstance().AddModel(m_model);
+		RenderingEngine::GetInstance().AddModel(m_deferredModel);
 
 		if (m_isShadowCaster) {
 			// シャドウキャスターを登録

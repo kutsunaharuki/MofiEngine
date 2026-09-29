@@ -134,18 +134,22 @@ namespace nsK2EngineLow
 
 
 	private:
+		/** ディファード用 */
+		Model m_deferredModel;
+		/** フォーワード用(model.fxでそのままライティング) */
+		Model m_forwardModel;
+		/** シャドウモデル */
+		Model m_shadowModel;
+
+
 		/** 骨 */
 		Skeleton m_skeleton;
 		/** アニメーション */
 		Animation m_animation;
 		/** モデル初期化データ */
 		ModelInitData m_modelInitData;
-		/** モデル */
-		Model m_model;
 		/** シャドウモデルの初期化データ */
 		ModelInitData m_shadowModelInitData;
-		/** シャドウモデル */
-		Model m_shadowModel;
 		/** 位置 */
 		Vector3 m_position;
 		/** 回転 */
