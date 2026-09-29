@@ -6,10 +6,9 @@ pipeline {
     }
 
     environment {
-        IMAGE         = 'dx12-buildtools:latest'
-        SOLUTION      = 'Game\\Game.sln'
-        CONFIGURATION = 'Debug'
-        PLATFORM      = 'x64'
+        IMAGE    = 'dx12-buildtools:latest'
+        SOLUTION = 'Game\\Game.sln'
+        PLATFORM = 'x64'
     }
 
     options {
@@ -19,10 +18,21 @@ pipeline {
 
     stages {
         stage('Build') {
-            steps {
-                bat """
-                docker run --rm -v ${WORKSPACE}:C:\\src ${IMAGE} cmd /c "msbuild C:\\src\\${SOLUTION} /p:Configuration=${CONFIGURATION} /p:Platform=${PLATFORM}"
-                """
+            parallel {
+                stage('Debug') {
+                    steps {
+                        bat """
+                        docker run --rm -v ${WORKSPACE}:C:\\src ${IMAGE} cmd /c "msbuild C:\\src\\${SOLUTION} /p:Configuration=Debug /p:Platform=${PLATFORM}"
+                        """
+                    }
+                }
+                stage('Release') {
+                    steps {
+                        bat """
+                        docker run --rm -v ${WORKSPACE}:C:\\src ${IMAGE} cmd /c "msbuild C:\\src\\${SOLUTION} /p:Configuration=Release /p:Platform=${PLATFORM}"
+                        """
+                    }
+                }
             }
         }
     }
