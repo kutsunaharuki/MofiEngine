@@ -1,21 +1,17 @@
 pipeline {
     agent any
-
     triggers {
         pollSCM('H/5 * * * *')
     }
-
     environment {
         IMAGE    = 'dx12-buildtools:latest'
         SOLUTION = 'Game\\Game.sln'
         PLATFORM = 'x64'
     }
-
     options {
         timestamps()
         timeout(time: 60, unit: 'MINUTES')
     }
-
     stages {
         stage('Build') {
             parallel {
@@ -34,6 +30,13 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+    post {
+        success {
+            archiveArtifacts artifacts: 'Game/x64/**/*.exe, Game/x64/**/*.pdb',
+                              allowEmptyArchive: true,
+                              fingerprint: true
         }
     }
 }
