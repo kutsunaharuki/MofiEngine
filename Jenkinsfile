@@ -6,7 +6,7 @@ pipeline {
     }
     environment {
         IMAGE    = 'dx12-buildtools:latest'
-        SOLUTION = 'Game\\G.sln'
+        SOLUTION = 'Game\\Game.sln'
         PLATFORM = 'x64'
     }
     options {
