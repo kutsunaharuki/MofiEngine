@@ -19,14 +19,14 @@ pipeline {
                 stage('Debug') {
                     steps {
                         bat """
-                        docker run --rm -v ${WORKSPACE}:C:\\src ${IMAGE} cmd /c "msbuild C:\\src\\${SOLUTION} /p:Configuration=Debug /p:Platform=${PLATFORM} /m"
+                        docker run --rm -v ${WORKSPACE}:C:\\src ${IMAGE} cmd /c "msbuild C:\\src\\${SOLUTION} /p:Configuration=Debug /p:Platform=${PLATFORM}"
                         """
                     }
                 }
                 stage('Release') {
                     steps {
                         bat """
-                        docker run --rm -v ${WORKSPACE}:C:\\src ${IMAGE} cmd /c "msbuild C:\\src\\${SOLUTION} /p:Configuration=Release /p:Platform=${PLATFORM} /m"
+                        docker run --rm -v ${WORKSPACE}:C:\\src ${IMAGE} cmd /c "msbuild C:\\src\\${SOLUTION} /p:Configuration=Release /p:Platform=${PLATFORM}"
                         """
                     }
                 }
