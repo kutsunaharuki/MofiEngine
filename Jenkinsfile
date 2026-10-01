@@ -2,6 +2,7 @@ pipeline {
     agent any
     triggers {
         pollSCM('H/5 * * * *')
+        githubPush()
     }
     environment {
         IMAGE    = 'dx12-buildtools:latest'
