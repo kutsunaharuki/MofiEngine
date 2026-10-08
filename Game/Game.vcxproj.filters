@@ -27,7 +27,7 @@
       <Filter>system</Filter>
     </ClCompile>
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="Source\Core\Transform.cpp">
+    <ClCompile Include="Source\Core\TransformNode.cpp">
       <Filter>Source\Core</Filter>
     </ClCompile>
     <ClCompile Include="GameCamera.cpp" />
@@ -60,7 +60,7 @@
       <Filter>system</Filter>
     </ClInclude>
     <ClInclude Include="Game.h" />
-    <ClInclude Include="Source\Core\Transform.h">
+    <ClInclude Include="Source\Core\TransformNode.h">
       <Filter>Source\Core</Filter>
     </ClInclude>
     <ClInclude Include="GameCamera.h" />

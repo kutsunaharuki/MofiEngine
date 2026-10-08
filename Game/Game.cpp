@@ -2,7 +2,7 @@
 #include "Game.h"
 #include "GameCamera.h"
 #include "imgui.h"
-#include "Source/Core/Transform.h"
+#include "Source/Core/TransformNode.h"
 
 
 namespace
@@ -17,6 +17,9 @@ namespace
 	const Vector3 INITIALIZE_POSITION = { 0.0f,0.0f,0.0f };
 	/** 初期スケール */
 	const Vector3 INITIALIZE_SCALE = { 2.0f,2.0f,2.0f };
+
+	/** 子の座標 */
+	const Vector3 CHILD_POSITION = { 10.0f,0.0f,0.0f};
 }
 
 
