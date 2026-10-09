@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Character.h
  * @brief 簡単なキャラクタークラス
  */

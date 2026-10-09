@@ -287,6 +287,7 @@
     <ClCompile Include="graphics\Model.cpp" />
     <ClCompile Include="graphics\ModelRender.cpp" />
     <ClCompile Include="graphics\NullTextureMaps.cpp" />
+    <ClCompile Include="graphics\PhotoCapture.cpp" />
     <ClCompile Include="graphics\PipelineState.cpp" />
     <ClCompile Include="graphics\raytracing\BLASBuffer.cpp" />
     <ClCompile Include="graphics\raytracing\RaytracingDescriptorHeaps.cpp" />
@@ -382,6 +383,7 @@
     <ClInclude Include="graphics\Model.h" />
     <ClInclude Include="graphics\ModelRender.h" />
     <ClInclude Include="graphics\NullTextureMaps.h" />
+    <ClInclude Include="graphics\PhotoCapture.h" />
     <ClInclude Include="graphics\PipelineState.h" />
     <ClInclude Include="graphics\raytracing\BLASBuffer.h" />
     <ClInclude Include="graphics\raytracing\Raytracing.h" />

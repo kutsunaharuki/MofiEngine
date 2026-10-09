@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file RenderingEngine.h
  * @brief レンダリングエンジン
  * @details: Step2
@@ -17,7 +17,6 @@ namespace nsK2EngineLow
 		/** カメラの向き */
 		const Vector3 CAMERA_DIR = { 1.0f,0.0f,0.0f };
 	}
-
 	
 
 	class RenderingEngine
@@ -133,6 +132,16 @@ namespace nsK2EngineLow
 			m_bloomIntensity = intensity;
 			m_additiveBlendSprite.SetMulColor(Vector4(m_bloomIntensity, m_bloomIntensity, m_bloomIntensity, 1.0f));
 		}
+		/**
+		 * @brief PhotoCaptureを登録する関数
+		 * @param capture PhotoCapture
+		 * @details PhotoCaptureを設定することでレンダリングエンジンの機能を扱える
+		 */
+		inline void SetPhotoCapture(PhotoCapture* capture)
+		{
+			m_photoCapture = capture;
+		}
+
 
 		/**
 		 * @brief ブルームのデータ
@@ -142,6 +151,7 @@ namespace nsK2EngineLow
 			float threshold;
 			Vector3 pad9;
 		};
+
 
 		/**
 		 * @brief ブルームのデータを取得
@@ -194,7 +204,7 @@ namespace nsK2EngineLow
 		inline void SetDoFFocusRange(float range)
 		{
 			m_dofCB.focusRange = range;
-		}
+		}		
 
 
 	private:
@@ -203,6 +213,9 @@ namespace nsK2EngineLow
 		 * @details: シングルトンパターンを採用しているため、外部からのインスタンス化を禁止するためにprivateにしている
 		 */
 		RenderingEngine();
+
+		/** フォトキャプチャーのポインタ */
+		PhotoCapture* m_photoCapture;
 
 		/** ブルーム用 */
 		DualBlur m_bloomBlur;

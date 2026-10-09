@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file SpriteRender.h
  * @brief スプライトレンダークラス
  */

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TransformNode.h"
 #include <algorithm>
 
@@ -20,28 +20,28 @@ namespace app
 
 		TransformNode::~TransformNode()
 		{
-			// e‚ª‚¢‚ê‚Î
+			// è¦ªãŒã„ã‚Œã°
 			if (m_parent)
 			{
-				// e‚ÌŽqƒŠƒXƒg‚©‚çŽ©•ª‚ðŠO‚·
+				// è¦ªã®å­ãƒªã‚¹ãƒˆã‹ã‚‰è‡ªåˆ†ã‚’å¤–ã™
 				m_parent->RemoveChild(this);
 			}
 
-			// ‘S‚ÄŽq‚Æ‚Ì•R‚Ã‚¯‚ðŠO‚·
+			// å…¨ã¦å­ã¨ã®ç´ã¥ã‘ã‚’å¤–ã™
 			Release();
 		}
 		
 		
 		void TransformNode::SetParent(TransformNode* parent)
 		{
-			// Šù‚Ée‚ª‚¢‚é‚È‚çAŒÃ‚¢e‚©‚çŠO‚·
-			// V‚µ‚¢e‚ðŒ©‚Ä‚¢‚é‚Æ‚±‚±‚É“ü‚ç‚È‚¢
+			// æ—¢ã«è¦ªãŒã„ã‚‹ãªã‚‰ã€å¤ã„è¦ªã‹ã‚‰å¤–ã™
+			// æ–°ã—ã„è¦ªã‚’è¦‹ã¦ã„ã‚‹ã¨ã“ã“ã«å…¥ã‚‰ãªã„
 			if (m_parent) m_parent->RemoveChild(this);
 
-			// e‚ªnull‚È‚çe‚È‚µ
+			// è¦ªãŒnullãªã‚‰è¦ªãªã—
 			if (parent == nullptr) return;
 
-			// V‚µ‚­e‚ðÝ’è
+			// æ–°ã—ãè¦ªã‚’è¨­å®š
 			m_parent = parent;
 			m_parent->m_children.push_back(this);
 		}
@@ -51,13 +51,13 @@ namespace app
 		{
 			auto it = std::find(m_children.begin(), m_children.end(), child);
 			
-			// Œ©‚Â‚©‚ç‚È‚©‚Á‚½‚çI—¹
+			// è¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸã‚‰çµ‚äº†
 			if (it == m_children.end()) return;
 
-			// Žq‚Ì’l‚ðnull‚É
+			// å­ã®å€¤ã‚’nullã«
 			(*it)->m_parent = nullptr;
 			
-			// Žq‚ðŠO‚·
+			// å­ã‚’å¤–ã™
 			m_children.erase(it);
 		}
 
@@ -66,11 +66,11 @@ namespace app
 		{
 			for (auto& children : m_children)
 			{
-				// Žq‚Ìe‚ðŠO‚·
+				// å­ã®è¦ªã‚’å¤–ã™
 				children->m_parent = nullptr;
 			}
 
-			// Ž©•ª‚ÌŽq‚ÌƒŠƒXƒg‚ð‹ó‚É‚·‚é
+			// è‡ªåˆ†ã®å­ã®ãƒªã‚¹ãƒˆã‚’ç©ºã«ã™ã‚‹
 			m_children.clear();
 		}
 		
@@ -79,36 +79,36 @@ namespace app
 		{
 			if (m_parent)
 			{
-				// ƒ[ƒJƒ‹ˆÊ’u
+				// ãƒ­ãƒ¼ã‚«ãƒ«ä½ç½®
 				Matrix localPos;
 				localPos.MakeTranslation(m_localPosition);
 
 				Matrix pos;
-				// ˆÚ“®s—ñ‚Æe‚Ìƒ[ƒ‹ƒhs—ñ‚ðŠ|‚¯‚é
+				// ç§»å‹•è¡Œåˆ—ã¨è¦ªã®ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã‚’æŽ›ã‘ã‚‹
 				pos.Multiply(localPos, m_parent->m_worldMatrix);
 
-				// s—ñ‚Ì•½sˆÚ“®¬•ª(ƒ[ƒ‹ƒhÀ•W)‚ðŽæ‚èo‚·
+				// è¡Œåˆ—ã®å¹³è¡Œç§»å‹•æˆåˆ†(ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™)ã‚’å–ã‚Šå‡ºã™
 				m_worldPosition.x = pos.m[3][0];
 				m_worldPosition.y = pos.m[3][1];
 				m_worldPosition.z = pos.m[3][2];
 
-				// ƒXƒP[ƒ‹
+				// ã‚¹ã‚±ãƒ¼ãƒ«
 				m_worldScale.x = m_localScale.x * m_parent->m_worldScale.x;
 				m_worldScale.y = m_localScale.y * m_parent->m_worldScale.y;
 				m_worldScale.z = m_localScale.z * m_parent->m_worldScale.z;
 
-				// ‰ñ“]
+				// å›žè»¢
 				m_worldRotation = m_parent->m_worldRotation * m_localRotation;
 			}
 			else
 			{
-				// e‚ª‚¢‚È‚¢ê‡‚Íƒ[ƒJƒ‹ = ƒ[ƒ‹ƒh
+				// è¦ªãŒã„ãªã„å ´åˆã¯ãƒ­ãƒ¼ã‚«ãƒ« = ãƒ¯ãƒ¼ãƒ«ãƒ‰
 				m_worldPosition = m_localPosition;
 				m_worldRotation = m_localRotation;
 				m_worldScale = m_localScale;
 			}
 			
-			// ƒ[ƒ‹ƒhs—ñXV
+			// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—æ›´æ–°
 			UpdateWorldMatrix();
 		}
 
@@ -117,19 +117,19 @@ namespace app
 		{
 			Matrix scal, rot ,pos, world;
 
-			// ƒ[ƒ‹ƒhƒXƒP[ƒ‹‚©‚çƒXƒP[ƒ‹s—ñ(Šg‘ås—ñ)‚ðì¬
+			// ãƒ¯ãƒ¼ãƒ«ãƒ‰ã‚¹ã‚±ãƒ¼ãƒ«ã‹ã‚‰ã‚¹ã‚±ãƒ¼ãƒ«è¡Œåˆ—(æ‹¡å¤§è¡Œåˆ—)ã‚’ä½œæˆ
 			scal.MakeScaling(m_worldScale);
-			// ƒ[ƒ‹ƒh‰ñ“]‚©‚ç‰ñ“]s—ñ‚ðì¬
+			// ãƒ¯ãƒ¼ãƒ«ãƒ‰å›žè»¢ã‹ã‚‰å›žè»¢è¡Œåˆ—ã‚’ä½œæˆ
 			rot.MakeRotationFromQuaternion(m_worldRotation);
-			// ƒ[ƒ‹ƒhˆÊ’u‚©‚çˆÚ“®s—ñ‚ðì¬
+			// ãƒ¯ãƒ¼ãƒ«ãƒ‰ä½ç½®ã‹ã‚‰ç§»å‹•è¡Œåˆ—ã‚’ä½œæˆ
 			pos.MakeTranslation(m_worldPosition);
 
-			// ƒXƒP[ƒ‹ * ‰ñ“]
+			// ã‚¹ã‚±ãƒ¼ãƒ« * å›žè»¢
 			world.Multiply(scal, rot);
-			// ƒXƒP[ƒ‹ * ‰ñ“] * ˆÚ“®
+			// ã‚¹ã‚±ãƒ¼ãƒ« * å›žè»¢ * ç§»å‹•
 			m_worldMatrix.Multiply(world, pos);
 
-			// Žq‚ÌXV
+			// å­ã®æ›´æ–°
 			for (TransformNode* child : m_children)
 			{
 				child->UpdateTransform();

@@ -2,7 +2,6 @@
 #include "Game.h"
 #include "GameCamera.h"
 #include "imgui.h"
-#include "Source/Core/TransformNode.h"
 
 
 namespace
@@ -54,6 +53,9 @@ Game::~Game()
 		delete m_groundModelRender;
 		m_groundModelRender = nullptr;
 	}
+
+	// PhotoCaptureの登録を外す
+	RenderingEngine::GetInstance().SetPhotoCapture(nullptr);
 }
 
 
@@ -77,12 +79,16 @@ bool Game::Start()
 	m_groundModelRender->SetTRS(m_gPosition, m_gRotation, m_gScale);
 	m_groundModelRender->Update();
 
+	// 写真撮影クラスの初期化
+	m_photoCapture.Init();
+	// RenderingEngineにPhotoCaptureを登録
+	RenderingEngine::GetInstance().SetPhotoCapture(&m_photoCapture);
+
 	// 後々に響きそうなのでゲームカメラを作成しておく。
 	m_gameCamera = new app::camera::GameCamera;
 	m_gameCamera->Start();
 	m_gameCamera->SetTarget(m_modelRender);
 	m_gameCamera->Update();
-
 	return true;
 }
 
@@ -195,6 +201,11 @@ void Game::Update()
 
 	m_modelRender->Update();
 	m_gameCamera->Update();
+
+	Camera& finderCamera = m_photoCapture.GetFinderCamera();
+	finderCamera.SetPosition(g_camera3D->GetPosition());
+	finderCamera.SetTarget(g_camera3D->GetTarget());
+	finderCamera.Update();
 }
 
 void Game::Render(RenderContext& rc)

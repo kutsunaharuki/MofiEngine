@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file SceneLight.h
  * @brief シーンライトクラス
  */

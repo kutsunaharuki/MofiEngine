@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-
 namespace app
 {
 	namespace camera
@@ -21,6 +20,9 @@ public:
 
 
 private:
+	/** 写真撮影クラス */
+	nsK2EngineLow::PhotoCapture m_photoCapture;
+
 	/** アニメーションクリップ */
 	AnimationClip m_animClips[2];
 	/** ゲームカメラ */

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file GameCamera.h
  * @brief ゲームカメラクラス
  */

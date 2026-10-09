@@ -1,0 +1,12 @@
+root = true
+
+# 自作の C++ ソースは UTF-8(BOM付き)で保存する
+# (Visual Studio のコンパイラと Fork の両方で文字化けしないため)
+# k2EngineLow には Shift-JIS のファイルが残っているため対象外にしている
+[Game/*.{h,cpp}]
+charset = utf-8-bom
+end_of_line = crlf
+
+[Game/{Source,system}/**.{h,cpp}]
+charset = utf-8-bom
+end_of_line = crlf
