@@ -19,6 +19,21 @@
     <Filter Include="Source\Imgui">
       <UniqueIdentifier>{226e5526-3ccd-47ee-8de5-4e66de6327f9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Actor">
+      <UniqueIdentifier>{f751ec96-820a-4c06-8602-528d651b8f7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Actor\Character">
+      <UniqueIdentifier>{9526ae1f-e726-4b34-a5ff-6968df94614d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Actor\Character\Boy">
+      <UniqueIdentifier>{14cd06f0-0cb5-4b21-a48c-4eb140fd72d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Actor\Character\Enemy">
+      <UniqueIdentifier>{70ccefc4-e0ab-4242-9ec8-38c5e8ba7271}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Scene">
+      <UniqueIdentifier>{f7084328-96f9-4084-92f7-31cbdbdacfda}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -27,11 +42,7 @@
       <Filter>system</Filter>
     </ClCompile>
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="Source\Core\TransformNode.cpp">
-      <Filter>Source\Core</Filter>
-    </ClCompile>
     <ClCompile Include="GameCamera.cpp" />
-    <ClCompile Include="Player.cpp" />
     <ClCompile Include="..\ThirdParty\imgui\imgui.cpp">
       <Filter>Source\Imgui</Filter>
     </ClCompile>
@@ -60,12 +71,11 @@
       <Filter>system</Filter>
     </ClInclude>
     <ClInclude Include="Game.h" />
-    <ClInclude Include="Source\Core\TransformNode.h">
-      <Filter>Source\Core</Filter>
-    </ClInclude>
     <ClInclude Include="GameCamera.h" />
-    <ClInclude Include="Player.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Source\Util\CRC32.h">
+      <Filter>Source\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Game.rc" />

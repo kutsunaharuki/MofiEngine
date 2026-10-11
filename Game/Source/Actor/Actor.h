@@ -3,7 +3,7 @@
  * @brief 簡単なアクタークラス
  */
 #pragma once
-#include "Source/Core/Transform.h"
+#include "Source/Core/TransformNode.h"
 
 
 namespace app
@@ -26,7 +26,7 @@ namespace app
 			 * @brief トランスフォームを取得する
 			 * @return トランスフォーム
 			 */
-			inline const core::Transform& GetTransform() const { return m_transform; }
+			inline const core::TransformNode& GetTransform() const { return m_transform; }
 			/**
 			 * @brief モデルレンダーを取得する
 			 * @return モデルレンダー

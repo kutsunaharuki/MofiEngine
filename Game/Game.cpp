@@ -206,6 +206,18 @@ void Game::Update()
 	finderCamera.SetPosition(g_camera3D->GetPosition());
 	finderCamera.SetTarget(g_camera3D->GetTarget());
 	finderCamera.Update();
+
+	// ファインダーのON/OFFを切り替える
+	if (g_pad[0]->IsTrigger(enButtonA))
+	{
+		m_photoCapture.ToggleFinderActive();
+	}
+
+	// 写真を撮る
+	if (g_pad[0]->IsTrigger(enButtonB))
+	{
+		m_photoCapture.Shot();
+	}
 }
 
 void Game::Render(RenderContext& rc)
