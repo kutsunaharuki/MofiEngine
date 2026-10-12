@@ -47,7 +47,6 @@ namespace nsK2EngineLow
 		for (auto* model : m_models)
 		{
 			// カメラ視点で描画
-			// 書き込まれる先は素材3枚になる
 			model->Draw(rc);
 		}
 		// 書き込める状態になるまで待つ → 以後テクスチャとして読める

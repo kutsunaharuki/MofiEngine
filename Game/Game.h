@@ -2,6 +2,8 @@
 
 namespace app
 {
+	class Enemy;
+
 	namespace camera
 	{
 		class GameCamera;
@@ -22,6 +24,9 @@ public:
 private:
 	/** 写真撮影クラス */
 	nsK2EngineLow::PhotoCapture m_photoCapture;
+
+	/** 敵 */
+	std::unique_ptr<app::Enemy> m_enemy;
 
 	/** アニメーションクリップ */
 	AnimationClip m_animClips[2];
