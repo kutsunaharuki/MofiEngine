@@ -17,7 +17,7 @@ namespace app
 			/** カメラの遠平面 */
 			constexpr float CAMERA_FAR = 10000.0f;
 			/** 注視点から視点までの位置 */
-			const Vector3 TO_CAMERA_POS = { 0.0f, 120.0f, 0.0f };
+			const Vector3 TO_CAMERA_POS = { 0.0f, 100.0f, -300.0f };
 			/** 注視点のY軸を上げる */
 			constexpr float TARGET_CAMERA_Y_UP = 200.0f;
 			/** 入力閾値 */

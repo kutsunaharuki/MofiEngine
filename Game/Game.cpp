@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "GameCamera.h"
 #include "imgui.h"
+#include "Enemy.h"
 
 
 namespace
@@ -83,6 +84,11 @@ bool Game::Start()
 	m_photoCapture.Init();
 	// RenderingEngineにPhotoCaptureを登録
 	RenderingEngine::GetInstance().SetPhotoCapture(&m_photoCapture);
+
+	m_enemy = std::make_unique<app::Enemy>();
+	m_enemy->SetPosition(Vector3(0.0f, 0.0f, 300.0f));
+	m_enemy->Init();
+	m_enemy->Update();
 
 	// 後々に響きそうなのでゲームカメラを作成しておく。
 	m_gameCamera = new app::camera::GameCamera;
@@ -207,8 +213,10 @@ void Game::Update()
 	finderCamera.SetTarget(g_camera3D->GetTarget());
 	finderCamera.Update();
 
+	m_enemy->Update();
+
 	// ファインダーのON/OFFを切り替える
-	if (g_pad[0]->IsTrigger(enButtonA))
+	if (g_pad[0]->IsTrigger(enButtonY))
 	{
 		m_photoCapture.ToggleFinderActive();
 	}
@@ -226,4 +234,7 @@ void Game::Render(RenderContext& rc)
 	m_modelRender->Draw(rc);
 	// モデル描画(地面)
 	m_groundModelRender->Draw(rc);
+
+	// 敵の描画
+	m_enemy->Render(rc);
 }

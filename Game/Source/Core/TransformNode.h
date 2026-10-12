@@ -53,19 +53,19 @@ namespace app
 			 * @return ワールド座標
 			 * @details : 親
 			 */
-			const Vector3& GetWorldPosition() { return m_worldPosition; }
+			const Vector3& GetWorldPosition() const { return m_worldPosition; }
 			/**
 			 * @brief ワールド回転を取得
 			 * @return ワールド回転
 			 * @details : 親
 			 */
-			const Quaternion& GetWorldRotation() { return m_worldRotation; }
+			const Quaternion& GetWorldRotation() const { return m_worldRotation; }
 			/**
 			 * @brief ワールドスケールを取得
 			 * @return ワールドスケール
 			 * @details : 親
 			 */
-			const Vector3& GetWorldScale() { return m_worldScale; }
+			const Vector3& GetWorldScale() const { return m_worldScale; }
 			
 			/**
 			 * @brief ローカル座標を取得

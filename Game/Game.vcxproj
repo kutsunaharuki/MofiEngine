@@ -267,9 +267,16 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Preview|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameCamera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Source\Core\TransformNode.cpp" />
+    <ClCompile Include="Source\Scene\InGameScene.cpp" />
+    <ClCompile Include="Source\Scene\IScene.cpp" />
+    <ClCompile Include="Source\Scene\ResultScene.cpp" />
+    <ClCompile Include="Source\Scene\SceneManager.cpp" />
+    <ClCompile Include="Source\Scene\TitleScene.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -278,9 +285,16 @@
     <ClCompile Include="system\system.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Enemy.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameCamera.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Source\Core\TransformNode.h" />
+    <ClInclude Include="Source\Scene\InGameScene.h" />
+    <ClInclude Include="Source\Scene\IScene.h" />
+    <ClInclude Include="Source\Scene\ResultScene.h" />
+    <ClInclude Include="Source\Scene\SceneManager.h" />
+    <ClInclude Include="Source\Scene\TitleScene.h" />
     <ClInclude Include="Source\Util\CRC32.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system\system.h" />
