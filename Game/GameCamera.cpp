@@ -4,6 +4,7 @@
  */
 #include "stdafx.h"
 #include "GameCamera.h"
+#include "Source/Core/Clamp.h"
 
 
 namespace app
@@ -16,68 +17,84 @@ namespace app
 			constexpr float CAMERA_NEAR = 0.1f;
 			/** カメラの遠平面 */
 			constexpr float CAMERA_FAR = 10000.0f;
-			/** 注視点から視点までの位置 */
-			const Vector3 TO_CAMERA_POS = { 0.0f, 100.0f, -300.0f };
-			/** 注視点のY軸を上げる */
-			constexpr float TARGET_CAMERA_Y_UP = 200.0f;
+			/** 目の高さ */
+			constexpr float EYE_HEIGHT = 120.0f;
 			/** 入力閾値 */
 			constexpr float EPSILON = 0.001f;
 			/** カメラ回転速度 */
-			constexpr float CAMERA_ROTATE_SPEED = 1.3f;
-			/** カメラの最小Y角度 */
-			constexpr float CAMERA_ANGLE_MIN_Y = -0.2f;
-			/** カメラの最大Y角度 */
-			constexpr float CAMERA_ANGLE_MAX_Y = 0.9f;
+			constexpr float CAMERA_ROTATE_SPEED = 1.7f;
+			/** 上下の向きの最小値(度) */
+			constexpr float PITCH_MIN_DEG = -60.0f;
+			/** 上下の向きの最大値(度) */
+			constexpr float PITCH_MAX_DEG = 60.0f;
+
+			/** 円周率 */
+			constexpr float PI = 3.14159265f;
+			/** 度からラジアンへの変換係数 */
+			constexpr float DEG_TO_RAD = PI / 180.0f;
 		}
 
 
 		GameCamera::GameCamera()
 			: m_modelRender(nullptr)
-			, m_toCameraPos(TO_CAMERA_POS)
-			, m_prevTarget(Vector3::Zero)
+			, m_prevEyePos(Vector3::Zero)
+			, m_target(nullptr)
+			, m_yawDeg(0.0f)
+			, m_pitchDeg(0.0f)
 		{}
 
 
 		bool GameCamera::Start()
 		{
-			// 注視点から視点までの位置を設定
-			m_toCameraPos.Set(TO_CAMERA_POS);
 			// カメラの近平面を設定
 			g_camera3D->SetNear(CAMERA_NEAR);
 			// カメラの遠平面を設定
 			g_camera3D->SetFar(CAMERA_FAR);
-
 			return true;
 		}
 
 
 		void GameCamera::Update()
 		{
-			// 注視点の計算
-			Vector3 target = CalcTargetPos();
-			g_camera3D->SetTarget(target);
-
 			// Rスティックの入力でカメラを回転
 			RotateCamera();
-			
-			// 視点の計算
-			Vector3 pos = target + m_toCameraPos;
-			g_camera3D->SetPosition(pos);
 
+			// 視点と視線の向きから、注視点を求める
+			const Vector3 eyePos = CalcEyePos();
+			const Vector3 forward = CalcForwardXZ();
+
+			// カメラの位置と注視点を設定
+			g_camera3D->SetPosition(eyePos);
+			g_camera3D->SetTarget(eyePos + forward);
 			g_camera3D->Update();
 		}
 
 
-		Vector3 GameCamera::CalcTargetPos()
+		Vector3 GameCamera::CalcEyePos()
 		{
-			if (!m_modelRender) return m_prevTarget;
+			// 追従対象がない場合は直前の値を返す
+			if (!m_target) return m_prevEyePos;
 
-			// 注視点
-			Vector3 target;
-			target = m_modelRender->GetPosition();
-			target.y += TARGET_CAMERA_Y_UP;
-			m_prevTarget = target;
-			return m_prevTarget;
+			m_prevEyePos = m_target->GetWorldPosition();
+			m_prevEyePos.y += EYE_HEIGHT;
+
+			return m_prevEyePos;
+		}
+
+
+		Vector3 GameCamera::CalcForwardXZ() const
+		{
+			// YawとPitchをラジアンに変換
+			const float yaw = m_yawDeg * DEG_TO_RAD;
+			const float pitch = m_pitchDeg * DEG_TO_RAD;
+			
+			// yaw = 0, pitch = 0 のとき +Z方向を向く
+			Vector3 forward;
+			forward.x = sinf(yaw) * cosf(pitch);
+			forward.y = sinf(pitch);
+			forward.z = cosf(yaw) * cosf(pitch);
+			
+			return forward;
 		}
 
 
@@ -90,44 +107,29 @@ namespace app
 			// 入力がない場合は回転しない
 			if (fabs(x) < EPSILON && fabs(y) < EPSILON) return;
 
-			// 回転前の状態をローカル変数で保持
-			Vector3 toCameraPosOld = m_toCameraPos;
+			// 左右
+			m_yawDeg += CAMERA_ROTATE_SPEED * x;
+			// 上下
+			m_pitchDeg += CAMERA_ROTATE_SPEED * y;
 
-			// Y軸周りの回転
-			Quaternion qrotY;
-			qrotY.SetRotationDeg(Vector3::AxisY, CAMERA_ROTATE_SPEED * x);
-			qrotY.Apply(m_toCameraPos);
-
-			// X軸周りの回転
-			Vector3 axisX;
-			axisX.Cross(Vector3::AxisY, m_toCameraPos);
-			axisX.Normalize();
-
-			// 求めた軸周りの回転
-			Quaternion qrotX;
-			qrotX.SetRotationDeg(axisX, CAMERA_ROTATE_SPEED * y);
-			qrotX.Apply(m_toCameraPos);
-
-			// 回転後のカメラの角度が許容範囲外なら元の状態に戻す
-			if (!IsCameraAngleValid(m_toCameraPos))
-			{
-				m_toCameraPos = toCameraPosOld;
-			}
+			// 上下は真上・真下を向かないようにクランプする
+			m_pitchDeg = app::core::TClamp<float>::Clamp(m_pitchDeg, PITCH_MIN_DEG, PITCH_MAX_DEG);
 		}
-		
-		
-		bool GameCamera::IsCameraAngleValid(const Vector3& toCameraPos)
-		{
-			// 注視点から視点までのベクトルを正規化する
-			Vector3 toPosDir = toCameraPos;
-			toPosDir.Normalize();
 
-			// 下に向きすぎか上に向きすぎかを判定
-			if (toPosDir.y < CAMERA_ANGLE_MIN_Y || toPosDir.y > CAMERA_ANGLE_MAX_Y)
-			{
-				return false;
-			}
-			return true	;
+
+		Vector3 GameCamera::GetForwardXZ() const
+		{
+			// Yawをラジアンに変換
+			const float yaw = m_yawDeg * DEG_TO_RAD;
+			return Vector3(sinf(yaw), 0.0f, cosf(yaw));
+		}
+
+
+		Vector3 GameCamera::GetRightXZ() const
+		{
+			// Yawをラジアンに変換
+			const float yaw = m_yawDeg * DEG_TO_RAD;
+			return Vector3(sinf(yaw), 0.0f, -sinf(yaw));
 		}
 	}
 }

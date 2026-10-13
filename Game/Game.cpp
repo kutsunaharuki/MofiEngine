@@ -93,7 +93,9 @@ bool Game::Start()
 	// 後々に響きそうなのでゲームカメラを作成しておく。
 	m_gameCamera = new app::camera::GameCamera;
 	m_gameCamera->Start();
-	m_gameCamera->SetTarget(m_modelRender);
+	m_transform.SetLocalPosition(m_position);
+	m_transform.UpdateTransform();
+	m_gameCamera->SetTarget(&m_transform);
 	m_gameCamera->Update();
 	return true;
 }
@@ -213,6 +215,9 @@ void Game::Update()
 	finderCamera.SetTarget(g_camera3D->GetTarget());
 	finderCamera.Update();
 
+	Quaternion enemyRot;
+	enemyRot.SetRotationDegY(180.0f);
+	m_enemy->SetRotation(enemyRot);
 	m_enemy->Update();
 
 	// ファインダーのON/OFFを切り替える
@@ -230,8 +235,6 @@ void Game::Update()
 
 void Game::Render(RenderContext& rc)
 {
-	// モデル描画(ユニティちゃん)
-	m_modelRender->Draw(rc);
 	// モデル描画(地面)
 	m_groundModelRender->Draw(rc);
 

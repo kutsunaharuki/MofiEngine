@@ -8,12 +8,10 @@ namespace app
 	{
 		/** 敵のモデルパス */
 		constexpr const char* ENEMY_MODEL_PATH = "Assets/modelData/Enemy.tkm";
-
 		/** 敵の初期位置 */
-		const Vector3 ENEMY_POSITION = { 0.0f,0.0f,300.0f };
-
+		const Vector3 ENEMY_POSITION = { 0.0f,0.0f,800.0f };
 		/** 敵の初期スケール */
-		const Vector3 ENEMY_SCALE = { 2.0f,2.0f,2.0f };
+		const Vector3 ENEMY_SCALE = { 0.5f,0.5f,0.5f };
 	}
 
 
@@ -48,6 +46,7 @@ namespace app
 		m_modelRender->Update();
 	}
 	
+
 	void Enemy::Update()
 	{
 		// ローカル値からワールド値を計算する(子がいれば子も更新される)

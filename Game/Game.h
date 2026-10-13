@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include "Source/Core/TransformNode.h"
+
 
 namespace app
 {
@@ -7,6 +9,11 @@ namespace app
 	namespace camera
 	{
 		class GameCamera;
+	}
+
+	namespace core
+	{
+		class TransformNode;
 	}
 }
 
@@ -24,7 +31,8 @@ public:
 private:
 	/** 写真撮影クラス */
 	nsK2EngineLow::PhotoCapture m_photoCapture;
-
+	/** トランスフォーム */
+	app::core::TransformNode m_transform;
 	/** 敵 */
 	std::unique_ptr<app::Enemy> m_enemy;
 
