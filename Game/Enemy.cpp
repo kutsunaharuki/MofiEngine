@@ -7,7 +7,7 @@ namespace app
 	namespace
 	{
 		/** 敵のモデルパス */
-		constexpr const char* ENEMY_MODEL_PATH = "Assets/modelData/unityChan.tkm";
+		constexpr const char* ENEMY_MODEL_PATH = "Assets/modelData/Enemy.tkm";
 
 		/** 敵の初期位置 */
 		const Vector3 ENEMY_POSITION = { 0.0f,0.0f,300.0f };

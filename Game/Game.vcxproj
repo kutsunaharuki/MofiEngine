@@ -271,6 +271,11 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameCamera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Source\Actor\Actor.cpp" />
+    <ClCompile Include="Source\Actor\ActorStateMachine.cpp" />
+    <ClCompile Include="Source\Actor\Character\CharacterBase.cpp" />
+    <ClCompile Include="Source\Actor\Character\CharacterStateMachine.cpp" />
+    <ClCompile Include="Source\Core\StateMachineBase.cpp" />
     <ClCompile Include="Source\Core\TransformNode.cpp" />
     <ClCompile Include="Source\Scene\InGameScene.cpp" />
     <ClCompile Include="Source\Scene\IScene.cpp" />
@@ -289,6 +294,11 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameCamera.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Source\Actor\Actor.h" />
+    <ClInclude Include="Source\Actor\ActorStateMachine.h" />
+    <ClInclude Include="Source\Actor\Character\CharacterBase.h" />
+    <ClInclude Include="Source\Actor\Character\CharacterStateMachine.h" />
+    <ClInclude Include="Source\Core\StateMachineBase.h" />
     <ClInclude Include="Source\Core\TransformNode.h" />
     <ClInclude Include="Source\Scene\InGameScene.h" />
     <ClInclude Include="Source\Scene\IScene.h" />

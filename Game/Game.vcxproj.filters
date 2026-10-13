@@ -34,6 +34,12 @@
     <Filter Include="Source\Scene">
       <UniqueIdentifier>{f7084328-96f9-4084-92f7-31cbdbdacfda}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Actor\Character\Enemy\BigMan">
+      <UniqueIdentifier>{80dc1ac1-aef0-4f31-939e-47c6cefafa29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Actor\Character\Enemy\RatMan">
+      <UniqueIdentifier>{91340299-4ec4-453b-8355-c5d8d199468b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -83,6 +89,21 @@
     <ClCompile Include="Source\Core\TransformNode.cpp">
       <Filter>Source\Core</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Core\StateMachineBase.cpp">
+      <Filter>Source\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Actor.cpp">
+      <Filter>Source\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\ActorStateMachine.cpp">
+      <Filter>Source\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\CharacterBase.cpp">
+      <Filter>Source\Actor\Character</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\CharacterStateMachine.cpp">
+      <Filter>Source\Actor\Character</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -113,6 +134,21 @@
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Source\Core\TransformNode.h">
       <Filter>Source\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\StateMachineBase.h">
+      <Filter>Source\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\ActorStateMachine.h">
+      <Filter>Source\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Actor.h">
+      <Filter>Source\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\CharacterBase.h">
+      <Filter>Source\Actor\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\CharacterStateMachine.h">
+      <Filter>Source\Actor\Character</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
