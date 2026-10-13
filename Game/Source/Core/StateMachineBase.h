@@ -19,7 +19,7 @@ namespace app
 	namespace core
 	{
 		/** 前方宣言 */
-		class StateMacineBase;
+		class StateMachineBase;
 
 
 		/**

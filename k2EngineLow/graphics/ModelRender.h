@@ -39,6 +39,14 @@ namespace nsK2EngineLow
 		{
 			m_animation.Play(clipNo, interpolateTime);
 		}
+		/**
+		 * @brief アニメーション再生中かどうか
+		 * @retunr 再生中ならtrue
+		 */
+		bool IsPlayingAnimation() const
+		{
+			return m_animation.IsPlaying();
+		}
 
 		/**
 		 * @brief アニメーション再生速度の設定

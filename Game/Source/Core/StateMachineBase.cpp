@@ -12,6 +12,7 @@ namespace app
 	{
 		StateMachineBase::StateMachineBase()
 			: m_currentState(nullptr)
+			, m_nextState(nullptr)
 		{
 			// ステートマップをクリア
 			m_stateMap.clear();
