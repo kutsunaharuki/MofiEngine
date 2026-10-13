@@ -83,6 +83,7 @@
     <ClCompile Include="Source\Core\TransformNode.cpp">
       <Filter>Source\Core</Filter>
     </ClCompile>
+    <ClCompile Include="StateMachineBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -114,6 +115,7 @@
     <ClInclude Include="Source\Core\TransformNode.h">
       <Filter>Source\Core</Filter>
     </ClInclude>
+    <ClInclude Include="StateMachineBase.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Game.rc" />

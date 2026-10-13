@@ -1,4 +1,8 @@
-﻿#include "stdafx.h"
+﻿/** 
+ * @file TransformNode.cpp
+ * @brief 親子付のクラス
+ */
+#include "stdafx.h"
 #include "TransformNode.h"
 #include <algorithm>
 
