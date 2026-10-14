@@ -4,7 +4,6 @@
  */
 #include "stdafx.h"
 #include "GameCamera.h"
-#include "Source/Core/Clamp.h"
 
 
 namespace app
@@ -112,8 +111,8 @@ namespace app
 			// 上下
 			m_pitchDeg += CAMERA_ROTATE_SPEED * y;
 
-			// 上下は真上・真下を向かないようにクランプする
-			m_pitchDeg = app::core::TClamp<float>::Clamp(m_pitchDeg, PITCH_MIN_DEG, PITCH_MAX_DEG);
+			// 上下は真上・真下を向かないようにクランプする(float型clamp)
+			m_pitchDeg = nsK2EngineLow::FloatClamp::Clamp(m_pitchDeg, PITCH_MIN_DEG, PITCH_MAX_DEG);
 		}
 
 

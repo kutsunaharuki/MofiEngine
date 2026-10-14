@@ -249,6 +249,12 @@
     <ClCompile Include="graphics\PhotoCapture.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
+    <ClCompile Include="math\TClamp.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="math\FloatClamp.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="k2EngineLowPreCompile.h" />
@@ -549,6 +555,12 @@
     </ClInclude>
     <ClInclude Include="graphics\PhotoCapture.h">
       <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="math\TClamp.h">
+      <Filter>math</Filter>
+    </ClInclude>
+    <ClInclude Include="math\FloatClamp.h">
+      <Filter>math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

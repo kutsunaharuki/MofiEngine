@@ -51,6 +51,8 @@ static const int MAX_FPS = 60;	// 最大FPS。USE_FPS_LIMITTERが有効なとき
 #include "math/Math.h"
 #include "math/Vector.h"
 #include "math/Matrix.h"
+#include "math/TClamp.h"
+#include "math/FloatClamp.h"
 
 #include "k2EngineLow.h"
 #include "graphics/VertexBuffer.h"

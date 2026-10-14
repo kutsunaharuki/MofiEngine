@@ -47,7 +47,7 @@ namespace nsK2EngineLow
 		 * @brief ファインダー状態かどうか
 		 * @return ファインダー状態なら true
 		 */
-		bool IsFinderActive() const { return m_isFinderActive; }
+		inline bool IsFinderActive() const { return m_isFinderActive; }
 		/**
 		 * @brief 撮影リクエストを送る
 		 * @details ファインダー状態の時のみ有効。
@@ -58,7 +58,17 @@ namespace nsK2EngineLow
 		 * @brief 撮影済みの写真があるかどうかをチェックする
 		 * @return 撮影済みの写真がある場合は、true
 		 */
-		bool HasPhoto() const { return m_hasPhoto; }
+		inline bool HasPhoto() const { return m_hasPhoto; }
+		/**
+		 * @brief ファインダーをズームする
+		 * @param amount ズーム量(+:拡大, -:縮小)
+		 */
+		void FinderZoom(float amount);
+		/**
+		 * @brief ファインダーのズーム比率を取得
+		 * @return ファインダーのズーム比率
+		 */
+		inline float GetFinderZoomRatio() const;
 
 
 	public:
@@ -71,17 +81,17 @@ namespace nsK2EngineLow
 		 * @brief ファインダーの位置を設定
 		 * @param pos ファインダーの位置
 		 */
-		void SetFinderPosition(const Vector3& pos) { m_finderPosition = pos; }
+		inline void SetFinderPosition(const Vector3& pos) { m_finderPosition = pos; }
 		/**
 		 * @brief ファインダーの回転を設定
 		 * @param rot ファインダーの回転
 		 */
-		void SetFinderRotation(const Quaternion& rot) { m_finderRotation = rot; }
+		inline void SetFinderRotation(const Quaternion& rot) { m_finderRotation = rot; }
 		/**
 		 * @brief ファインダーのスケールを設定
 		 * @param scale ファインダーのスケール
 		 */
-		void SetFinderScale(const Vector3& scale) { m_finderScale = scale; }
+		inline void SetFinderScale(const Vector3& scale) { m_finderScale = scale; }
 
 
 	private:
@@ -123,6 +133,8 @@ namespace nsK2EngineLow
 
 		/** ファインダー状態 */
 		bool m_isFinderActive;
+		/** 現在の画角(ラジアン) */
+		float m_viewAngle;
 	};
 }
 

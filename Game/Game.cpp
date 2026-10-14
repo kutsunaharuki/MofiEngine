@@ -20,6 +20,10 @@ namespace
 
 	/** 子の座標 */
 	const Vector3 CHILD_POSITION = { 10.0f,0.0f,0.0f};
+	/** 拡大の比率 */
+	constexpr float ZOOM_IN_RATE = 1.0f;
+	/** 縮小の比率 */
+	constexpr float ZOOM_OUT_RATE = -1.0f;
 }
 
 
@@ -231,6 +235,24 @@ void Game::Update()
 	{
 		m_photoCapture.Shot();
 	}
+
+	// ファインダー拡大
+	if (g_pad[0]->IsPress(enButtonRB1))
+	{
+		m_photoCapture.FinderZoom(ZOOM_IN_RATE);
+	}
+	// ファインダー縮小
+	if (g_pad[0]->IsPress(enButtonLB1))
+	{
+		m_photoCapture.FinderZoom(ZOOM_OUT_RATE);
+	}
+
+	// ファインダー用のカメラの参照を取得
+	Camera& camera = m_photoCapture.GetFinderCamera();
+
+	camera.SetPosition(g_camera3D->GetPosition());
+	camera.SetTarget(g_camera3D->GetTarget());
+	camera.Update();
 }
 
 void Game::Render(RenderContext& rc)

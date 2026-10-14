@@ -10,9 +10,9 @@ namespace nsK2EngineLow
 	namespace
 	{
 		/** ファインダーのフレームバッファの横幅 */
-		constexpr int FINDER_FRAME_BUFFER_W = 640;
+		constexpr int FINDER_FRAME_BUFFER_W = 768;
 		/** ファインダーのフレームバッファの縦幅 */
-		constexpr int FINDER_FRAME_BUFFER_H = 360;
+		constexpr int FINDER_FRAME_BUFFER_H = 432;
 		/** ファインダーのスプライトの横幅 */
 		constexpr int FINDER_SPRITE_W = 640;
 		/** ファインダーのスプライトの縦幅 */
@@ -36,6 +36,19 @@ namespace nsK2EngineLow
 		constexpr float PHOTO_MARGIN = 20.0f;
 		/** 中心から端までの距離求めるための係数(全体の大きさの半分) */
 		constexpr float HALF = 0.5f;
+
+		
+		// ファインダーのズーム
+		/** 円周率 */
+		constexpr float PI = 3.14159265f;
+		/** 度からラジアンへの変換係数 */
+		constexpr float DEG_TO_RAD = PI / 180.0f;
+		/** ファインダーの画角(広角側。ズームなしの状態) */
+		constexpr float FINDER_VIEW_ANGLE_WIDE = 60.0f * DEG_TO_RAD;
+		/** ファインダーの画角(望遠側。ズームありの状態) */
+		constexpr float FINDER_VIEW_ANGLE_TELE = 7.0f * DEG_TO_RAD;
+		/** ファインダーのズーム速度 */
+		constexpr float FINDER_ZOOM_SPEED = 0.01f;
 	}
 
 
@@ -48,6 +61,7 @@ namespace nsK2EngineLow
 		, m_isFinderActive(false)
 		, m_isShotRequested(false)
 		, m_hasPhoto(false)
+		, m_viewAngle(FINDER_VIEW_ANGLE_WIDE)
 	{}
 
 
@@ -61,9 +75,8 @@ namespace nsK2EngineLow
 		// ファインダー用
 		// ====================================================
 
-		// クリアカラーは一旦赤色に
-		// 赤いスプライトはファインダー
-		float clearColor[4] = { 1.0f,0.0f,0.0f,1.0f };
+		// クリアカラーは一旦青色に
+		float clearColor[4] = { 0.5f,0.7f,1.0f,1.0f };
 
 		/** ファインダー用のレンダリングターゲット初期化 */
 		m_finderRT.Create(
@@ -79,10 +92,13 @@ namespace nsK2EngineLow
 		// ファインダー用のスプライトを初期化(オンスクリーン)
 		SpriteInitData finderSpriteInitData;
 		finderSpriteInitData.m_fxFilePath  = "Assets/shader/sprite.fx";
-		finderSpriteInitData.m_width       = FINDER_SPRITE_W;
-		finderSpriteInitData.m_height      = FINDER_SPRITE_H;
+		finderSpriteInitData.m_width       = FINDER_FRAME_BUFFER_W;
+		finderSpriteInitData.m_height      = FINDER_FRAME_BUFFER_H;
 		finderSpriteInitData.m_textures[0] = &m_finderRT.GetRenderTargetTexture();
 		m_finderSprite.Init(finderSpriteInitData);
+
+		// ファインダーの画角を広角側で初期化
+		m_finderCamera.SetViewAngle(m_viewAngle);
 
 		/** ファインダー用のカメラ初期化 */
 		m_finderCamera.SetFar(FINDER_CAMERA_FAR);
@@ -202,6 +218,27 @@ namespace nsK2EngineLow
 		m_finderSprite.Update(m_finderPosition, m_finderRotation, m_finderScale);
 		// スプライトを描画
 		m_finderSprite.Draw(rc);
+	}
+
+
+	void PhotoCapture::FinderZoom(float amount)
+	{
+		// ファインダーが有効でなければズームしない
+		if (!m_isFinderActive) return;
+
+		// ズームインで画角を狭くする
+		m_viewAngle -= amount * FINDER_ZOOM_SPEED;
+		// ズームの制御(float型専用Clamp)
+		m_viewAngle = nsK2EngineLow::FloatClamp::Clamp(m_viewAngle, FINDER_VIEW_ANGLE_TELE, FINDER_VIEW_ANGLE_WIDE);
+
+		// ファインダー用のカメラの画角を更新
+		m_finderCamera.SetViewAngle(m_viewAngle);
+	}
+
+
+	inline float PhotoCapture::GetFinderZoomRatio() const
+	{
+		return m_viewAngle / FINDER_VIEW_ANGLE_WIDE;
 	}
 
 
