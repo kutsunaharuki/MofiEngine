@@ -149,6 +149,8 @@ namespace nsK2EngineLow
 		/** シャドウモデル */
 		Model m_shadowModel;
 
+		/** ファインダー用モデル(メインとファインダーが被ってしまうため) */
+		Model m_finderModel;
 
 		/** 骨 */
 		Skeleton m_skeleton;

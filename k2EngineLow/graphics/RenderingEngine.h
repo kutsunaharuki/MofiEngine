@@ -38,6 +38,12 @@ namespace nsK2EngineLow
 		 * @details: ModelRenderクラスのDrawから呼ばれる事を想定している
 		 */
 		void AddModel(Model& model) { m_models.push_back(&model); }
+		/**
+		 * @brief ファインダーモデルをリストに追加
+		 * @param model ファインダーモデル
+		 * @details : ModelRenderクラスのDrawから呼ばれる事を想定している
+		 */
+		void AddFinderModel(Model& model) { m_finderModels.push_back(&model); }
 
 		/**
 		 * @brief レンダリングエンジンの実行
@@ -216,6 +222,8 @@ namespace nsK2EngineLow
 
 		/** フォトキャプチャーのポインタ */
 		PhotoCapture* m_photoCapture;
+		/** ファインダー用モデルのリスト */
+		std::vector<Model*> m_finderModels;
 
 		/** ブルーム用 */
 		DualBlur m_bloomBlur;

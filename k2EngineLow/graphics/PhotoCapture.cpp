@@ -120,7 +120,7 @@ namespace nsK2EngineLow
 		// ====================================================
 
 		/** 写真用のRT(レンダリングターゲット)を初期化 */
-		float photoClearColor[4] = { 0.0f,0.0f,0.0f,1.0f };
+		float photoClearColor[4] = { 0.5f,0.7f,1.0f,1.0f };
 		m_photoRT.Create(
 			PHOTO_W, PHOTO_H,
 			1, 1,

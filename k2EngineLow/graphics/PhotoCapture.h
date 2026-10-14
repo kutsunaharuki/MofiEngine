@@ -69,7 +69,7 @@ namespace nsK2EngineLow
 		 * @return ファインダーのズーム比率
 		 */
 		inline float GetFinderZoomRatio() const;
-
+		
 
 	public:
 		/**

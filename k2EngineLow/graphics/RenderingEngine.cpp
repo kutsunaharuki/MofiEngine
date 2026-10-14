@@ -55,7 +55,10 @@ namespace nsK2EngineLow
 		// PhotoCaptureがあるならオフスクリーンレンダリングを行う
 		if (m_photoCapture != nullptr)
 		{
-			m_photoCapture->RenderOffscreen(rc, m_models);
+			// ※前まではm_modelsのリストを渡していたが、m_modelsは毎フレーム空になるので、
+			// m_finderModelsのリストを渡すように変更
+			// オフスクリーンに渡すリストをファインダー用のリストに移す
+			m_photoCapture->RenderOffscreen(rc, m_finderModels);
 		}
 
 		// ============================================
@@ -83,6 +86,8 @@ namespace nsK2EngineLow
 
 		// 毎フレームリストを空にする
 		m_models.clear();
+		// ファインダー用のリストを空にする
+		m_finderModels.clear();
 	}
 
 
