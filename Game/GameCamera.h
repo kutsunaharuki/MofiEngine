@@ -21,6 +21,11 @@ namespace app
 			bool Start();
 			void Update();
 
+			/**
+			 * @brief 1人称視点かどうかを設定する
+			 * @param isFirstPerson 1人称視点ならtrue, falseで3人称
+			 */
+			void SetFirstPeerson(bool isFirstPerson);
 
 			/**
 			 * @brie 水平方向(XZ平面)の前方向を取得
@@ -70,6 +75,8 @@ namespace app
 			float m_pitchDeg;
 			/** 直前の視点 */
 			Vector3 m_prevEyePos;
+			/** 1人称視点かどうか */
+			bool m_isFirstPerson;
 		};
 	}
 }

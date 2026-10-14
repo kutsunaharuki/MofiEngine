@@ -198,9 +198,6 @@ void Game::Update()
 	}
 	ImGui::End();
 
-	m_rotation.SetRotationDegY(180.0f);
-	m_modelRender->SetRotation(m_rotation);
-
 
 	if (g_pad[0]->IsPress(enButtonA))
 	{
@@ -214,6 +211,16 @@ void Game::Update()
 	m_modelRender->Update();
 	m_gameCamera->Update();
 
+	// ファインダーのON/OFFを切り替える
+	if (g_pad[0]->IsTrigger(enButtonY))
+	{
+		m_photoCapture.ToggleFinderActive();
+	}
+
+	// ファインダーを覗いている間だけ、1人称にする
+	m_gameCamera->SetFirstPeerson(m_photoCapture.IsFinderActive());
+	m_gameCamera->Update();
+
 	Camera& finderCamera = m_photoCapture.GetFinderCamera();
 	finderCamera.SetPosition(g_camera3D->GetPosition());
 	finderCamera.SetTarget(g_camera3D->GetTarget());
@@ -224,11 +231,7 @@ void Game::Update()
 	m_enemy->SetRotation(enemyRot);
 	m_enemy->Update();
 
-	// ファインダーのON/OFFを切り替える
-	if (g_pad[0]->IsTrigger(enButtonY))
-	{
-		m_photoCapture.ToggleFinderActive();
-	}
+
 
 	// 写真を撮る
 	if (g_pad[0]->IsTrigger(enButtonB))
@@ -257,6 +260,12 @@ void Game::Update()
 
 void Game::Render(RenderContext& rc)
 {
+	// ファインダーを覗いていない時だけ描画する
+	if (!m_photoCapture.IsFinderActive())
+	{
+		m_modelRender->Draw(rc);
+	}
+
 	// モデル描画(地面)
 	m_groundModelRender->Draw(rc);
 

@@ -31,6 +31,13 @@ namespace app
 			constexpr float PI = 3.14159265f;
 			/** 度からラジアンへの変換係数 */
 			constexpr float DEG_TO_RAD = PI / 180.0f;
+
+			/** 3人称の時の、目の位置からカメラまでの位置 */
+			constexpr float THIRD_PERSON_DISTANCE = 250.0f;
+			/** 3人称の上下の向きの最小値(度。下向き) */
+			constexpr float THIRD_PERSON_PITCH_MIN_DEG = -50.0f;
+			/** 3人称の上下の向きの最大値(度。上向き) */
+			constexpr float THIRD_PERSON_PITCH_MAX_DEG = 15.0f;
 		}
 
 
@@ -40,6 +47,7 @@ namespace app
 			, m_target(nullptr)
 			, m_yawDeg(0.0f)
 			, m_pitchDeg(0.0f)
+			, m_isFirstPerson(false)
 		{}
 
 
@@ -62,10 +70,33 @@ namespace app
 			const Vector3 eyePos = CalcEyePos();
 			const Vector3 forward = CalcForwardXZ();
 
-			// カメラの位置と注視点を設定
-			g_camera3D->SetPosition(eyePos);
-			g_camera3D->SetTarget(eyePos + forward);
+
+			if (m_isFirstPerson)
+			{
+				// 1人称
+				g_camera3D->SetPosition(eyePos);
+				g_camera3D->SetTarget(eyePos + forward);
+			}
+			else
+			{
+				// 3人称
+				g_camera3D->SetPosition(eyePos - forward * THIRD_PERSON_DISTANCE);
+				g_camera3D->SetTarget(eyePos);
+			}
+
 			g_camera3D->Update();
+		}
+
+
+		void GameCamera::SetFirstPeerson(bool isFirstPerson)
+		{
+			m_isFirstPerson = isFirstPerson;
+
+			// 3人称に戻すときは、3人称の範囲に収める
+			if (!m_isFirstPerson)
+			{
+				m_pitchDeg = nsK2EngineLow::FloatClamp::Clamp(m_pitchDeg, THIRD_PERSON_PITCH_MIN_DEG, THIRD_PERSON_PITCH_MAX_DEG);
+			}
 		}
 
 
