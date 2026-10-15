@@ -159,58 +159,12 @@ namespace nsK2EngineLow
 		};
 
 
+
 		/**
 		 * @brief ブルームのデータを取得
 		 * @return ブルームのデータ
 		 */
-		BloomCB& GetBloomCB() { return m_bloomCB; }
-
-		/** DoFのデータ */
-		struct DoFCB
-		{
-			float focusDistance; // ピントが合う距離
-			float focusRange;    // ピントの合う幅
-			Vector2 pad0;        // パディング(空き)
-
-
-			DoFCB()
-				: focusDistance(1.0f)
-				, focusRange(100.0f)
-			{}
-		};
-
-		/**
-		 * @brief DoFのデータを取得
-		 * @return DoFのデータ
-		 */
-		DoFCB& GetDoFCB() { return m_dofCB; }
-		/**
-		 * @brief ピントが合う距離を取得
-		 * @return ピントが合う距離
-		 */
-		float& GetDoFFocusDistance() { return m_dofCB.focusDistance; }
-		/**
-		 * @brief ピントの合う幅を取得
-		 * @return ピントの合う幅
-		 */
-		float& GetDoFFocusRange() { return m_dofCB.focusRange; }
-
-		/**
-		 * @brief ピントが合う距離を設定
-		 * @param distance ピントが合う距離
-		 */
-		inline void SetDoFFocusDistance(float distance)
-		{
-			m_dofCB.focusDistance = distance;
-		}
-		/**
-	 	 * @brief ピントの合う幅を設定
-		 * @param range ピントの合う幅s
-		 */
-		inline void SetDoFFocusRange(float range)
-		{
-			m_dofCB.focusRange = range;
-		}		
+		BloomCB& GetBloomCB() { return m_bloomCB; }		
 
 
 	private:
@@ -230,8 +184,6 @@ namespace nsK2EngineLow
 		/** DoF用 */
 		DualBlur m_dofBlur;
 
-		/** DoFのデータ */
-		DoFCB m_dofCB;
 		/** ブルームのデータ */
 		BloomCB m_bloomCB;
 

@@ -24,6 +24,11 @@ namespace
 	constexpr float ZOOM_IN_RATE = 1.0f;
 	/** 縮小の比率 */
 	constexpr float ZOOM_OUT_RATE = -1.0f;
+
+	/** フォーカスの最大値 */
+	constexpr float FOCUS_MAX = 1.0f;
+	/** フォーカスの最小値 */
+	constexpr float FOCUS_MIN = -1.0f;
 }
 
 
@@ -177,20 +182,28 @@ void Game::Update()
 		// DoF(ピントのぼけ)の調整
 		if (ImGui::BeginTabItem("DoF"))
 		{
-			ImGui::Checkbox("DoF Enable", &re.IsEnableDoF());
+			// ファインダーを覗いているときだけ、効果が見える
+			ImGui::Text("Finder Active: %s", m_photoCapture.IsFinderActive() ? "Yes" : "No");
 
-			// DoFのピント距離
-			float distance = re.GetDoFCB().focusDistance;
-			if (ImGui::SliderFloat("Distance", &distance, 0.0f, 3000.0f))
+			// ピント距離
+			float distance = m_photoCapture.GetFocusDistance();
+			if (ImGui::SliderFloat("Distance", &distance, 0.0f, 1000.0f))
 			{
-				re.SetDoFFocusDistance(distance);
+				m_photoCapture.SetFocusDistance(distance);
 			}
-			
-			// DoFのピントの合う幅
-			float range = re.GetDoFCB().focusRange;
-			if (ImGui::SliderFloat("Range", &range, 0.0f, 2000.0f))
+
+			// ボケ量が最大になるまでの幅
+			float blurRange = m_photoCapture.GetFocusBlurRange();
+			if (ImGui::SliderFloat("Blur Range", &blurRange, 1.0f, 1000.0f))
 			{
-				re.SetDoFFocusRange(range);
+				m_photoCapture.SetFocusBlurRange(blurRange);
+			}
+
+			// ピントが合っているとみなす許容値
+			float tolerance = m_photoCapture.GetFocusTolerance();
+			if (ImGui::SliderFloat("Tolerance", &tolerance, 1.0f, 200.0f))
+			{
+				m_photoCapture.SetFocusTolerance(tolerance);
 			}
 			ImGui::EndTabItem();
 		}
@@ -209,7 +222,6 @@ void Game::Update()
 	}
 
 	m_modelRender->Update();
-	m_gameCamera->Update();
 
 	// ファインダーのON/OFFを切り替える
 	if (g_pad[0]->IsTrigger(enButtonY))
@@ -232,6 +244,15 @@ void Game::Update()
 	m_enemy->Update();
 
 
+	if (g_pad[0]->IsPress(enButtonUp))
+	{
+		m_photoCapture.FinderFocus(FOCUS_MAX);
+	}
+
+	if (g_pad[0]->IsPress(enButtonDown))
+	{
+		m_photoCapture.FinderFocus(FOCUS_MIN);
+	}
 
 	// 写真を撮る
 	if (g_pad[0]->IsTrigger(enButtonB))

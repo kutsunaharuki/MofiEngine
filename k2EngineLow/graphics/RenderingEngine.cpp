@@ -155,18 +155,6 @@ namespace nsK2EngineLow
 		additiveBlendSpriteInitData.m_alphaBlendMode = AlphaBlendMode_Add;
 		m_additiveBlendSprite.Init(additiveBlendSpriteInitData);
 
-		// DoFスプライトの初期化
-		SpriteInitData dofSpriteInitData;
-		dofSpriteInitData.m_width = FRAME_BUFFER_W;
-		dofSpriteInitData.m_height = FRAME_BUFFER_H;
-		dofSpriteInitData.m_fxFilePath = "Assets/shader/dof.fx";
-		dofSpriteInitData.m_textures[0] = &m_mainRenderTarget.GetRenderTargetTexture();
-		dofSpriteInitData.m_textures[1] = &m_dofBlur.GetResultTexture();
-		dofSpriteInitData.m_expandConstantBuffer = &m_dofCB;
-		dofSpriteInitData.m_expandConstantBufferSize = sizeof(DoFCB);
-		m_dofSprite.Init(dofSpriteInitData);
-
-
 		// シャドウマップのクリアカラーを白に設定
 		float clearColor[4] = { 1.0f,1.0f,1.0f,1.0f };
 		for (int i = 0; i < MAX_SHADOW; i++)

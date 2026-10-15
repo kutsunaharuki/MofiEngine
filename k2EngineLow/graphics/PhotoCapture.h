@@ -7,6 +7,26 @@
 
 namespace nsK2EngineLow
 {
+	/** DoFのデータ */
+	struct FinderDoFCB
+	{
+		float focusDistance; // ピントが合う距離
+		float focusRange;    // ピントの合う幅
+		Vector2 pad0;        // パディング(空き)
+
+
+		FinderDoFCB()
+			: focusDistance(1.0f)
+			, focusRange(100.0f)
+		{}
+	};
+
+
+
+
+	/****************************************************/
+
+
 	/**
 	 * @brief 別カメラでの描画と写真の保存クラス
 	 */
@@ -42,7 +62,7 @@ namespace nsK2EngineLow
 		/**
 		 * @brief ファインダー状態を切り替える
 		 */
-		void ToggleFinderActive() { m_isFinderActive = !m_isFinderActive; }
+		void ToggleFinderActive();
 		/**
 		 * @brief ファインダー状態かどうか
 		 * @return ファインダー状態なら true
@@ -68,8 +88,19 @@ namespace nsK2EngineLow
 		 * @brief ファインダーのズーム比率を取得
 		 * @return ファインダーのズーム比率
 		 */
-		inline float GetFinderZoomRatio() const;
-		
+		float GetFinderZoomRatio() const;
+		/**
+		 * @brief ピント距離を動かす
+		 * @param amount 正:遠く、負:近く
+		 */
+		void FinderFocus(float amount);
+		/**
+		 * @brief 被写体の距離にピントが合っているかどうかを判定
+		 * @param distance カメラから被写体までの距離
+		 * @return  合っていれば true
+		 */
+		bool IsInFocus(float distance) const;
+
 
 	public:
 		/**
@@ -93,14 +124,46 @@ namespace nsK2EngineLow
 		 */
 		inline void SetFinderScale(const Vector3& scale) { m_finderScale = scale; }
 
+		 
+	public:
+		/**
+		* @brief ピント距離を設定
+		* @param distance ピント距離
+		*/
+		inline void SetFocusDistance(float distance) { m_focusDistance = distance; }
+		/**
+		 * @brief ピント距離を取得
+		 * @return ピント距離
+		 */
+		inline float GetFocusDistance() const { return m_focusDistance; }
+		/**
+		 * @brief ボケ量が最大になるまでの幅を取得
+		 * @return ボケ量が最大になるまでの幅
+		 */
+		inline float GetFocusBlurRange() const { return m_focusBlurRange; }
+		/**
+		 * @brief ボケ量が最大になるまでの幅を設定
+		 * @param range ボケ量が最大になるまでの幅
+		 */
+		inline void SetFocusBlurRange(float range) { m_focusBlurRange = range; }
+		/**
+		 * @brief ピントが合っているとみなす許容値を取得
+		 * @return 許容値
+		 */
+		inline float GetFocusTolerance() const { return m_focusTolerance; }
+		/**
+		 * @brief ピントが合っているとみなす許容値を設定
+		 * @param tolerance 許容値
+		 */
+		inline void SetFocusTolerance(float tolerance) { m_focusTolerance = tolerance; }
+
 
 	private:
 		/**
 		 * @brief 写真用RTにファインダーカメラ視点で描画
 		 * @param rc レンダリングコンテキスト
-		 * @param models 撮影したモデル
 		 */
-		void RenderPhoto(RenderContext& rc, std::vector<Model*>& models);
+		void RenderPhoto(RenderContext& rc);
 
 
 	private:
@@ -122,6 +185,17 @@ namespace nsK2EngineLow
 		RenderTarget m_finderRT;
 		/** ファインダー用のカメラ */
 		Camera m_finderCamera;
+		/** ファインダーの絵を写真用RTに写すスプライト */
+		Sprite m_photoCopySprite;
+		/** DOF適用後のRT(画面に表示する絵) */
+		RenderTarget m_finderResultRT;
+		/** ファインダー用のDOF用のスプライト */
+		Sprite m_finderDofSprite;
+		/** ファインダー用のブラー */
+		DualBlur m_finderBlur;
+		/** ファインダー用のDoFのデータ */
+		FinderDoFCB m_finderDoFCB;
+
 		/** ファインダー用のスプライト */
 		Sprite m_finderSprite;
 		/** ファインダーの位置(仮の座標) */
@@ -135,6 +209,12 @@ namespace nsK2EngineLow
 		bool m_isFinderActive;
 		/** 現在の画角(ラジアン) */
 		float m_viewAngle;
+		/** ピント距離 */
+		float m_focusDistance;
+		/** ボケ量が最大になるまでの幅 */
+		float m_focusBlurRange;
+		/** ピントが合っているとみなす許容値 */
+		float m_focusTolerance;
 	};
 }
 

@@ -36,7 +36,7 @@ namespace app
 		m_transform.UpdateTransform();
 
 		m_modelRender = std::make_unique<ModelRender>();
-		m_modelRender->Init(ENEMY_MODEL_PATH, nullptr, enModelUpAxisY, 0);
+		m_modelRender->Init(ENEMY_MODEL_PATH, nullptr, enModelUpAxisZ, 0);
 		m_modelRender->SetTRS(
 			m_transform.GetWorldPosition(),
 			m_transform.GetWorldRotation(),

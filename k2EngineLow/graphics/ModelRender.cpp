@@ -58,9 +58,6 @@ namespace nsK2EngineLow
 		deferredInitData.m_expandConstantBufferSize = sizeof(SceneLight::LightCB);
 		m_deferredModel.Init(deferredInitData);
 
-		// ファインダー用モデルをディファードモデル後に初期化
-		m_finderModel.Init(deferredInitData);
-
 		/** 2. Modelにスケルトンを渡す(骨の行列がt3に送られる) */
 		// tkmファイルパスを設定
 		m_modelInitData.m_tkmFilePath = tkmFilePath;
@@ -113,6 +110,13 @@ namespace nsK2EngineLow
 				m_modelInitData.m_expandShaderResoruceView[srvNo] = &shadowMap;
 				srvNo++;
 			});
+
+			// 拡張定数バッファにライトの定数バッファを設定
+			m_modelInitData.m_expandConstantBuffer = &SceneLight::GetInstance().GetLightCB();
+			// 拡張定数バッファのサイズを設定
+			m_modelInitData.m_expandConstantBufferSize = sizeof(SceneLight::LightCB);
+			// ファインダー・写真用のモデルをフォワード用で初期化
+			m_finderModel.Init(m_modelInitData);
 		}
 	}
 

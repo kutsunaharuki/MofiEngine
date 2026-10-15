@@ -49,6 +49,18 @@ namespace nsK2EngineLow
 		constexpr float FINDER_VIEW_ANGLE_TELE = 7.0f * DEG_TO_RAD;
 		/** ファインダーのズーム速度 */
 		constexpr float FINDER_ZOOM_SPEED = 0.01f;
+
+		
+		/** ピント距離の最小値(近い側) */
+		constexpr float FOCUS_DISTANCE_MIN = 50.0f;
+		/** ピント距離の最大値(遠い側。ファインダーカメラの遠平面まで) */
+		constexpr float FOCUS_DISTANCE_MAX = 1000.0f;
+		/** ピントを動かす速度 */
+		constexpr float FOCUS_SPEED = 400.0f;
+		/** ピント距離から距離制限でボケ量が最大になる */
+		constexpr float FOCUS_BLUR_RANGE = 300.0f;
+		/** ピント距離との差の許容値 */
+		constexpr float FOCUS_TOLERANCE = 40.0f;
 	}
 
 
@@ -62,6 +74,9 @@ namespace nsK2EngineLow
 		, m_isShotRequested(false)
 		, m_hasPhoto(false)
 		, m_viewAngle(FINDER_VIEW_ANGLE_WIDE)
+		, m_focusDistance(0.0f)
+		, m_focusBlurRange(FOCUS_BLUR_RANGE)
+		, m_focusTolerance(FOCUS_TOLERANCE)
 	{}
 
 
@@ -76,7 +91,8 @@ namespace nsK2EngineLow
 		// ====================================================
 
 		// クリアカラーは一旦青色に
-		float clearColor[4] = { 0.5f,0.7f,1.0f,1.0f };
+		// α値を1.0にしてしまうと背景が「距離(目の前)」で埋め尽くされてしまう
+		float clearColor[4] = { 0.5f,0.7f,1.0f,FINDER_CAMERA_FAR };
 
 		/** ファインダー用のレンダリングターゲット初期化 */
 		m_finderRT.Create(
@@ -89,12 +105,38 @@ namespace nsK2EngineLow
 			clearColor
 		);
 
+
+		/** DOF適用後のRTを初期化(画面に表示する絵) */
+		m_finderResultRT.Create(
+			FINDER_FRAME_BUFFER_W, FINDER_FRAME_BUFFER_H,
+			1, 1,
+			DXGI_FORMAT_R16G16B16A16_FLOAT,
+			DXGI_FORMAT_UNKNOWN
+		);
+
+		// ファインダーの絵をぼかす準備をする
+		m_finderBlur.Init(&m_finderRT.GetRenderTargetTexture());
+
+
+		// DOFスプライトを初期化(「元の絵」と「ぼかした絵」を合成する)
+		SpriteInitData finderDofSpriteInitData;
+		finderDofSpriteInitData.m_fxFilePath = "Assets/shader/dof.fx";
+		finderDofSpriteInitData.m_width = FINDER_FRAME_BUFFER_W;
+		finderDofSpriteInitData.m_height = FINDER_FRAME_BUFFER_H;
+		finderDofSpriteInitData.m_textures[0] = &m_finderRT.GetRenderTargetTexture();
+		finderDofSpriteInitData.m_textures[1] = &m_finderBlur.GetResultTexture();
+		finderDofSpriteInitData.m_expandConstantBuffer = &m_finderDoFCB;
+		finderDofSpriteInitData.m_expandConstantBufferSize = sizeof(FinderDoFCB);
+		m_finderDofSprite.Init(finderDofSpriteInitData);
+
+
 		// ファインダー用のスプライトを初期化(オンスクリーン)
 		SpriteInitData finderSpriteInitData;
 		finderSpriteInitData.m_fxFilePath  = "Assets/shader/sprite.fx";
 		finderSpriteInitData.m_width       = FINDER_FRAME_BUFFER_W;
 		finderSpriteInitData.m_height      = FINDER_FRAME_BUFFER_H;
-		finderSpriteInitData.m_textures[0] = &m_finderRT.GetRenderTargetTexture();
+		// ファインダーの絵は、DOF適用後のRTを使用する
+		finderSpriteInitData.m_textures[0] = &m_finderResultRT.GetRenderTargetTexture();
 		m_finderSprite.Init(finderSpriteInitData);
 
 		// ファインダーの画角を広角側で初期化
@@ -125,9 +167,18 @@ namespace nsK2EngineLow
 			PHOTO_W, PHOTO_H,
 			1, 1,
 			DXGI_FORMAT_R16G16B16A16_FLOAT,
-			DXGI_FORMAT_D32_FLOAT,
+			DXGI_FORMAT_UNKNOWN,
 			photoClearColor
 		);
+
+		// ファインダーの絵(DoF適用後)を写真用のRTに写すスプライトを初期化
+		SpriteInitData photoCopyInitData;
+		photoCopyInitData.m_fxFilePath = "Assets/shader/sprite.fx";
+		photoCopyInitData.m_width = PHOTO_W;
+		photoCopyInitData.m_height = PHOTO_H;
+		photoCopyInitData.m_textures[0] = &m_finderResultRT.GetRenderTargetTexture();
+		m_photoCopySprite.Init(photoCopyInitData);
+
 
 		// 写真用のスプライトを初期化
 		SpriteInitData photoSpriteInitData;
@@ -169,6 +220,11 @@ namespace nsK2EngineLow
 		// ファインダーが有効でなければ描画をしない
 		if (!m_isFinderActive) return;
 
+		//=====================================================
+		// ファインダーカメラ視点でモデルを描画(ボケ前の絵・距離)
+		//=====================================================
+
+
 		/** オフスクリーンレンダリング */
 		// 書き込める状態になるまで待つ
 		rc.WaitUntilToPossibleSetRenderTarget(m_finderRT);
@@ -188,10 +244,49 @@ namespace nsK2EngineLow
 		// 描画が終わるまで待つ
 		rc.WaitUntilFinishDrawingToRenderTarget(m_finderRT);
 
+
+		//=====================================================
+		// ボケ前の絵をぼかす
+		//=====================================================
+		
+
+		// ぼかしを実行
+		m_finderBlur.ExecuteOnGPU(rc);
+
+
+		//=====================================================
+		// DOF: 距離に応じて「元の絵」と「ぼかした絵」を合成
+		//=====================================================
+
+
+		// 現在のピント距離をDOFの定数バッファに設定
+		m_finderDoFCB.focusDistance = m_focusDistance;
+		// 許容値をDOFの定数バッファに設定
+		m_finderDoFCB.focusRange = m_focusBlurRange;
+
+		// 書き込める状態になるまで待つ
+		rc.WaitUntilToPossibleSetRenderTarget(m_finderResultRT);
+		// 描き先をファインダーの適用後のRTに切り替え
+		rc.SetRenderTargetAndViewport(m_finderResultRT);
+		
+		// スプライトを更新
+		m_finderDofSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+		// スプライトを描画
+		m_finderDofSprite.Draw(rc);
+
+		// 描画が終わるまで待つ → 以後このRTをテクスチャとして読める
+		rc.WaitUntilFinishDrawingToRenderTarget(m_finderResultRT);
+
+
+		//====================================================
+		// リクエストが来たときだけ写真用のRTに描画
+		//====================================================
+
+
 		// 撮影リクエストがあればこの時だけ写真用のRTに描画する
 		if (m_isShotRequested == true)
 		{
-			RenderPhoto(rc, models);
+			RenderPhoto(rc);
 			// 撮影リクエストを切る
 			m_isShotRequested = false;
 			// 撮影済みフラグを立てる
@@ -221,6 +316,18 @@ namespace nsK2EngineLow
 	}
 
 
+	void PhotoCapture::ToggleFinderActive()
+	{
+		m_isFinderActive = !m_isFinderActive;
+
+		// 覗くたびにピントを近い側へ外した状態から始める
+		if (m_isFinderActive)
+		{
+			m_focusDistance = FOCUS_DISTANCE_MIN;
+		}
+	}
+
+
 	void PhotoCapture::FinderZoom(float amount)
 	{
 		// ファインダーが有効でなければズームしない
@@ -236,28 +343,43 @@ namespace nsK2EngineLow
 	}
 
 
-	inline float PhotoCapture::GetFinderZoomRatio() const
+	float PhotoCapture::GetFinderZoomRatio() const
 	{
 		return m_viewAngle / FINDER_VIEW_ANGLE_WIDE;
 	}
 
-
-	void PhotoCapture::RenderPhoto(RenderContext& rc, std::vector<Model*>& models)
+	
+	void PhotoCapture::FinderFocus(float amount)
 	{
-		/** 写真用のRTに描画 */
+		// ファインダー状態じゃなければピントを動かさない
+		if (!m_isFinderActive) return;
+
+		// 1フレームに動かすピントの距離の量 = amount * FOCUS_SPEED * 1フレーム時間
+		m_focusDistance += amount * FOCUS_SPEED * g_gameTime->GetFrameDeltaTime();
+		// ピント距離の制御(float型専用Clamp)
+		m_focusDistance = FloatClamp::Clamp(m_focusDistance, FOCUS_DISTANCE_MIN, FOCUS_DISTANCE_MAX);
+	}
+
+
+	bool PhotoCapture::IsInFocus(float distance) const
+	{
+		// ピント距離との差が、許容値以内ならピントが合っていると判定する
+		return fabsf(m_focusDistance - distance) <= m_focusTolerance;
+	}
+
+
+	void PhotoCapture::RenderPhoto(RenderContext& rc)
+	{
+		/** 写真用のRTにファインダーの絵(DoF適用後)を写す */
 		// 書き込める状態になるまで待つ
 		rc.WaitUntilToPossibleSetRenderTarget(m_photoRT);
 		// 描画先を写真用のRTに切り替え
 		rc.SetRenderTargetAndViewport(m_photoRT);
-		// 前のフレームの絵をクリア
-		rc.ClearRenderTargetView(m_photoRT);
 
-		// モデルを描画
-		for (auto& model : models)
-		{
-			// ファインダー用のカメラ視点でモデルを描画
-			model->Draw(rc, m_finderCamera);
-		}
+		// DOF適用後のファインダーの絵のスプライトを更新
+		m_photoCopySprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+		// DOF適用後のファインダーの絵のスプライトを描画
+		m_photoCopySprite.Draw(rc);
 
 		// 描画が終わるまで待つ → 以後このRTをテクスチャとして読める
 		rc.WaitUntilFinishDrawingToRenderTarget(m_photoRT);
