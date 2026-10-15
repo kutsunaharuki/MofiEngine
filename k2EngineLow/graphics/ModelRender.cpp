@@ -70,13 +70,14 @@ namespace nsK2EngineLow
 		// エントリーポイントを設定(スキンあり頂点シェーダー)
 		m_modelInitData.m_vsSkinEntryPointFunc = "VSMainSkin";
 
+		// モデルの何軸を上方向として扱うかを設定
+		m_modelInitData.m_modelUpAxis = upAxis;
+
 		m_modelInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		// 影を落とすかどうかを設定
 		m_isShadowCaster = isShadow;
 		// 影を受けるかどうかを設定
 		m_isReceiveShadow = reShadow;
-
-		
 
 		/** 4. アニメーション(クリップが渡された時のみ) */
 		if (animationClips != nullptr)

@@ -43,6 +43,7 @@ Game::Game()
 	, m_gScale(Vector3::One)
 	, m_gameCamera(nullptr)
 	, m_groundModelRender(nullptr)
+	, m_isLastShotInFocus(false)
 {}
 
 
@@ -78,7 +79,7 @@ bool Game::Start()
 	m_animClips[1].Load("Assets/animData/run.tka");
 	m_animClips[1].SetLoopFlag(true);
 
-	m_modelRender->Init("Assets/modelData/unityChan.tkm", m_animClips, enModelUpAxisY, 2);
+	m_modelRender->Init("Assets/modelData/unityChan.tkm", m_animClips, enModelUpAxisZ, 2);
 	m_modelRender->SetTRS(m_position, m_rotation, m_scale);
 	m_modelRender->PlayAnimation(0);
 	m_modelRender->Update();
@@ -95,7 +96,6 @@ bool Game::Start()
 	RenderingEngine::GetInstance().SetPhotoCapture(&m_photoCapture);
 
 	m_enemy = std::make_unique<app::Enemy>();
-	m_enemy->SetPosition(Vector3(0.0f, 0.0f, 300.0f));
 	m_enemy->Init();
 	m_enemy->Update();
 
@@ -112,8 +112,49 @@ bool Game::Start()
 
 void Game::Update()
 {
+	if (g_pad[0]->IsPress(enButtonA))
+	{
+		m_modelRender->PlayAnimation(1, 0.3f);
+	}
+	else
+	{
+		m_modelRender->PlayAnimation(0, 0.3f);
+	}
+
+	m_modelRender->Update();
+
+	// ファインダーのON/OFFを切り替える
+	if (g_pad[0]->IsTrigger(enButtonY))
+	{
+		m_photoCapture.ToggleFinderActive();
+	}
+
+	// ファインダーを覗いている間だけ、1人称にする
+	m_gameCamera->SetFirstPeerson(m_photoCapture.IsFinderActive());
+	m_gameCamera->Update();
+
+	// ファインダー視点のカメラをゲームカメラの位置と向きに合わせる
+	Camera& finderCamera = m_photoCapture.GetFinderCamera();
+	finderCamera.SetPosition(g_camera3D->GetPosition());
+	finderCamera.SetTarget(g_camera3D->GetTarget());
+	finderCamera.Update();
+
+	// 敵の位置更新
+	Quaternion enemyRot;
+	enemyRot.SetRotationDegY(180.0f);
+	m_enemy->SetRotation(enemyRot);
+	m_enemy->Update();
+
+	// 敵の位置からファインダー視点のカメラまでの距離
+	Vector3 toEnemy = m_enemy->GetPosition() - m_photoCapture.GetFinderCamera().GetPosition();
+	float enemyDistance = toEnemy.Length();
+
+	// 今のピントが敵に合っているかどうか
+	bool isInFocus = m_photoCapture.IsInFocus(enemyDistance);
+	
 	// ライトの定数バッファの参照を取得
 	auto& light = SceneLight::GetInstance().GetLightCB();
+
 	// ライト関連のImGuiウィンドウ(結果もここ)
 	ImGui::Begin("Lighting Settings");
 	if (ImGui::CollapsingHeader("Light"))
@@ -178,7 +219,11 @@ void Game::Update()
 			}
 			ImGui::EndTabItem();
 		}
+		ImGui::EndTabBar();
+	}
 
+	if (ImGui::BeginTabBar("DoF"))
+	{
 		// DoF(ピントのぼけ)の調整
 		if (ImGui::BeginTabItem("DoF"))
 		{
@@ -205,6 +250,16 @@ void Game::Update()
 			{
 				m_photoCapture.SetFocusTolerance(tolerance);
 			}
+
+			// 敵の距離とピントの距離の差を表示
+			ImGui::Text("Enemy Distance: %.1f", enemyDistance);
+			// ファインダーのピント距離を表示
+			ImGui::Text("Focus Distance: %.1f", m_photoCapture.GetFocusDistance());
+			// ピント距離と敵の距離の差を表示
+			ImGui::Text("Difference: %.1f", fabsf(m_photoCapture.GetFocusDistance() - enemyDistance));
+			// ピントが合っていたらYes, 合っていないならNoを表示
+			ImGui::Text("In Focus: %s", isInFocus ? "Yes" : "No");
+
 			ImGui::EndTabItem();
 		}
 		ImGui::EndTabBar();
@@ -212,61 +267,32 @@ void Game::Update()
 	ImGui::End();
 
 
-	if (g_pad[0]->IsPress(enButtonA))
-	{
-		m_modelRender->PlayAnimation(1, 0.3f);
-	}
-	else
-	{
-		m_modelRender->PlayAnimation(0, 0.3f);
-	}
-
-	m_modelRender->Update();
-
-	// ファインダーのON/OFFを切り替える
-	if (g_pad[0]->IsTrigger(enButtonY))
-	{
-		m_photoCapture.ToggleFinderActive();
-	}
-
-	// ファインダーを覗いている間だけ、1人称にする
-	m_gameCamera->SetFirstPeerson(m_photoCapture.IsFinderActive());
-	m_gameCamera->Update();
-
-	Camera& finderCamera = m_photoCapture.GetFinderCamera();
-	finderCamera.SetPosition(g_camera3D->GetPosition());
-	finderCamera.SetTarget(g_camera3D->GetTarget());
-	finderCamera.Update();
-
-	Quaternion enemyRot;
-	enemyRot.SetRotationDegY(180.0f);
-	m_enemy->SetRotation(enemyRot);
-	m_enemy->Update();
-
-
-	if (g_pad[0]->IsPress(enButtonUp))
+	// ピントを合わせる
+	if (m_photoCapture.IsFinderActive() && g_pad[0]->IsPress(enButtonUp))
 	{
 		m_photoCapture.FinderFocus(FOCUS_MAX);
 	}
-
-	if (g_pad[0]->IsPress(enButtonDown))
+	// ピントを外す
+	if (m_photoCapture.IsFinderActive() && g_pad[0]->IsPress(enButtonDown))
 	{
 		m_photoCapture.FinderFocus(FOCUS_MIN);
 	}
 
-	// 写真を撮る
-	if (g_pad[0]->IsTrigger(enButtonB))
+	// ファインダーが有効の時だけ写真を撮る
+	if (m_photoCapture.IsFinderActive() && g_pad[0]->IsTrigger(enButtonB))
 	{
 		m_photoCapture.Shot();
+		// この瞬間のピントの判定を記録
+		m_isLastShotInFocus = isInFocus;
 	}
 
 	// ファインダー拡大
-	if (g_pad[0]->IsPress(enButtonRB1))
+	if (m_photoCapture.IsFinderActive() && g_pad[0]->IsPress(enButtonRB1))
 	{
 		m_photoCapture.FinderZoom(ZOOM_IN_RATE);
 	}
 	// ファインダー縮小
-	if (g_pad[0]->IsPress(enButtonLB1))
+	if (m_photoCapture.IsFinderActive() && g_pad[0]->IsPress(enButtonLB1))
 	{
 		m_photoCapture.FinderZoom(ZOOM_OUT_RATE);
 	}

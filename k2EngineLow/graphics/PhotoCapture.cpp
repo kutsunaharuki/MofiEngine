@@ -55,12 +55,12 @@ namespace nsK2EngineLow
 		constexpr float FOCUS_DISTANCE_MIN = 50.0f;
 		/** ピント距離の最大値(遠い側。ファインダーカメラの遠平面まで) */
 		constexpr float FOCUS_DISTANCE_MAX = 1000.0f;
-		/** ピントを動かす速度 */
+		/** ピントを動かす速度(1フレームにこの早さ) */
 		constexpr float FOCUS_SPEED = 400.0f;
 		/** ピント距離から距離制限でボケ量が最大になる */
 		constexpr float FOCUS_BLUR_RANGE = 300.0f;
 		/** ピント距離との差の許容値 */
-		constexpr float FOCUS_TOLERANCE = 40.0f;
+		constexpr float FOCUS_TOLERANCE = 120.0f;
 	}
 
 
@@ -347,8 +347,8 @@ namespace nsK2EngineLow
 	{
 		return m_viewAngle / FINDER_VIEW_ANGLE_WIDE;
 	}
-
 	
+
 	void PhotoCapture::FinderFocus(float amount)
 	{
 		// ファインダー状態じゃなければピントを動かさない
@@ -363,8 +363,11 @@ namespace nsK2EngineLow
 
 	bool PhotoCapture::IsInFocus(float distance) const
 	{
+		// ピント距離との差を計算
+		float diff = fabsf(m_focusDistance - distance);
+
 		// ピント距離との差が、許容値以内ならピントが合っていると判定する
-		return fabsf(m_focusDistance - distance) <= m_focusTolerance;
+		return diff <= m_focusTolerance;
 	}
 
 

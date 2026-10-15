@@ -9,15 +9,18 @@ namespace app
 		/** 敵のモデルパス */
 		constexpr const char* ENEMY_MODEL_PATH = "Assets/modelData/Enemy.tkm";
 		/** 敵の初期位置 */
-		const Vector3 ENEMY_POSITION = { 0.0f,0.0f,800.0f };
+		const Vector3 ENEMY_POSITION = { 0.0f,0.0f,300.0f };
 		/** 敵の初期スケール */
 		const Vector3 ENEMY_SCALE = { 0.5f,0.5f,0.5f };
+		/** 敵のアニメーションクリップ数(インデックスで使用) */
+		const int ENEMY_ANIMATION_CLIP_NUM = static_cast<int>(Enemy::EnemyAnimationState::Idle);
 	}
 
 
 	Enemy::Enemy()
 		: m_modelRender(nullptr)
 		, m_transform()
+		, m_currentState(EnemyAnimationState::Idle)
 	{
 		// 初期位置を設定
 		m_transform.SetLocalPosition(ENEMY_POSITION);
@@ -34,9 +37,17 @@ namespace app
 	{
 		// ワールド値を確定させてからモデルに反映する
 		m_transform.UpdateTransform();
-
+		
+		// モデルレンダーの初期化
 		m_modelRender = std::make_unique<ModelRender>();
-		m_modelRender->Init(ENEMY_MODEL_PATH, nullptr, enModelUpAxisZ, 0);
+		
+		// 敵のアニメーションの初期化
+		m_animationClip = std::make_unique<AnimationClip>();
+		m_animationClip->Load("Assets/animData/Enemy/BigMan/idle.tka");
+		m_animationClip->SetLoopFlag(true);
+		
+		m_modelRender->Init(ENEMY_MODEL_PATH, m_animationClip.get(),enModelUpAxisZ, ENEMY_ANIMATION_CLIP_NUM);
+
 		m_modelRender->SetTRS(
 			m_transform.GetWorldPosition(),
 			m_transform.GetWorldRotation(),
@@ -51,6 +62,8 @@ namespace app
 	{
 		// ローカル値からワールド値を計算する(子がいれば子も更新される)
 		m_transform.UpdateTransform();
+
+		m_modelRender->PlayAnimation(ENEMY_ANIMATION_CLIP_NUM);
 
 		// ワールド値をモデルに反映
 		m_modelRender->SetTRS(

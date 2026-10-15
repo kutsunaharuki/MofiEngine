@@ -56,10 +56,31 @@ namespace app
 		}
 
 
+		// 敵のアニメーション
+		enum class EnemyAnimationState : uint8_t
+		{
+			Idle,      // 待機
+			Max
+		};
+
+
+	public:
+		/**
+		 * @brief 敵の現在のステートを取得
+		 */
+		EnemyAnimationState& GetCurrentState() { return m_currentState; }
+
+
 	private:
 		/** 敵のモデルレンダー */
 		std::unique_ptr<ModelRender> m_modelRender;
 		/** 敵の位置・回転・スケール */
 		core::TransformNode m_transform;
+		/** 現在のステート */
+		EnemyAnimationState m_currentState;
+		/** アニメーションクリップ */
+		std::unique_ptr<AnimationClip> m_animationClip;
+		/** 敵のアニメーションのリスト */
+		std::vector<std::unique_ptr<AnimationClip[]>> m_enemyAnimationClipList;
 	};
 }

@@ -58,4 +58,6 @@ private:
 	Vector3 m_gScale;
 	/** 地面の回転 */
 	Quaternion m_gRotation;
+	/** ピントの判定を記録 */
+	bool m_isLastShotInFocus;
 };
