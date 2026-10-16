@@ -142,7 +142,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderOutputFile>$(Platform)\$(Configuration)\$(TargetName).pch</PrecompiledHeaderOutputFile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../ThirdParty/imgui;../ThirdParty/imgui/backends</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../ThirdParty;../ThirdParty/imgui;../ThirdParty/imgui/backends</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>
       </MultiProcessorCompilation>
     </ClCompile>
@@ -196,7 +196,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderOutputFile>$(Platform)\$(Configuration)\$(TargetName).pch</PrecompiledHeaderOutputFile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../ThirdParty/imgui;../ThirdParty/imgui/backends</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../ThirdParty;../ThirdParty/imgui;../ThirdParty/imgui/backends</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>
       </MultiProcessorCompilation>
     </ClCompile>
@@ -219,7 +219,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderOutputFile>$(Platform)\$(Configuration)\$(TargetName).pch</PrecompiledHeaderOutputFile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../ThirdParty/imgui;../ThirdParty/imgui/backends</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../ThirdParty;../ThirdParty/imgui;../ThirdParty/imgui/backends</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>
       </MultiProcessorCompilation>
     </ClCompile>
@@ -282,6 +282,12 @@
     <ClCompile Include="Source\Scene\ResultScene.cpp" />
     <ClCompile Include="Source\Scene\SceneManager.cpp" />
     <ClCompile Include="Source\Scene\TitleScene.cpp" />
+    <ClCompile Include="Source\UI\Animation\UIAnimation.cpp" />
+    <ClCompile Include="Source\UI\UILayout.cpp" />
+    <ClCompile Include="Source\UI\UIMenu.cpp" />
+    <ClCompile Include="Source\UI\UIParts.cpp" />
+    <ClCompile Include="Source\Util\Curve.cpp" />
+    <ClCompile Include="Source\Util\JsonConverter.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -305,7 +311,13 @@
     <ClInclude Include="Source\Scene\ResultScene.h" />
     <ClInclude Include="Source\Scene\SceneManager.h" />
     <ClInclude Include="Source\Scene\TitleScene.h" />
+    <ClInclude Include="Source\UI\Animation\UIAnimation.h" />
+    <ClInclude Include="Source\UI\UILayout.h" />
+    <ClInclude Include="Source\UI\UIMenu.h" />
+    <ClInclude Include="Source\UI\UIParts.h" />
     <ClInclude Include="Source\Util\CRC32.h" />
+    <ClInclude Include="Source\Util\Curve.h" />
+    <ClInclude Include="Source\Util\JsonConverter.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system\system.h" />
   </ItemGroup>

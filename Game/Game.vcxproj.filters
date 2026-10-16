@@ -40,6 +40,9 @@
     <Filter Include="Source\Actor\Character\Enemy\RatMan">
       <UniqueIdentifier>{91340299-4ec4-453b-8355-c5d8d199468b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\UI\Animation">
+      <UniqueIdentifier>{632705ed-1718-4433-a87f-4412328187e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -104,6 +107,24 @@
     <ClCompile Include="Source\Actor\Character\CharacterStateMachine.cpp">
       <Filter>Source\Actor\Character</Filter>
     </ClCompile>
+    <ClCompile Include="Source\UI\UILayout.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\UIMenu.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\UIParts.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Util\Curve.cpp">
+      <Filter>Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Util\JsonConverter.cpp">
+      <Filter>Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\Animation\UIAnimation.cpp">
+      <Filter>Source\UI\Animation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -149,6 +170,24 @@
     </ClInclude>
     <ClInclude Include="Source\Actor\Character\CharacterStateMachine.h">
       <Filter>Source\Actor\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\UILayout.h">
+      <Filter>Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\UIMenu.h">
+      <Filter>Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\UIParts.h">
+      <Filter>Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Util\Curve.h">
+      <Filter>Source\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Util\JsonConverter.h">
+      <Filter>Source\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\Animation\UIAnimation.h">
+      <Filter>Source\UI\Animation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

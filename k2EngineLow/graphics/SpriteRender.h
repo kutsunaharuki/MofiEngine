@@ -15,12 +15,19 @@ namespace nsK2EngineLow
 
 		/**
 		 * @brief スプライトの初期化
-		 * @param fxFilePath fxファイルパス
+		 * @param fxFilePath fxファイルパス(nullptr なら sprite.fx)
 		 * @param ddsFilePath ddsファイルパス
-		 * @param height 高さ(float)
 		 * @param width 幅(float)
+		 * @param height 高さ(float)
 		 */
-		void Init(const char* fxFilePath, const char* ddsFilePath, float height, float width);
+		void Init(const char* fxFilePath, const char* ddsFilePath, float width, float height);
+		/**
+		 * @brief スプライトの初期化(sprite.fx を使う簡易版)
+		 * @param ddsFilePath ddsファイルパス
+		 * @param width 幅(float)
+		 * @param height 高さ(float)
+		 */
+		void Init(const char* ddsFilePath, float width, float height);
 
 		/**
 		 * @brief 位置の取得
@@ -50,6 +57,24 @@ namespace nsK2EngineLow
 		}
 
 		/**
+		 * @brief 基底軸の取得
+		 * @return 基底軸
+		 */
+		const Vector2& GetPivot() const
+		{
+			return m_pivot;
+		}
+
+		/**
+		 * @brief 乗算カラーの取得
+		 * @return 乗算カラー
+		 */
+		const Vector4& GetMulColor() const
+		{
+			return m_mulColor;
+		}
+
+		/**
 		 * @brief 位置の設定
 		 * @param pos 設定する位置
 		 */
@@ -75,14 +100,6 @@ namespace nsK2EngineLow
 		{
 			m_scale = scale;
 		}
-		/**
-		 * @brief 乗算カラーの設定
-		 * @param color 設定する乗算カラー(RGBA)
-		 */
-		void SetMulColor(const Vector4& color)
-		{
-			m_sprite.SetMulColor(color);
-		}
 
 		/**
 		 * @brief 位置、回転、拡縮の設定
@@ -97,17 +114,39 @@ namespace nsK2EngineLow
 			SetScale(scale);
 		}
 
+		/**
+		 * @brief 基底軸の設定
+		 * @param pivot 基底軸(0.0〜1.0。中心は (0.5, 0.5))
+		 */
+		void SetPivot(const Vector2& pivot)
+		{
+			m_pivot = pivot;
+		}
+
+		/**
+		 * @brief 乗算カラーの設定
+		 * @param color 乗算カラー(RGBA)
+		 * @details アルファを変えると、半透明にできる。フェードなどに使う
+		 */
+		void SetMulColor(const Vector4& color)
+		{
+			m_mulColor = color;
+		}
+
 		// 更新処理。
 		void Update();
 
-		// 描画処理
+		/**
+		 * @brief 描画処理
+		 * @param rc レンダリングコンテキスト
+		 * @details RenderingEngine に登録するだけで、実際の描画は2Dパスで行われる
+		 */
 		void Draw(RenderContext& rc);
 
-
-	public:
 		/**
-		 * @brief 2Dパスでの描画
-		 * @param rc RenderingEngineの2Dパスの場所で呼ばれる
+		 * @brief 2Dパスでの実際の描画
+		 * @param rc レンダリングコンテキスト
+		 * @details RenderingEngine の2Dパスから呼ばれる
 		 */
 		void OnRender2D(RenderContext& rc);
 
@@ -123,5 +162,9 @@ namespace nsK2EngineLow
 		Quaternion m_rotation;
 		/** 拡縮 */
 		Vector3 m_scale;
+		/** 基底軸 */
+		Vector2 m_pivot;
+		/** 乗算カラー */
+		Vector4 m_mulColor;
 	};
 }

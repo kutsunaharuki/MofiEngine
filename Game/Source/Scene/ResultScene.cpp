@@ -37,7 +37,7 @@ namespace app
 		m_resultSceneSpriteRender->Init(
 			nullptr,
 			RESULT_SCENE_FILE_PATH,
-			RESULT_SCENE_HEIGHT, RESULT_SCENE_WIDTH
+			RESULT_SCENE_WIDTH, RESULT_SCENE_HEIGHT
 		);
 		// 更新
 		m_resultSceneSpriteRender->Update();
