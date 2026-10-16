@@ -95,7 +95,7 @@ namespace app
 			// 3人称に戻すときは、3人称の範囲に収める
 			if (!m_isFirstPerson)
 			{
-				m_pitchDeg = nsK2EngineLow::FloatClamp::Clamp(m_pitchDeg, THIRD_PERSON_PITCH_MIN_DEG, THIRD_PERSON_PITCH_MAX_DEG);
+				m_pitchDeg = nsK2EngineLow::TClamp<float>::Clamp(m_pitchDeg, THIRD_PERSON_PITCH_MIN_DEG, THIRD_PERSON_PITCH_MAX_DEG);
 			}
 		}
 
@@ -143,7 +143,7 @@ namespace app
 			m_pitchDeg += CAMERA_ROTATE_SPEED * y;
 
 			// 上下は真上・真下を向かないようにクランプする(float型clamp)
-			m_pitchDeg = nsK2EngineLow::FloatClamp::Clamp(m_pitchDeg, PITCH_MIN_DEG, PITCH_MAX_DEG);
+			m_pitchDeg = nsK2EngineLow::TClamp<float>::Clamp(m_pitchDeg, PITCH_MIN_DEG, PITCH_MAX_DEG);
 		}
 
 

@@ -136,7 +136,7 @@ namespace app
 				/**
 				 * @brief clampを使って0.0f ~ 1.0fの範囲に収める
 				 */
-				float t = FloatClamp::Clamp(m_currentTime / m_duration, 0.0f, 1.0f);
+				float t = TClamp<float>::Clamp(m_currentTime / m_duration, 0.0f, 1.0f);
 				float rete = ApplyEasingInternal(t);
 				return m_startValue + (m_endValue - m_startValue) * rete;
 			}

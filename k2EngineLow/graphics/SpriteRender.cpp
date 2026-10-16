@@ -37,6 +37,9 @@ namespace nsK2EngineLow
 		m_spriteInitData.m_ddsFilePath[0] = ddsFilePath;
 		m_spriteInitData.m_width = width;
 		m_spriteInitData.m_height = height;
+		// 既定値(AlphaBlendMode_None)のままだと、乗算カラーのα値が効かない
+		// ※ フェードや、透明な部分がある画像のために、半透明合成にする
+		m_spriteInitData.m_alphaBlendMode = AlphaBlendMode_Trans;
 
 		m_sprite.Init(m_spriteInitData);
 	}

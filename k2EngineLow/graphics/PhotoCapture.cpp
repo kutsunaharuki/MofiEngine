@@ -336,7 +336,7 @@ namespace nsK2EngineLow
 		// ズームインで画角を狭くする
 		m_viewAngle -= amount * FINDER_ZOOM_SPEED;
 		// ズームの制御(float型専用Clamp)
-		m_viewAngle = nsK2EngineLow::FloatClamp::Clamp(m_viewAngle, FINDER_VIEW_ANGLE_TELE, FINDER_VIEW_ANGLE_WIDE);
+		m_viewAngle = nsK2EngineLow::TClamp<float>::Clamp(m_viewAngle, FINDER_VIEW_ANGLE_TELE, FINDER_VIEW_ANGLE_WIDE);
 
 		// ファインダー用のカメラの画角を更新
 		m_finderCamera.SetViewAngle(m_viewAngle);
@@ -357,7 +357,7 @@ namespace nsK2EngineLow
 		// 1フレームに動かすピントの距離の量 = amount * FOCUS_SPEED * 1フレーム時間
 		m_focusDistance += amount * FOCUS_SPEED * g_gameTime->GetFrameDeltaTime();
 		// ピント距離の制御(float型専用Clamp)
-		m_focusDistance = FloatClamp::Clamp(m_focusDistance, FOCUS_DISTANCE_MIN, FOCUS_DISTANCE_MAX);
+		m_focusDistance = TClamp<float>::Clamp(m_focusDistance, FOCUS_DISTANCE_MIN, FOCUS_DISTANCE_MAX);
 	}
 
 
