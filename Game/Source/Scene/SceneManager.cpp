@@ -38,7 +38,7 @@ namespace app
         m_fadeSpriteRender->Init(
             nullptr,
             TITLE_SCENE_FILE_PATH,
-            TITLE_SCENE_HEIGHT, TITLE_SCENE_WIDTH
+            TITLE_SCENE_WIDTH, TITLE_SCENE_HEIGHT
         );
 
         // 最初のシーンを作成
