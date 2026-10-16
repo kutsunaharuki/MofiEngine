@@ -4,6 +4,7 @@
  */
 #include "stdafx.h"
 #include "ResultScene.h"
+#include "TitleScene.h"
 
 
 namespace app
@@ -45,15 +46,38 @@ namespace app
 	
 	
 	void ResultScene::Update()
-	{}
+	{
+		// トランスフォームを更新
+		m_transform.UpdateTransform();
+
+		m_resultSceneSpriteRender->SetTRS(
+			m_transform.GetWorldPosition(),
+			m_transform.GetWorldRotation(),
+			m_transform.GetWorldScale()
+		);
+
+		// 更新
+		m_resultSceneSpriteRender->Update();
+	}
 	
 	
 	void ResultScene::Render(RenderContext & rc)
-	{}
+	{
+		if (m_resultSceneSpriteRender)
+		{
+			m_resultSceneSpriteRender->Draw(rc);
+		}
+	}
 	
 	
 	bool ResultScene::RequestScene(uint32_t & id, float& waitTime)
 	{
+		if (g_pad[0]->IsTrigger(enButtonA))
+		{
+			id = TitleScene::ID();
+			waitTime = 1.0f;
+			return true;
+		}
 		return false;
 	}
 }

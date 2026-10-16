@@ -117,6 +117,11 @@ namespace app
 		 * @return フェードが完了したら true
 		 */
 		bool UpdateFadeTimer();
+		/**
+		 * @brief フェードの黒い絵を描画する
+		 * @param rc レンダリングコンテキスト
+		 */
+		void RenderFade(RenderContext& rc);
 
 
 	private:
@@ -126,6 +131,8 @@ namespace app
 		std::map<uint32_t, std::function<std::unique_ptr<IScene>()>> m_sceneMap;
 		/** 現在のシーン */
 		std::unique_ptr<IScene> m_currentScene;
+		/** フェード用のスプライトレンダー */
+		std::unique_ptr<SpriteRender> m_fadeSpriteRender;
 		/** 次のシーンID */
 		uint32_t m_nextSceneId = INVALID_SCENE_ID;
 		/** シーン遷移の状態 */

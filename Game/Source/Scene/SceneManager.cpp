@@ -14,6 +14,15 @@ namespace app
     /** シングルトンインスタンス */
     SceneManager* SceneManager::m_instance = nullptr;
 
+    namespace
+    {
+        /** タイトルシーンのスプライトパス */
+        constexpr const char* TITLE_SCENE_FILE_PATH = "Assets/spriteData/Scene/TitleScene.DDS";
+        /** タイトルシーンの幅 */
+        constexpr float TITLE_SCENE_WIDTH = 1920.0f;
+        /** タイトルシーンの高さ */
+        constexpr float TITLE_SCENE_HEIGHT = 1080.0f;
+    }
 
 
     SceneManager::SceneManager()
@@ -23,6 +32,14 @@ namespace app
         AddSceneMap<app::InGameScene>();
         AddSceneMap<app::ResultScene>();
         AddSceneMap<app::TitleScene>();
+
+        // フェード用のスプライトレンダーを作成して初期化
+        m_fadeSpriteRender = std::make_unique<SpriteRender>();
+        m_fadeSpriteRender->Init(
+            nullptr,
+            TITLE_SCENE_FILE_PATH,
+            TITLE_SCENE_HEIGHT, TITLE_SCENE_WIDTH
+        );
 
         // 最初のシーンを作成
         CreateScene(TitleScene::ID());
@@ -118,20 +135,20 @@ namespace app
             }
             break;
         }
-
         }
     }
 
 
     void SceneManager::Render(RenderContext & rc)
     {
-        // シーンがなければ何もしない
-        if (!m_currentScene) return;
+        // ロード中以外は、シーンを描画する
+        if (m_currentScene && m_transitionState != TransitionState::Loading)
+        {
+            m_currentScene->Render(rc);
+        }
 
-        // ロード中は、シーンを描画しない(この時は真っ暗)
-        if (m_transitionState == TransitionState::Loading) return;
-        
-        m_currentScene->Render(rc);
+        // フェードの黒い絵を重ねる
+        RenderFade(rc);
     }
     
     
@@ -173,4 +190,19 @@ namespace app
         
         return rate >= 1.0f;
     }
+
+
+	void SceneManager::RenderFade(RenderContext& rc)
+	{
+        // 完全に透明なら描画しない
+        if (m_fadeAlpha <= 0.0f) return;
+
+		// フェードの黒い絵を描画する
+		if (m_fadeAlpha > 0.0f && m_fadeSpriteRender)
+		{
+			m_fadeSpriteRender->SetMulColor(Vector4(0.0f, 0.0f, 0.0f, m_fadeAlpha));
+            m_fadeSpriteRender->Update();
+            m_fadeSpriteRender->Draw(rc);
+		}
+	}
 }

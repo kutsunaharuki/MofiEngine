@@ -261,17 +261,6 @@ namespace app
 			}
 			ImGui::EndTabBar();
 		}
-
-		// シーンがフェードしているかを値で見る
-		if (ImGui::BeginTabBar("Scene"))
-		{
-			if (ImGui::BeginTabItem("Scene"))
-			{
-				ImGui::Text("Fade Alpha: %.2f", app::SceneManager::GetInstance()->GetFadeAlpha());
-				ImGui::EndTabItem();
-			}
-			ImGui::EndTabBar();
-		}
 		ImGui::End();
 
 

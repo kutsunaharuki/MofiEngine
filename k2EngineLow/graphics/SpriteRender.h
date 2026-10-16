@@ -75,6 +75,14 @@ namespace nsK2EngineLow
 		{
 			m_scale = scale;
 		}
+		/**
+		 * @brief 乗算カラーの設定
+		 * @param color 設定する乗算カラー(RGBA)
+		 */
+		void SetMulColor(const Vector4& color)
+		{
+			m_sprite.SetMulColor(color);
+		}
 
 		/**
 		 * @brief 位置、回転、拡縮の設定
