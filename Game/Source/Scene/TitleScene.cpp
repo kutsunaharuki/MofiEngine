@@ -1,5 +1,10 @@
-﻿#include "stdafx.h"
+﻿/***
+ * @file TitleScene.cpp
+ * @brief タイトルシーン
+ */
+#include "stdafx.h"
 #include "TitleScene.h"
+#include "InGameScene.h"
 
 
 namespace app
@@ -22,12 +27,20 @@ namespace app
     {}
     
     
-    void TitleScene::Render(RenderContext & rc)
-    {}
-    
-    
-    bool TitleScene::RequestScene(uint32_t & id, float& waitTime)
+    void TitleScene::Render(RenderContext& rc)
     {
+
+    }
+    
+    
+    bool TitleScene::RequestScene(uint32_t& id, float& waitTime)
+    {
+		if (g_pad[0]->IsTrigger(enButtonA))
+		{
+			id = InGameScene::ID();
+			waitTime = 1.0f;
+			return true;
+		}
         return false;
     }
 }

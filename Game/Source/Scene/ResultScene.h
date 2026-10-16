@@ -20,7 +20,7 @@ namespace app
 
 		bool Start() override;
 		void Update() override;
-		void Render(RenderContext & rc) override;
+		void Render(RenderContext& rc) override;
 
 		bool RequestScene(uint32_t& id, float& waitTime) override;
 	};
