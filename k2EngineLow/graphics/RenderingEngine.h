@@ -44,6 +44,11 @@ namespace nsK2EngineLow
 		 * @details : ModelRenderクラスのDrawから呼ばれる事を想定している
 		 */
 		void AddFinderModel(Model& model) { m_finderModels.push_back(&model); }
+		/**
+		 * @brief スプライトレンダーをリストに追加する
+		 * @param spriteRender スプライトレンダー
+		 */
+		void AddSpriteRender(SpriteRender& spriteRender) { m_spriteRenders.push_back(&spriteRender); }
 
 		/**
 		 * @brief レンダリングエンジンの実行
@@ -234,6 +239,8 @@ namespace nsK2EngineLow
 		std::vector<Model*> m_shadowCasters;
 		/** モデルのリスト */
 		std::vector<Model*> m_models;
+		/** スプライトのリスト */
+		std::vector<SpriteRender*> m_spriteRenders;
 
 		/** ブルーム効果の有効化 */
 		bool m_isEnableBloom;

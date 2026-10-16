@@ -23,7 +23,7 @@ namespace nsK2EngineLow
 
 	void SpriteRender::Init(const char* fxFilePath, const char* ddsFilePath, float height, float width)
 	{
-		m_spriteInitData.m_fxFilePath = fxFilePath;
+		m_spriteInitData.m_fxFilePath = "Assets/shader/sprite.fx";
 		m_spriteInitData.m_ddsFilePath[0] = ddsFilePath;
 		m_spriteInitData.m_width = width;
 		m_spriteInitData.m_height = height;
@@ -40,6 +40,14 @@ namespace nsK2EngineLow
 
 	void SpriteRender::Draw(RenderContext& rc)
 	{
+		// 描画をRenderingEngineに任せて、Model::Drawと同様に登録形式にする
+		RenderingEngine::GetInstance().AddSpriteRender(*this);
+	}
+
+
+	void SpriteRender::OnRender2D(RenderContext& rc)
+	{
+		// 描画
 		m_sprite.Draw(rc);
 	}
 }

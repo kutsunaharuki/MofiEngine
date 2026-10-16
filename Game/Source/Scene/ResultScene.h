@@ -23,5 +23,12 @@ namespace app
 		void Render(RenderContext& rc) override;
 
 		bool RequestScene(uint32_t& id, float& waitTime) override;
+
+
+	private:
+		/** リザルトシーンのスプライトレンダー */
+		std::unique_ptr<SpriteRender> m_resultSceneSpriteRender;
+		/** トランスフォーム */
+		core::TransformNode m_transform;
 	};
 }

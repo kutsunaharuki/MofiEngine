@@ -9,7 +9,7 @@ Game::Game()
 
 Game::~Game()
 {
-	app::SceneManager::GetInstance()->DestoryInstance();
+	app::SceneManager::DestoryInstance();
 }
 
 

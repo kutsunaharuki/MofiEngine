@@ -96,6 +96,14 @@ namespace nsK2EngineLow
 		void Draw(RenderContext& rc);
 
 
+	public:
+		/**
+		 * @brief 2Dパスでの描画
+		 * @param rc RenderingEngineの2Dパスの場所で呼ばれる
+		 */
+		void OnRender2D(RenderContext& rc);
+
+
 	private:
 		/** 画像の初期化データ */
 		SpriteInitData m_spriteInitData;
