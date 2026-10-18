@@ -399,6 +399,84 @@ namespace app
 
 
 		/**
+		 * @brief 文字を表示するUI
+		 * @details 画像ではなくフォントで描画するので、拡大しても文字がぼやけない。
+		 *          文字の大きさは、スケールの x で変える(1.0 がフォントの元の大きさ)。
+		 *          基底軸で揃え方が変わる(左揃え (0, 0.5) / 中央揃え (0.5, 0.5) / 右揃え (1, 0.5))
+		 */
+		class UIText : public UIBase
+		{
+		public:
+			UIText();
+			~UIText() override;
+
+			/** 更新処理 */
+			void Update() override;
+			/** 描画処理 */
+			void Render(RenderContext& rc) override;
+
+
+		public:
+			/**
+			 * @brief 初期化
+			 * @param text 文字列(\n で改行できる)
+			 * @param position 位置
+			 * @param scale スケール(x が文字の大きさになる)
+			 * @param rotation 回転
+			 * @param color 文字の色
+			 * @param pivot 基底軸
+			 */
+			void Initialize(
+				const wchar_t* text
+				, const Vector3& position
+				, const Vector3& scale
+				, const Quaternion& rotation
+				, const Vector4& color
+				, const Vector2& pivot = Vector2(0.5f, 0.5f)
+			);
+
+			/**
+			 * @brief 文字列を設定
+			 * @param text 文字列(\n で改行できる)
+			 * @details 数字を出したいときは、SetText(std::to_wstring(number).c_str()) のように使う
+			 */
+			void SetText(const wchar_t* text) { m_fontRender.SetText(text); }
+			/**
+			 * @brief 文字列を取得
+			 * @return 文字列
+			 */
+			const std::wstring& GetText() const { return m_fontRender.GetText(); }
+
+			/**
+			 * @brief 影(縁取り)を設定
+			 * @param isDrawShadow 影を描画するか
+			 * @param shadowOffset 影をずらすピクセル数
+			 * @param shadowColor 影の色
+			 */
+			void SetShadow(const bool isDrawShadow, const float shadowOffset, const Vector4& shadowColor)
+			{
+				m_fontRender.SetShadowParam(isDrawShadow, shadowOffset, shadowColor);
+			}
+
+			/**
+			 * @brief 文字列の大きさを取得(スケール適用前)
+			 * @return 横幅(x)と縦幅(y)
+			 */
+			Vector2 GetSize() const override { return m_fontRender.GetTextSize(); }
+
+
+		private:
+			/** フォントレンダー */
+			FontRender m_fontRender;
+		};
+
+
+
+
+		/*******************************************/
+
+
+		/**
 		 * @brief UIのダミー(何も描画しない)
 		 * @details 位置だけを持つ目印として使う
 		 */

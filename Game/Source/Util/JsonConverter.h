@@ -46,6 +46,15 @@ namespace app
 			 */
 			static std::string ToString(const nlohmann::json& item, const char* key, const std::string& defaultValue = "");
 			/**
+			 * @brief ワイド文字の文字列を取得(画面に出す文字用)
+			 * @param item JSONのオブジェクト
+			 * @param key キー
+			 * @param defaultValue 無いときの値
+			 * @return ワイド文字の文字列
+			 * @details JSON の文字列は UTF-8 なので、フォントで描画できる UTF-16 に変換する
+			 */
+			static std::wstring ToWString(const nlohmann::json& item, const char* key, const std::wstring& defaultValue = L"");
+			/**
 			 * @brief floatを取得
 			 * @param item JSONのオブジェクト
 			 * @param key キー

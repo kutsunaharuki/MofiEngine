@@ -78,10 +78,10 @@ namespace nsK2EngineLow
 		// 2Dパス(スプライト・フォント・imguiはこの後 = 加工の影響を受けない)
 		// ===========================================
 
-		// 登録されたスプライトを、コピーパスの後に描画する
-		for (auto* spriteRender : m_spriteRenders)
+		// 登録されたスプライト・文字を、コピーパスの後に、登録した順番で描画する
+		for (auto* render2D : m_render2DList)
 		{
-			spriteRender->OnRender2D(rc);
+			render2D->OnRender2D(rc);
 		}
 
 		// PhotoCaptureがあるならオンスクリーンレンダリングを行う
@@ -94,8 +94,8 @@ namespace nsK2EngineLow
 		m_models.clear();
 		// ファインダー用のリストを空にする
 		m_finderModels.clear();
-		// スプライトレンダーリストを空にする
-		m_spriteRenders.clear();
+		// 2Dパスのリストを空にする
+		m_render2DList.clear();
 	}
 
 

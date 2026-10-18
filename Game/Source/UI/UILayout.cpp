@@ -117,6 +117,26 @@ namespace
 			ui->SetIsDraw(parameter.isDraw);
 			return ui;
 		}
+		if (type == "UIText")
+		{
+			const UICommonParameter parameter = ReadCommonParameter(item);
+			const std::wstring text = JsonConverter::ToWString(item, "text");
+
+			UIText* ui = canvas->CreateUI<UIText>(key);
+			ui->Initialize(text.c_str(), parameter.position, parameter.scale, parameter.rotation, parameter.color, parameter.pivot);
+			ui->SetIsDraw(parameter.isDraw);
+
+			// 影(縁取り)は "shadow": true のときだけ
+			if (JsonConverter::ToBool(item, "shadow", false))
+			{
+				ui->SetShadow(
+					true,
+					JsonConverter::ToFloat(item, "shadowOffset", 2.0f),
+					JsonConverter::ToVector4(item, "shadowColor", Vector4(0.0f, 0.0f, 0.0f, 1.0f))
+				);
+			}
+			return ui;
+		}
 		if (type == "UIDummy")
 		{
 			const UICommonParameter parameter = ReadCommonParameter(item);

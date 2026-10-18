@@ -93,6 +93,25 @@ namespace app
 		}
 
 
+		std::wstring JsonConverter::ToWString(const nlohmann::json& item, const char* key, const std::wstring& defaultValue)
+		{
+			const nlohmann::json* value = FindValue(item, key);
+			if (value == nullptr || !value->is_string()) return defaultValue;
+
+			const std::string& utf8 = value->get_ref<const std::string&>();
+			if (utf8.empty()) return std::wstring();
+
+			// 1回目で必要な長さを調べて、2回目で変換する
+			const int utf8Length = static_cast<int>(utf8.size());
+			const int wideLength = MultiByteToWideChar(CP_UTF8, 0, utf8.data(), utf8Length, nullptr, 0);
+			if (wideLength <= 0) return defaultValue;
+
+			std::wstring wide(wideLength, L'\0');
+			MultiByteToWideChar(CP_UTF8, 0, utf8.data(), utf8Length, &wide[0], wideLength);
+			return wide;
+		}
+
+
 		float JsonConverter::ToFloat(const nlohmann::json& item, const char* key, const float defaultValue)
 		{
 			const nlohmann::json* value = FindValue(item, key);

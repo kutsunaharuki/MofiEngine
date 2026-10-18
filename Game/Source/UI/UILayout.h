@@ -15,7 +15,12 @@
  *     ]
  *   }
  * }
- * type は UIImage / UIIcon / UIGauge / UIDigit / UIDummy
+ * type は UIImage / UIIcon / UIGauge / UIDigit / UIText / UIDummy
+ *
+ * UIText の書き方(asset / width / height はいらない)
+ *       { "type": "UIText", "name": "MasterLabel", "text": "マスター",
+ *         "position": [-450, 180, 0], "scale": [1, 1, 1], "color": [1, 1, 1, 1], "pivot": [0, 0.5],
+ *         "shadow": true, "shadowOffset": 2, "shadowColor": [0, 0, 0, 1] }
  */
 #pragma once
 #include "Source/UI/UIMenu.h"
