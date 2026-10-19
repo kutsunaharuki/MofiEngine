@@ -18,12 +18,13 @@
         "position":[0,380,0]
       },
       {
-        "type":"UIIcon",
+        "comment":"マスターのテキスト",
+        "type":"UIText",
         "name":"MasterText",
-        "asset":"Assets/spriteData/UI/SoundOption/MasterText.DDS",
-        "width":497,
-        "height":105,
-        "position":[-450,180,0]
+        "text":"Master",
+        "position":[-450,180,0],
+        "scale":[3,3,1],
+        "pivot":[0.5,0.5]
       },
       {
         "type":"UIImage",
@@ -46,12 +47,13 @@
         "pivot":[0,0.5]
       },
       {
-        "type":"UIIcon",
+        "comment":"ボイスのテキスト",
+        "type":"UIText",
         "name":"VoiceText",
-        "asset":"Assets/spriteData/UI/SoundOption/VoiceText.DDS",
-        "width":377,
-        "height":107,
-        "position":[-450,40,0]
+        "text":"Voice",
+        "position":[-450,40,0],
+        "scale":[3,3,1],
+        "pivot":[0.5,0.5]
       },
       {
         "type":"UIImage",
@@ -74,12 +76,13 @@
         "pivot":[0,0.5]
       },
       {
-        "type":"UIIcon",
+        "comment":"BGMのテキスト",
+        "type":"UIText",
         "name":"BGMText",
-        "asset":"Assets/spriteData/UI/SoundOption/BGMText.DDS",
-        "width":293,
-        "height":106,
-        "position":[-450,-100,0]
+        "text":"BGM",
+        "position":[-450,-100,0],
+        "scale":[3,3,1],
+        "pivot":[0.5,0.5]
       },
       {
         "type":"UIImage",
@@ -102,12 +105,13 @@
         "pivot":[0,0.5]
       },
       {
-        "type":"UIIcon",
+        "comment":"SEのテキスト",
+        "type":"UIText",
         "name":"SEText",
-        "asset":"Assets/spriteData/UI/SoundOption/SoundText.DDS",
-        "width":541,
-        "height":137,
-        "position":[-450,-240,0]
+        "text":"SE",
+        "position":[-450,-240,0],
+        "scale":[3,3,1],
+        "pivot":[0.5,0.5]
       },
       {
         "type":"UIImage",

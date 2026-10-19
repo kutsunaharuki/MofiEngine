@@ -94,11 +94,6 @@ namespace app
 			}
 
 
-			/** 選んでいない文字の色 */
-			// ※ Vector4::White などを使わない。別のファイルの static 変数は、初期化される順番が決まっていないので、
-			//    こちらが先に初期化されると (0, 0, 0, 0) になり、透明で見えなくなる
-			const Vector4 COLOR_TEXT = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-
 			/** 点滅の1往復の秒数 */
 			constexpr float BLINK_PERIOD_SEC = 0.8f;
 			/** 点滅で一番薄くなったときのα値 */
@@ -261,13 +256,13 @@ namespace app
 				const SoundOptionItem& item = ITEM_TABLE[i];
 				const int volumeStep = ToVolumeStep(GetItemVolume(item));
 
+				// JSON の色はそのままにして、α値だけ点滅
 				if (m_textList[i])
 				{
-					Vector4 color = COLOR_TEXT;
-					if (i == m_selectIndex)
-					{
-						color.w = blinkAlpha;
-					}
+					// テキストの色は選択している時のみ点滅
+					Vector4 color = m_textList[i]->GetColor();
+					// 選択中の文字は点滅するがそうでない文字は常に不透明
+					color.w = (i == m_selectIndex) ? blinkAlpha : 1.0f;
 					m_textList[i]->SetColor(color);
 				}
 				if (m_gaugeList[i])
