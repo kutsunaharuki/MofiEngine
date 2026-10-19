@@ -243,6 +243,9 @@
     <ClCompile Include="graphics\SpriteRender.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\FontRender.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\DualBlur.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
@@ -542,6 +545,12 @@
       <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="graphics\SpriteRender.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\FontRender.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\IRender2D.h">
       <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="graphics\ModelRender.h">

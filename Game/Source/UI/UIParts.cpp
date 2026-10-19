@@ -278,6 +278,55 @@ namespace app
 
 
 		/*************************************/
+		// UIText
+		/*************************************/
+
+
+		UIText::UIText()
+		{}
+
+
+		UIText::~UIText()
+		{}
+
+
+		void UIText::Update()
+		{
+			m_transform.UpdateTransform();
+
+			// 描画には、親の影響を受けたワールド値を使う
+			m_fontRender.SetPosition(m_transform.GetWorldPosition());
+			m_fontRender.SetRotation(m_transform.GetWorldRotation());
+			m_fontRender.SetScale(m_transform.GetWorldScale().x);
+			m_fontRender.SetColor(m_color);
+			m_fontRender.SetPivot(m_pivot);
+		}
+
+
+		void UIText::Render(RenderContext& rc)
+		{
+			if (!m_isDraw) return;
+			m_fontRender.Draw(rc);
+		}
+
+
+		void UIText::Initialize(const wchar_t* text, const Vector3& position, const Vector3& scale, const Quaternion& rotation, const Vector4& color, const Vector2& pivot)
+		{
+			m_transform.SetLocalPosition(position);
+			m_transform.SetLocalScale(scale);
+			m_transform.SetLocalRotation(rotation);
+			m_color = color;
+			m_pivot = pivot;
+			m_fontRender.SetText(text);
+
+			// 初期状態を反映する
+			Update();
+		}
+
+
+
+
+		/*************************************/
 		// UIDummy
 		/*************************************/
 

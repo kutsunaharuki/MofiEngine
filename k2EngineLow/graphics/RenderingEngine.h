@@ -48,7 +48,13 @@ namespace nsK2EngineLow
 		 * @brief スプライトレンダーをリストに追加する
 		 * @param spriteRender スプライトレンダー
 		 */
-		void AddSpriteRender(SpriteRender& spriteRender) { m_spriteRenders.push_back(&spriteRender); }
+		void AddSpriteRender(SpriteRender& spriteRender) { m_render2DList.push_back(&spriteRender); }
+		/**
+		 * @brief フォントレンダーをリストに追加する
+		 * @param fontRender フォントレンダー
+		 * @details スプライトと同じリストに入るので、登録した順番に重なる
+		 */
+		void AddFontRender(FontRender& fontRender) { m_render2DList.push_back(&fontRender); }
 
 		/**
 		 * @brief レンダリングエンジンの実行
@@ -239,8 +245,8 @@ namespace nsK2EngineLow
 		std::vector<Model*> m_shadowCasters;
 		/** モデルのリスト */
 		std::vector<Model*> m_models;
-		/** スプライトのリスト */
-		std::vector<SpriteRender*> m_spriteRenders;
+		/** 2Dパスで描画するもの(スプライト・文字)のリスト。登録した順番に描画する */
+		std::vector<IRender2D*> m_render2DList;
 
 		/** ブルーム効果の有効化 */
 		bool m_isEnableBloom;

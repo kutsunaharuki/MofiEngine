@@ -50,6 +50,12 @@ namespace nsK2EngineLow {
 		/// 描画終了。
 		/// </summary>
 		void EndDraw(RenderContext& rc);
+		/// <summary>
+		/// 文字列の大きさを測る(拡大前のピクセル数)。
+		/// </summary>
+		/// <param name="text">文字列</param>
+		/// <returns>横幅(x)と縦幅(y)。改行があれば、全ての行を合わせた大きさ</returns>
+		Vector2 MeasureString(const wchar_t* text) const;
 	private:
 		std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;	//スプライトバッチ。
 		std::unique_ptr<DirectX::SpriteFont>	m_spriteFont;	//スプライトフォント。

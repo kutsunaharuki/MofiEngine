@@ -7,11 +7,11 @@
 
 namespace nsK2EngineLow
 {
-	class SpriteRender
+	class SpriteRender : public IRender2D
 	{
 	public:
 		SpriteRender();
-		~SpriteRender();
+		~SpriteRender() override;
 
 		/**
 		 * @brief スプライトの初期化
@@ -148,7 +148,7 @@ namespace nsK2EngineLow
 		 * @param rc レンダリングコンテキスト
 		 * @details RenderingEngine の2Dパスから呼ばれる
 		 */
-		void OnRender2D(RenderContext& rc);
+		void OnRender2D(RenderContext& rc) override;
 
 
 	private:

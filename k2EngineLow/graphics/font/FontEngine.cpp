@@ -56,6 +56,11 @@ namespace nsK2EngineLow {
 			cpuHandle,
 			gpuHandle);
 
+		// フォントに無い文字があると、DrawString / MeasureString が例外を投げて止まるので、代わりの文字を設定する
+		if (m_spriteFont->ContainsCharacter(L'?')) {
+			m_spriteFont->SetDefaultCharacter(L'?');
+		}
+
 		re.End(g_graphicsEngine->GetCommandQueue());
 	}
 
@@ -69,6 +74,15 @@ namespace nsK2EngineLow {
 			g_matIdentity
 		);
 		commandList->SetDescriptorHeaps(1, &m_srvDescriptorHeap);
+	}
+	Vector2 FontEngine::MeasureString(const wchar_t* text) const
+	{
+		if (text == nullptr || m_spriteFont == nullptr) {
+			return Vector2(0.0f, 0.0f);
+		}
+		DirectX::XMFLOAT2 size;
+		DirectX::XMStoreFloat2(&size, m_spriteFont->MeasureString(text));
+		return Vector2(size.x, size.y);
 	}
 	void FontEngine::EndDraw(RenderContext& rc)
 	{
