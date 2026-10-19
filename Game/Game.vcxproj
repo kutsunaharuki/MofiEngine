@@ -269,14 +269,19 @@
     </ClCompile>
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="GameCamera.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\Actor\Actor.cpp" />
     <ClCompile Include="Source\Actor\ActorStateMachine.cpp" />
     <ClCompile Include="Source\Actor\Character\CharacterBase.cpp" />
     <ClCompile Include="Source\Actor\Character\CharacterStateMachine.cpp" />
+    <ClCompile Include="Source\Actor\Character\Boy\Boy.cpp" />
+    <ClCompile Include="Source\Actor\Character\Boy\BoyStateMachine.cpp" />
+    <ClCompile Include="Source\Actor\Character\Boy\BoyState.cpp" />
+    <ClCompile Include="Source\Camera\FinderController.cpp" />
+    <ClCompile Include="Source\Camera\GameCamera.cpp" />
     <ClCompile Include="Source\Core\StateMachineBase.cpp" />
     <ClCompile Include="Source\Core\TransformNode.cpp" />
+    <ClCompile Include="Source\Scene\DebugScene.cpp" />
     <ClCompile Include="Source\Scene\InGameScene.cpp" />
     <ClCompile Include="Source\Scene\IScene.cpp" />
     <ClCompile Include="Source\Scene\ResultScene.cpp" />
@@ -290,6 +295,7 @@
     <ClCompile Include="Source\Util\JsonConverter.cpp" />
     <ClCompile Include="Source\UI\SoundOptionMenu\SoundOptionMenu.cpp" />
     <ClCompile Include="Source\Sound\SoundManager.cpp" />
+    <ClCompile Include="Source\Util\ParameterManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -300,14 +306,19 @@
   <ItemGroup>
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="GameCamera.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Source\Actor\Actor.h" />
     <ClInclude Include="Source\Actor\ActorStateMachine.h" />
     <ClInclude Include="Source\Actor\Character\CharacterBase.h" />
     <ClInclude Include="Source\Actor\Character\CharacterStateMachine.h" />
+    <ClInclude Include="Source\Actor\Character\Boy\Boy.h" />
+    <ClInclude Include="Source\Actor\Character\Boy\BoyStateMachine.h" />
+    <ClInclude Include="Source\Actor\Character\Boy\BoyState.h" />
+    <ClInclude Include="Source\Camera\FinderController.h" />
+    <ClInclude Include="Source\Camera\GameCamera.h" />
     <ClInclude Include="Source\Core\StateMachineBase.h" />
     <ClInclude Include="Source\Core\TransformNode.h" />
+    <ClInclude Include="Source\Scene\DebugScene.h" />
     <ClInclude Include="Source\Scene\InGameScene.h" />
     <ClInclude Include="Source\Scene\IScene.h" />
     <ClInclude Include="Source\Scene\ResultScene.h" />
@@ -323,6 +334,7 @@
     <ClInclude Include="Source\UI\SoundOptionMenu\SoundOptionMenu.h" />
     <ClInclude Include="Source\Sound\SoundManager.h" />
     <ClInclude Include="Source\Sound\SoundType.h" />
+    <ClInclude Include="Source\Util\ParameterManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system\system.h" />
   </ItemGroup>

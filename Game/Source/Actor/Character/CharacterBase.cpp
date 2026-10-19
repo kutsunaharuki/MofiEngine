@@ -38,8 +38,19 @@ namespace app
 			m_clipNum = data.clipNum;
 			m_upAxis = data.upAxis;
 
-			// アニメーションクリップ配列の確保
-			m_animationClips = std::make_unique<AnimationClip[]>(data.clipNum);
+			// アニメーションクリップ配列の確保と読み込み
+			if (m_clipNum > 0 && data.animationData != nullptr)
+			{
+				m_animationClips = std::make_unique<AnimationClip[]>(m_clipNum);
+				for (int i = 0; i < m_clipNum; ++i)
+				{
+					m_animationClips[i].Load(data.animationData[i].fileName);
+					m_animationClips[i].SetLoopFlag(data.animationData[i].isLoop);
+				}
+			}
+
+			// モデルの初期化
+			m_modelRender.Init(data.fileName, m_animationClips.get(), m_upAxis, m_clipNum);
 		}
 		
 		

@@ -86,17 +86,15 @@ namespace app
 				// ここに入ったら警告
 				if (it != m_stateMap.end())
 				{
-					// 既存のものを削除した後に警告を出す
-					delete it->second.get();
+					// 上書きすると、古いステートが消えて、m_currentState が消えたものを指してしまうことがあるので、追加しない
 					K2_ASSERT(false, "重複しています。");
+					return;
 				}
 
 				// ステートを追加
-				/**
-				 * @details std::forward は完璧転送を行うために使用される。
-				 *  受け取った引数の型(左辺値または右辺値)を保持して、それを他の関数に受け渡す際にその特性を失わせないもの。
-				 */
-				m_stateMap[TState::ID()] = std::make_unique<TState>(std::forward<TStateMachine>(stateMachine));
+				// ※ 引数は TStateMachine&(参照)なので、そのまま渡す。
+				//    std::forward<TStateMachine> にすると右辺値(&&)に変わり、ステートのコンストラクタ(参照で受け取る)に渡せなくなる
+				m_stateMap[TState::ID()] = std::make_unique<TState>(stateMachine);
 			}
 
 			/**

@@ -6,15 +6,20 @@ namespace app
 {
 	namespace
 	{
-		/** 敵のモデルパス */
-		constexpr const char* ENEMY_MODEL_PATH = "Assets/modelData/Enemy.tkm";
+		/**
+		 * @brief 敵のモデルパス
+		 * @details スケルトン(.tks)は、.tkm と同じフォルダーの同じ名前のものが読まれる(ModelRender::Init)。
+		 *          テクスチャも .tkm と同じフォルダーから読まれるので、3つとも同じフォルダーに置く
+		 */
+		constexpr const char* ENEMY_MODEL_PATH = "Assets/modelData/Enemy/BigMan/Enemy.tkm";
 		/** 敵の初期位置 */
 		const Vector3 ENEMY_POSITION = { 0.0f,0.0f,300.0f };
 		/** 敵の初期スケール */
 		const Vector3 ENEMY_SCALE = { 0.5f,0.5f,0.5f };
 		/** 敵のアニメーションクリップ数(インデックスで使用) */
-		const int ENEMY_ANIMATION_CLIP_NUM = static_cast<int>(Enemy::EnemyAnimationState::Idle);
+		const int ENEMY_ANIMATION_CLIP_NUM = static_cast<int>(Enemy::EnemyAnimationState::Max);
 	}
+
 
 
 	Enemy::Enemy()
@@ -46,7 +51,7 @@ namespace app
 		m_animationClip->Load("Assets/animData/Enemy/BigMan/idle.tka");
 		m_animationClip->SetLoopFlag(true);
 		
-		m_modelRender->Init(ENEMY_MODEL_PATH, m_animationClip.get(),enModelUpAxisZ, ENEMY_ANIMATION_CLIP_NUM);
+		m_modelRender->Init(ENEMY_MODEL_PATH, m_animationClip.get(),enModelUpAxisZ, 1);
 
 		m_modelRender->SetTRS(
 			m_transform.GetWorldPosition(),
@@ -63,7 +68,8 @@ namespace app
 		// ローカル値からワールド値を計算する(子がいれば子も更新される)
 		m_transform.UpdateTransform();
 
-		m_modelRender->PlayAnimation(ENEMY_ANIMATION_CLIP_NUM);
+		// 今の状態のアニメーションを再生する(クリップの数ではなく、番号を渡す)
+		m_modelRender->PlayAnimation(static_cast<int>(m_currentState));
 
 		// ワールド値をモデルに反映
 		m_modelRender->SetTRS(

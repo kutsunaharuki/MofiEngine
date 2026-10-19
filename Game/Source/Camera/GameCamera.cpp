@@ -16,12 +16,10 @@ namespace app
 			constexpr float CAMERA_NEAR = 0.1f;
 			/** カメラの遠平面 */
 			constexpr float CAMERA_FAR = 10000.0f;
-			/** 目の高さ */
-			constexpr float EYE_HEIGHT = 120.0f;
 			/** 入力閾値 */
 			constexpr float EPSILON = 0.001f;
-			/** カメラ回転速度 */
-			constexpr float CAMERA_ROTATE_SPEED = 1.7f;
+			/** 調整用パラメーターの JSON(回る速さ・距離・目の高さ) */
+			constexpr const char* GAME_CAMERA_PARAMETER_PATH = "Assets/parameter/Camera/GameCamera.json";
 			/** 上下の向きの最小値(度) */
 			constexpr float PITCH_MIN_DEG = -60.0f;
 			/** 上下の向きの最大値(度) */
@@ -32,8 +30,6 @@ namespace app
 			/** 度からラジアンへの変換係数 */
 			constexpr float DEG_TO_RAD = PI / 180.0f;
 
-			/** 3人称の時の、目の位置からカメラまでの位置 */
-			constexpr float THIRD_PERSON_DISTANCE = 250.0f;
 			/** 3人称の上下の向きの最小値(度。下向き) */
 			constexpr float THIRD_PERSON_PITCH_MIN_DEG = -50.0f;
 			/** 3人称の上下の向きの最大値(度。上向き) */
@@ -53,6 +49,9 @@ namespace app
 
 		bool GameCamera::Start()
 		{
+			// 調整用パラメーターの読み込み
+			m_parameter.Initialize(GAME_CAMERA_PARAMETER_PATH);
+
 			// カメラの近平面を設定
 			g_camera3D->SetNear(CAMERA_NEAR);
 			// カメラの遠平面を設定
@@ -80,7 +79,7 @@ namespace app
 			else
 			{
 				// 3人称
-				g_camera3D->SetPosition(eyePos - forward * THIRD_PERSON_DISTANCE);
+				g_camera3D->SetPosition(eyePos - forward * m_parameter.Get().thirdPersonDistance);
 				g_camera3D->SetTarget(eyePos);
 			}
 
@@ -106,7 +105,7 @@ namespace app
 			if (!m_target) return m_prevEyePos;
 
 			m_prevEyePos = m_target->GetWorldPosition();
-			m_prevEyePos.y += EYE_HEIGHT;
+			m_prevEyePos.y += m_parameter.Get().eyeHeight;
 
 			return m_prevEyePos;
 		}
@@ -137,13 +136,25 @@ namespace app
 			// 入力がない場合は回転しない
 			if (fabs(x) < EPSILON && fabs(y) < EPSILON) return;
 
+			// ファインダーを覗いているときは、狙いやすいようにゆっくり回す
+			const GameCameraParameter& parameter = m_parameter.Get();
+			const float rotateSpeed = m_isFirstPerson ? parameter.finderRotateSpeed : parameter.rotateSpeed;
+
 			// 左右
-			m_yawDeg += CAMERA_ROTATE_SPEED * x;
+			m_yawDeg += rotateSpeed * x;
 			// 上下
-			m_pitchDeg += CAMERA_ROTATE_SPEED * y;
+			m_pitchDeg += rotateSpeed * y;
 
 			// 上下は真上・真下を向かないようにクランプする(float型clamp)
-			m_pitchDeg = nsK2EngineLow::TClamp<float>::Clamp(m_pitchDeg, PITCH_MIN_DEG, PITCH_MAX_DEG);
+			// ※ 3人称のときは、カメラが地面に潜らないように、3人称の範囲に収める
+			if (m_isFirstPerson)
+			{
+				m_pitchDeg = nsK2EngineLow::TClamp<float>::Clamp(m_pitchDeg, PITCH_MIN_DEG, PITCH_MAX_DEG);
+			}
+			else
+			{
+				m_pitchDeg = nsK2EngineLow::TClamp<float>::Clamp(m_pitchDeg, THIRD_PERSON_PITCH_MIN_DEG, THIRD_PERSON_PITCH_MAX_DEG);
+			}
 		}
 
 
@@ -159,7 +170,8 @@ namespace app
 		{
 			// Yawをラジアンに変換
 			const float yaw = m_yawDeg * DEG_TO_RAD;
-			return Vector3(sinf(yaw), 0.0f, -sinf(yaw));
+			// 前方向(sin, 0, cos)を、Y軸で右に90度回したもの
+			return Vector3(cosf(yaw), 0.0f, -sinf(yaw));
 		}
 	}
 }

@@ -6,9 +6,12 @@
 #include "SceneManager.h"
 #include "InGameScene.h"
 #include "ResultScene.h"
-#include "GameCamera.h"
+#include "Source/Camera/GameCamera.h"
 #include "imgui.h"
 #include "Enemy.h"
+#include "Source/Actor/Character/Boy/Boy.h"
+#include "Source/UI/SoundOptionMenu/SoundOptionMenu.h"
+#include "Source/Sound/SoundManager.h"
 
 
 namespace app
@@ -37,21 +40,22 @@ namespace app
 		constexpr float FOCUS_MAX = 1.0f;
 		/** フォーカスの最小値 */
 		constexpr float FOCUS_MIN = -1.0f;
+
+		/** サウンドオプションのレイアウトのパス */
+		constexpr const char* SOUND_OPTION_LAYOUT_PATH = "Assets/parameter/UI/Sound/SoundOption.json";
 	}
 
 
 	InGameScene::InGameScene()
 		: m_spriteRender(nullptr)
-		, m_modelRender(nullptr)
 		, m_position(INITIALIZE_POSITION)
-		, m_rotation(Quaternion::Identity)
-		, m_scale(Vector3::One)
 		, m_gPosition(Vector3::Zero)
 		, m_gRotation(Quaternion::Identity)
 		, m_gScale(Vector3::One)
 		, m_gameCamera(nullptr)
 		, m_groundModelRender(nullptr)
 		, m_isLastShotInFocus(false)
+		, m_soundOptionMenu(nullptr)
 	{}
 	
 	
@@ -61,11 +65,6 @@ namespace app
 		{
 			delete m_spriteRender;
 			m_spriteRender = nullptr;
-		}
-		if (m_modelRender != nullptr)
-		{
-			delete m_modelRender;
-			m_modelRender = nullptr;
 		}
 		if (m_groundModelRender != nullptr)
 		{
@@ -80,23 +79,27 @@ namespace app
 	
 	bool InGameScene::Start()
 	{
-		// Step1-4完成
-		m_modelRender = new ModelRender;
-		m_animClips[0].Load("Assets/animData/idle.tka");
-		m_animClips[0].SetLoopFlag(true);
-		m_animClips[1].Load("Assets/animData/run.tka");
-		m_animClips[1].SetLoopFlag(true);
+		// サウンドオプションのUIを作る(最初は閉じている)
+		m_soundOptionLayout.Initialize<ui::SoundOptionMenu>(SOUND_OPTION_LAYOUT_PATH);
+		m_soundOptionMenu = m_soundOptionLayout.GetMenu<ui::SoundOptionMenu>();
 
-		m_modelRender->Init("Assets/modelData/unityChan.tkm", m_animClips, enModelUpAxisZ, 2);
-		m_modelRender->SetTRS(m_position, m_rotation, m_scale);
-		m_modelRender->PlayAnimation(0);
-		m_modelRender->Update();
+		// タイトルのBGMを鳴らす
+		sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
 
 		// 地面のモデルレンダーを初期化
 		m_groundModelRender = new ModelRender;
 		m_groundModelRender->Init("Assets/modelData/ground.tkm", nullptr, enModelUpAxisZ, 0, false, true);
 		m_groundModelRender->SetTRS(m_gPosition, m_gRotation, m_gScale);
 		m_groundModelRender->Update();
+
+		// 地面の形から当たり判定を作る(ワールド行列が決まってから作る)
+		Model& groundModel = m_groundModelRender->GetModel();
+		m_groundPhysicsObject.CreateFromModel(groundModel, groundModel.GetWorldMatrix());
+
+		// 主人公を作る(位置を決めてから Start を呼ぶ)
+		m_boy = std::make_unique<app::actor::Boy>();
+		m_boy->SetPosition(m_position);
+		m_boy->Start();
 
 		// 写真撮影クラスの初期化
 		m_photoCapture.Init();
@@ -110,9 +113,9 @@ namespace app
 		// 後々に響きそうなのでゲームカメラを作成しておく。
 		m_gameCamera = new app::camera::GameCamera;
 		m_gameCamera->Start();
-		m_transform.SetLocalPosition(m_position);
-		m_transform.UpdateTransform();
-		m_gameCamera->SetTarget(&m_transform);
+		// カメラは主人公を追いかけて、主人公はカメラの向きを基準に動く
+		m_gameCamera->SetTarget(&m_boy->GetTransform());
+		m_boy->SetGameCamera(m_gameCamera);
 		m_gameCamera->Update();
 		return true;
 	}
@@ -120,11 +123,33 @@ namespace app
 	
 	void InGameScene::Update()
 	{
+		// サウンドオプションの更新(開いているときだけ、中で入力を受け付ける)
+		m_soundOptionLayout.Update();
+
+		// スタートボタンで、サウンドオプションを開く
+		// ※ メニューの更新の後に開くので、開いたフレームの入力でメニューが動くことはない
+		if (m_soundOptionMenu && !m_soundOptionMenu->IsOpen() && g_pad[0]->IsTrigger(enButtonStart))
+		{
+			m_soundOptionMenu->Open();
+		}
+
+		// サウンドオプションを開いている間は、ゲームを止める
+		// ※ 止めないと、メニューの A(試し聞き)で主人公がジャンプしたり、B(閉じる)で撮影したりしてしまう
+		if (m_soundOptionMenu && m_soundOptionMenu->IsOpen())
+		{
+			return;
+		}
+
 		// ファインダーのON/OFFを切り替える
 		if (g_pad[0]->IsTrigger(enButtonY))
 		{
 			m_photoCapture.ToggleFinderActive();
 		}
+
+		// 主人公の更新(ファインダーを覗いている間は、撮影ステートになる)
+		// ※ カメラが主人公の新しい位置を追いかけるように、カメラより先に更新する
+		m_boy->SetIsFinderActive(m_photoCapture.IsFinderActive());
+		m_boy->Update();
 
 		// ファインダーを覗いている間だけ、1人称にする
 		m_gameCamera->SetFirstPeerson(m_photoCapture.IsFinderActive());
@@ -151,118 +176,6 @@ namespace app
 
 		// ライトの定数バッファの参照を取得
 		auto& light = SceneLight::GetInstance().GetLightCB();
-
-		// ライト関連のImGuiウィンドウ(結果もここ)
-		ImGui::Begin("Lighting Settings");
-		if (ImGui::CollapsingHeader("Light"))
-		{
-			ImGui::SliderFloat3("Direction", &light.directionLight.direction.x, -1.0f, 1.0f);
-			ImGui::ColorEdit3("Color", &light.directionLight.color.x);
-			ImGui::ColorEdit3("Ambient", &light.ambientLight.ambient.x);
-			ImGui::SliderFloat("Spec Power", &light.light.specPower, 1.0f, 200.0f);
-		}
-		// 影の調整(調整しなくていい気がする)
-		if (ImGui::CollapsingHeader("Shadow"))
-		{
-			ImGui::SliderFloat("Shadow Bias", &light.shadowParam.shadowBias, 0.0f, 1.0f);
-			ImGui::SliderFloat("Shadow Bias Min", &light.shadowParam.shadowBiasMin, 0.0f, 1.0f);
-		}
-		// ポイントライトの調整
-		if (ImGui::CollapsingHeader("PointLight"))
-		{
-			ImGui::SliderInt("Count", &light.numPointLights, 0, 4);
-			for (int i = 0; i < light.numPointLights; i++)
-			{
-				ImGui::PushID(i);
-				if (ImGui::TreeNode("", "Light %d", i))
-				{
-					ImGui::DragFloat3("Position", &light.ptLights[i].ptPosition.x, 5.0f);
-					ImGui::ColorEdit3("Color", &light.ptLights[i].ptColor.x);
-					ImGui::DragFloat("Range", &light.ptLights[i].ptRange, 5.0f, 0.0f, 2000.0f);
-					ImGui::DragFloat3("Direction", &light.ptLights[i].ptDirection.x, 0.01f, -1.0f, 1.0f);
-					ImGui::DragFloat("Angle", &light.ptLights[i].ptAngle, 1.0f, 0.0f, 180.0f);
-					ImGui::TreePop();
-				}
-				ImGui::PopID();
-			}
-		}
-		// ガウシアンブラーの調整
-		if (ImGui::BeginTabBar("PostEffectTabs"))
-		{
-			if (ImGui::BeginTabItem("GaussianBlur"))
-			{
-				ImGui::DragFloat("Blur Power", &RenderingEngine::GetInstance().GetScreenBlurPower(), 0.1f, 0.0f, 1.0f);
-				ImGui::EndTabItem();
-			}
-
-			// ブルームの調整
-			auto& re = RenderingEngine::GetInstance();
-			if (ImGui::BeginTabItem("Bloom"))
-			{
-				ImGui::Checkbox("Bloom Enable", &re.IsEnableBloom());
-
-				float threshold = re.GetBloomCB().threshold;
-				// ブルームの閾値
-				if (ImGui::SliderFloat("Threshold", &threshold, 0.0f, 3.0f))
-				{
-					re.SetBloomThreshold(threshold);
-				}
-
-				// ブルームの強さ
-				float intensity = re.GetBloomIntensity();
-				if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 3.0f))
-				{
-					re.SetBloomIntensity(intensity);
-				}
-				ImGui::EndTabItem();
-			}
-			ImGui::EndTabBar();
-		}
-
-		if (ImGui::BeginTabBar("DoF"))
-		{
-			// DoF(ピントのぼけ)の調整
-			if (ImGui::BeginTabItem("DoF"))
-			{
-				// ファインダーを覗いているときだけ、効果が見える
-				ImGui::Text("Finder Active: %s", m_photoCapture.IsFinderActive() ? "Yes" : "No");
-
-				// ピント距離
-				float distance = m_photoCapture.GetFocusDistance();
-				if (ImGui::SliderFloat("Distance", &distance, 0.0f, 1000.0f))
-				{
-					m_photoCapture.SetFocusDistance(distance);
-				}
-
-				// ボケ量が最大になるまでの幅
-				float blurRange = m_photoCapture.GetFocusBlurRange();
-				if (ImGui::SliderFloat("Blur Range", &blurRange, 1.0f, 1000.0f))
-				{
-					m_photoCapture.SetFocusBlurRange(blurRange);
-				}
-
-				// ピントが合っているとみなす許容値
-				float tolerance = m_photoCapture.GetFocusTolerance();
-				if (ImGui::SliderFloat("Tolerance", &tolerance, 1.0f, 200.0f))
-				{
-					m_photoCapture.SetFocusTolerance(tolerance);
-				}
-
-				// 敵の距離とピントの距離の差を表示
-				ImGui::Text("Enemy Distance: %.1f", enemyDistance);
-				// ファインダーのピント距離を表示
-				ImGui::Text("Focus Distance: %.1f", m_photoCapture.GetFocusDistance());
-				// ピント距離と敵の距離の差を表示
-				ImGui::Text("Difference: %.1f", fabsf(m_photoCapture.GetFocusDistance() - enemyDistance));
-				// ピントが合っていたらYes, 合っていないならNoを表示
-				ImGui::Text("In Focus: %s", isInFocus ? "Yes" : "No");
-
-				ImGui::EndTabItem();
-			}
-			ImGui::EndTabBar();
-		}
-		ImGui::End();
-
 
 		// ピントを合わせる
 		if (m_photoCapture.IsFinderActive() && g_pad[0]->IsPress(enButtonUp))
@@ -308,11 +221,15 @@ namespace app
 		// ファインダーを覗いていない時だけ描画する
 		if (!m_photoCapture.IsFinderActive())
 		{
-			m_modelRender->Draw(rc);
+			m_boy->Render(rc);
 		}
 
 		// モデル描画(地面)
 		m_groundModelRender->Draw(rc);
+
+		// サウンドオプションは毎フレーム描画を呼ぶ(閉じているときは、メニューの中で何も描画されない)
+		// ※ IsTrigger の中で呼ぶと、ボタンを押した1フレームしか描画されない
+		m_soundOptionLayout.Render(rc);
 
 		// 敵の描画
 		m_enemy->Render(rc);
@@ -321,9 +238,15 @@ namespace app
 	
 	bool InGameScene::RequestScene(uint32_t& id, float& waitTime)
 	{
+		// サウンドオプションを開いている間は、Aボタンをメニューが使うので遷移しない
+		if (m_soundOptionMenu && m_soundOptionMenu->IsOpen())
+		{
+			return false;
+		}
+
 		if (g_pad[0]->IsTrigger(enButtonA))
 		{
-			id = ResultScene::ID();
+			id = app::ResultScene::ID();
 			waitTime = 1.0f;
 			return true;
 		}

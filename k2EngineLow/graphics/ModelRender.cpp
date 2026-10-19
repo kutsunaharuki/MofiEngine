@@ -42,18 +42,36 @@ namespace nsK2EngineLow
 		// replaceでtksに置き換える
 		skeletonFilePath.replace(skeletonFilePath.length() - 3, 3, "tks");
 		// スケルトン初期化
-		m_skeleton.Init(skeletonFilePath.c_str());
+		const bool isSkeletonLoaded = m_skeleton.Init(skeletonFilePath.c_str());
+
+		// アニメーションするのにスケルトンが無いと、ボーンが0本のまま進み、
+		// 頂点シェーダーがボーン行列の範囲外を読んでしまう(敵の影が出ない・範囲外アクセスの原因になる)
+		// ※ .tks は .tkm と同じフォルダーに、同じ名前で置く
+		if (!isSkeletonLoaded && animationClips != nullptr)
+		{
+			// ※ K2_ASSERT のメッセージは 256 バイトまで(ファイル名と行番号を含む)なので、短くする
+			std::string message = "tks not found : ";
+			message += skeletonFilePath;
+			message += "\n";
+			K2_ASSERT(false, message.c_str());
+		}
 
 
 		ModelInitData deferredInitData;
 		deferredInitData.m_tkmFilePath = tkmFilePath;
 		deferredInitData.m_fxFilePath = "Assets/shader/renderToGBuffer.fx";
 		deferredInitData.m_skeleton = &m_skeleton;
-		
+		// スキン(骨で頂点を動かす)用の頂点シェーダーを指定する
+		// ※ 指定しないと既定の "VSMain" になり、アニメーションしても画面のモデルは T ポーズのまま動かない
+		deferredInitData.m_vsSkinEntryPointFunc = "VSMainSkin";
+		// モデルの上方向(フォワード用・ファインダー用と合わせる)
+		deferredInitData.m_modelUpAxis = upAxis;
+
 		// パイプラインは絵描き先のフォーマットを知っている必要がある
-		deferredInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		deferredInitData.m_colorBufferFormat[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		deferredInitData.m_colorBufferFormat[2] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		// ※ RenderingEngine の G-Buffer(m_gAlbedoRT / m_gNormalRT / m_gDepthRT)のフォーマットと必ず合わせる
+		deferredInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R8G8B8A8_UNORM;		// アルベド(色なので 0~1 で十分)
+		deferredInitData.m_colorBufferFormat[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;	// 法線 + スペキュラの強さ
+		deferredInitData.m_colorBufferFormat[2] = DXGI_FORMAT_R32G32B32A32_FLOAT;	// ワールド座標(影の比較に使うので精度を高くする)
 		deferredInitData.m_expandConstantBuffer = &SceneLight::GetInstance().GetLightCB();
 		deferredInitData.m_expandConstantBufferSize = sizeof(SceneLight::LightCB);
 		m_deferredModel.Init(deferredInitData);
@@ -95,6 +113,8 @@ namespace nsK2EngineLow
 			// ※ これを渡さないと影だけTぽーすになってしまう
 			m_shadowModelInitData.m_skeleton = &m_skeleton;
 			m_shadowModelInitData.m_vsSkinEntryPointFunc = "VSMainSkin";
+			// モデルの上方向(本体と合わせないと、影だけ寝てしまう)
+			m_shadowModelInitData.m_modelUpAxis = upAxis;
 			// フォーマットが合っていないとD3D12 が実行時エラーを出す
 			m_shadowModelInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R32_FLOAT;
 			m_shadowModel.Init(m_shadowModelInitData);

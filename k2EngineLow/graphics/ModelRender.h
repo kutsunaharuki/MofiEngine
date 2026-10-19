@@ -139,6 +139,13 @@ namespace nsK2EngineLow
 		 * @return スケール
 		 */
 		const Vector3& GetScale() const { return m_scale; }
+		/**
+		 * @brief モデルを取得
+		 * @return モデル(ディファード用)
+		 * @details 地面などの当たり判定を、モデルの形から作るときに使う
+		 *          (例) physicsStaticObject.CreateFromModel(modelRender.GetModel(), modelRender.GetModel().GetWorldMatrix());
+		 */
+		Model& GetModel() { return m_deferredModel; }
 
 
 	private:

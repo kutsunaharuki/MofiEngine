@@ -7,6 +7,7 @@ namespace app
 	class Enemy
 	{
 	public:
+
 		Enemy();
 		~Enemy();
 

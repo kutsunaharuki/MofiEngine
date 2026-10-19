@@ -185,6 +185,12 @@ namespace nsK2EngineLow
 		 */
 		RenderingEngine();
 
+		/**
+		 * @brief G-Buffer とディファードライティングの初期化
+		 * @details シャドウマップを作った後に呼ぶ(ライティングのスプライトがシャドウマップを使うため)
+		 */
+		void InitDeferredRendering();
+
 		/** フォトキャプチャーのポインタ */
 		PhotoCapture* m_photoCapture;
 		/** ファインダー用モデルのリスト */
@@ -207,12 +213,14 @@ namespace nsK2EngineLow
 		/** DoF用スプライト */
 		Sprite m_dofSprite;
 
-		/** 素材の色 */
+		/** G-Buffer : 素材の色(深度バッファもこれが持つ) */
 		RenderTarget m_gAlbedoRT;
-		/** 法線 */
+		/** G-Buffer : 法線(w = スペキュラの強さ) */
 		RenderTarget m_gNormalRT;
-		/** ワールド座標 */
+		/** G-Buffer : ワールド座標(w = 1 ならモデルがある) */
 		RenderTarget m_gDepthRT;
+		/** ディファードライティング(G-Buffer とシャドウマップから、ライティングと影を計算する画面全体のスプライト) */
+		Sprite m_deferredLightingSprite;
 
 		/** 素材の色のスプライト */
 		Sprite m_albedoSprite;

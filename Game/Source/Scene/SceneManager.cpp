@@ -7,6 +7,7 @@
 #include "InGameScene.h"
 #include "ResultScene.h"
 #include "TitleScene.h"
+#include "DebugScene.h"
 
 
 namespace app
@@ -32,6 +33,8 @@ namespace app
         AddSceneMap<app::InGameScene>();
         AddSceneMap<app::ResultScene>();
         AddSceneMap<app::TitleScene>();
+        // 開発用のシーン(タイトルから入れるのは K2_DEBUG の構成だけ)
+        AddSceneMap<app::DebugScene>();
 
         // フェード用のスプライトレンダーを作成して初期化
         m_fadeSpriteRender = std::make_unique<SpriteRender>();

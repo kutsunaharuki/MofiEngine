@@ -19,7 +19,27 @@ struct SPSOut
 };
 
 Texture2D<float4> albedoTexture : register(t0);
+// ノーマルマップ(マテリアルが t1 に繋ぐ。model.fx と同じ)
+Texture2D<float4> normalMap : register(t1);
+// スペキュラマップ(マテリアルが t2 に繋ぐ。model.fx と同じ)
+Texture2D<float4> specularMap : register(t2);
 sampler Sampler : register(s0);
+
+
+///////////////////////////////////////////////
+// 法線マップからワールド空間の法線を復元する(model.fx と同じ)
+///////////////////////////////////////////////
+float3 CalcNormalFromMap(Texture2D<float4> map, sampler samp, float2 uv, float3 tangent, float3 biNormal, float3 normal)
+{
+    float3 localNormal = map.Sample(samp, uv).xyz;
+    localNormal = (localNormal * 2.0f) - 1.0f;
+
+    return normalize(
+          tangent  * localNormal.x
+        + biNormal * localNormal.y
+        + normal   * localNormal.z
+    );
+}
 
 
 SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputedVertexBuffer)
@@ -49,11 +69,14 @@ SPSOut PSMain(SPSIn In)
     // アルベド : テクスチャの色をそのまま
     psOut.albedo = albedoTexture.Sample(Sampler, In.uv);
 
-    // 法線 : (-1 ~ 1)のままでは色として保存できないので(0 ~ 1)に詰める
-    psOut.normal.xyz = normalize(In.normal) * 0.5f + 0.5f;
-    psOut.normal.w = 1.0f;
+    // 法線 : ノーマルマップで凹凸を足してから、(-1 ~ 1)を(0 ~ 1)に詰める
+    float3 normal = CalcNormalFromMap(normalMap, Sampler, In.uv, In.tangent, In.biNormal, In.normal);
+    psOut.normal.xyz = normal * 0.5f + 0.5f;
+    // 法線の w には、スペキュラの強さを入れる(ライティングで使う)
+    psOut.normal.w = specularMap.Sample(Sampler, In.uv).r;
 
     // ワールド座標 : R32G32B32A32_FLOAT なので生の値をそのまま入れられる
+    // w = 1 は「ここにモデルが描かれた」という印。クリア色の w = 0 のところは背景(空)になる
     psOut.worldPos = float4(In.worldPos, 1.0f);
     return psOut;
 }

@@ -4,12 +4,43 @@
  */
 #pragma once
 #include "Source/Core/TransformNode.h"
+#include "Source/Util/ParameterManager.h"
 
 
 namespace app
 {
 	namespace camera
 	{
+		/**
+		 * @brief ゲームカメラの調整用パラメーター
+		 * @details JSON : Assets/parameter/Camera/GameCamera.json(保存すると、ゲームを動かしたまま反映される)
+		 */
+		struct GameCameraParameter
+		{
+			/** 3人称のときの、回る速さ(1フレームに回る角度。度) */
+			float rotateSpeed = 1.7f;
+			/** ファインダーを覗いているときの、回る速さ(1フレームに回る角度。度) */
+			float finderRotateSpeed = 0.8f;
+			/** 3人称のときの、目の位置からカメラまでの距離 */
+			float thirdPersonDistance = 250.0f;
+			/** 目の高さ(足元からの高さ) */
+			float eyeHeight = 120.0f;
+
+			/**
+			 * @brief JSON から読む
+			 * @param file パラメーターファイル
+			 */
+			void Read(const util::ParameterFile& file)
+			{
+				rotateSpeed = file.GetFloat("rotateSpeed", rotateSpeed);
+				finderRotateSpeed = file.GetFloat("finderRotateSpeed", finderRotateSpeed);
+				thirdPersonDistance = file.GetFloat("thirdPersonDistance", thirdPersonDistance);
+				eyeHeight = file.GetFloat("eyeHeight", eyeHeight);
+			}
+		};
+
+
+
 		/**
 		 * @brief ゲームカメラクラス
 		 */
@@ -65,6 +96,8 @@ namespace app
 
 
 		private:
+			/** 調整用パラメーター */
+			util::Parameter<GameCameraParameter> m_parameter;
 			/** モデルレンダー */
 			ModelRender* m_modelRender;
 			/** 追従対象 */

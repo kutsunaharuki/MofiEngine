@@ -5,12 +5,19 @@
 #pragma once
 #include "Source/Core/TransformNode.h"
 #include "IScene.h"
+#include "Source/UI/UILayout.h"
 
 
 namespace app
 {
 	/** 前方宣言 */
 	class Enemy;
+
+	namespace ui
+	{
+		class UILayout;
+		class SoundOptionMenu;
+	}
 
 	namespace camera
 	{
@@ -20,6 +27,11 @@ namespace app
 	namespace core
 	{
 		class TransformNode;
+	}
+
+	namespace actor
+	{
+		class Boy;
 	}
 
 
@@ -52,27 +64,21 @@ namespace app
 	private:
 		/** 写真撮影クラス */
 		nsK2EngineLow::PhotoCapture m_photoCapture;
-		/** トランスフォーム */
-		app::core::TransformNode m_transform;
 		/** 敵 */
 		std::unique_ptr<app::Enemy> m_enemy;
+		/** 主人公 */
+		std::unique_ptr<app::actor::Boy> m_boy;
 
-		/** アニメーションクリップ */
-		AnimationClip m_animClips[2];
 		/** ゲームカメラ */
 		app::camera::GameCamera* m_gameCamera;
 		/** スプライトレンダー */
 		SpriteRender* m_spriteRender;
-		/** モデルレンダー */
-		ModelRender* m_modelRender;
 		/** 地面のモデルレンダー */
 		ModelRender* m_groundModelRender;
-		/** 位置 */
+		/** 地面の当たり判定(主人公が地面に立つために必要) */
+		PhysicsStaticObject m_groundPhysicsObject;
+		/** 主人公の初期位置 */
 		Vector3 m_position;
-		/** 回転 */
-		Quaternion m_rotation;
-		/** スケール */
-		Vector3 m_scale;
 		/** 地面の位置 */
 		Vector3 m_gPosition;
 		/** 地面の大きさ */
@@ -81,5 +87,12 @@ namespace app
 		Quaternion m_gRotation;
 		/** ピントの判定を記録 */
 		bool m_isLastShotInFocus;
+		
+		// UI関連
+		/** SoundOptionのUIレイアウト */
+		ui::UILayout m_soundOptionLayout;
+		/** サウンドオプションメニュー */
+		ui::SoundOptionMenu* m_soundOptionMenu;
+
 	};
 }

@@ -7,6 +7,13 @@
 
 namespace nsK2EngineLow
 {
+	namespace
+	{
+		/** ライトカメラの原点からの距離 */
+		constexpr float LIGHT_CAMERA_VECTOR = -1000.0f;
+	}
+
+
 	void RenderingEngine::Execute(RenderContext& rc)
 	{
 		//=====================================================
@@ -37,18 +44,41 @@ namespace nsK2EngineLow
 		}
 		
 		// =============================================
-		// フォワードレンダリングパス
+		// パス2: G-Buffer パス(ディファードレンダリング)
+		// モデルを、アルベド・法線・ワールド座標の3枚に同時に描く(ライティングはまだしない)
 		// =============================================
 
-		rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
-		rc.SetRenderTargetAndViewport(m_mainRenderTarget);
-		rc.ClearRenderTargetView(m_mainRenderTarget);
+		RenderTarget* gBuffers[] = { &m_gAlbedoRT, &m_gNormalRT, &m_gDepthRT };
+		const int gBufferCount = static_cast<int>(sizeof(gBuffers) / sizeof(gBuffers[0]));
+
+		rc.WaitUntilToPossibleSetRenderTargets(gBufferCount, gBuffers);
+		rc.SetRenderTargetsAndViewport(gBufferCount, gBuffers);
+		rc.ClearRenderTargetViews(gBufferCount, gBuffers);
 
 		for (auto* model : m_models)
 		{
-			// カメラ視点で描画
+			// カメラ視点で描画(renderToGBuffer.fx)
 			model->Draw(rc);
 		}
+		// 描き終わるまで待つ → 以後テクスチャとして読める
+		rc.WaitUntilFinishDrawingToRenderTargets(gBufferCount, gBuffers);
+
+		// =============================================
+		// パス3: ディファードライティングパス
+		// G-Buffer とシャドウマップを読んで、ライティングと影を計算し、メインレンダーターゲットに描く
+		// =============================================
+
+		// 視点の位置を、今のカメラの位置にする(スペキュラと、DoF 用の距離の計算に使う)
+		SceneLight::GetInstance().GetLightCB().light.eyePos = g_camera3D->GetPosition();
+
+		rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
+		rc.SetRenderTargetAndViewport(m_mainRenderTarget);
+		// 空の色でクリアする(モデルが無いピクセルは、ライティングのシェーダーが discard するので、この色が残る)
+		rc.ClearRenderTargetView(m_mainRenderTarget);
+
+		m_deferredLightingSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+		m_deferredLightingSprite.Draw(rc);
+
 		// 書き込める状態になるまで待つ → 以後テクスチャとして読める
 		rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
 
@@ -176,6 +206,72 @@ namespace nsK2EngineLow
 				clearColor						  // シャドウマップのクリアカラー
 			);
 		}
+
+		// G-Buffer とディファードライティングの初期化
+		// ※ ライティングのスプライトがシャドウマップを使うので、シャドウマップを作った後に行う
+		InitDeferredRendering();
+	}
+
+
+	void RenderingEngine::InitDeferredRendering()
+	{
+		// ===============================
+		// G-Buffer(モデルの情報を、画面のピクセルごとに3枚に書き分ける)
+		// ※ フォーマットは ModelRender の deferredInitData.m_colorBufferFormat と必ず合わせる
+		// ===============================
+
+		// アルベド(素材の色)。深度バッファはこの1枚目が持つ(3枚同時に描くときは1枚目の深度が使われる)
+		float albedoClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		m_gAlbedoRT.Create(
+			FRAME_BUFFER_W, FRAME_BUFFER_H,
+			1, 1,
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			DXGI_FORMAT_D32_FLOAT,
+			albedoClearColor
+		);
+
+		// 法線(xyz = 0~1 に詰めた法線、w = スペキュラの強さ)
+		float normalClearColor[4] = { 0.5f, 0.5f, 1.0f, 0.0f };
+		m_gNormalRT.Create(
+			FRAME_BUFFER_W, FRAME_BUFFER_H,
+			1, 1,
+			DXGI_FORMAT_R16G16B16A16_FLOAT,
+			DXGI_FORMAT_UNKNOWN,
+			normalClearColor
+		);
+
+		// ワールド座標(xyz = 座標、w = 1 ならモデルがある)
+		// ※ クリア色の w を 0 にしておくと、モデルが描かれなかったピクセル(背景)を見分けられる
+		float worldPosClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		m_gDepthRT.Create(
+			FRAME_BUFFER_W, FRAME_BUFFER_H,
+			1, 1,
+			DXGI_FORMAT_R32G32B32A32_FLOAT,
+			DXGI_FORMAT_UNKNOWN,
+			worldPosClearColor
+		);
+
+		// ===============================
+		// ディファードライティングのスプライト(画面全体)
+		// ===============================
+		SpriteInitData initData;
+		initData.m_width = FRAME_BUFFER_W;
+		initData.m_height = FRAME_BUFFER_H;
+		initData.m_fxFilePath = "Assets/shader/deferredLighting.fx";
+		// t0 ~ t2 : G-Buffer、t3 ~ t6 : シャドウマップ(シェーダーの register と順番を合わせる)
+		initData.m_textures[0] = &m_gAlbedoRT.GetRenderTargetTexture();
+		initData.m_textures[1] = &m_gNormalRT.GetRenderTargetTexture();
+		initData.m_textures[2] = &m_gDepthRT.GetRenderTargetTexture();
+		for (int i = 0; i < MAX_SHADOW; i++)
+		{
+			initData.m_textures[3 + i] = &m_shadowMap[i].GetRenderTargetTexture();
+		}
+		// b1 : ライトの定数バッファ(描画のたびに VRAM にコピーされるので、ImGui で変えた値もすぐ反映される)
+		initData.m_expandConstantBuffer = &SceneLight::GetInstance().GetLightCB();
+		initData.m_expandConstantBufferSize = sizeof(SceneLight::LightCB);
+		// 描き先はメインレンダーターゲット(HDR)
+		initData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		m_deferredLightingSprite.Init(initData);
 	}
 
 
@@ -194,7 +290,7 @@ namespace nsK2EngineLow
 		// ライトの逆側・上空に置く
 		for (int i = 0; i < MAX_SHADOW; i++)
 		{
-			m_lightCamera[i].SetPosition(lightDir * -100.0f);
+			m_lightCamera[i].SetPosition(lightDir * LIGHT_CAMERA_VECTOR);
 			// キャラのいるあたりを見る
 			m_lightCamera[i].SetTarget(Vector3::Zero);
 			// 真下を向くときはY以外の値を上げる(Yだと視線と平行になり行列が壊れるから)
