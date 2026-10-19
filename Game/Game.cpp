@@ -1,4 +1,9 @@
-﻿#include "stdafx.h"
+﻿/**
+ * @file Game.cpp
+ * @brief ゲームの根幹クラス
+ * @details ゲームに必要なシーンやサウンド、パラメーターの管理者をここで作ったり破棄したりする
+ */
+#include "stdafx.h"
 #include "Game.h"
 #include "Source/Scene/SceneManager.h"
 #include "Source/Sound/SoundManager.h"
