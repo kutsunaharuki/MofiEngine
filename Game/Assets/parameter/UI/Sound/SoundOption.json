@@ -10,12 +10,12 @@
         "position":[0,0,0]
       },
       {
-        "type":"UIIcon",
+        "type":"UIText",
         "name":"SoundOptionMain",
-        "asset":"Assets/spriteData/UI/SoundOption/SoundOption.DDS",
-        "width":1309,
-        "height":176,
-        "position":[0,380,0]
+        "text":"SoundOption",
+        "position":[0,380,0],
+        "scale":[5,5,1],
+        "pivot":[0.5,0.5]
       },
       {
         "comment":"マスターのテキスト",
