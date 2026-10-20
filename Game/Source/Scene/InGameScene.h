@@ -6,6 +6,7 @@
 #include "Source/Core/TransformNode.h"
 #include "IScene.h"
 #include "Source/UI/UILayout.h"
+#include "Source/Camera/FinderController.h"
 
 
 namespace app
@@ -22,6 +23,7 @@ namespace app
 	namespace camera
 	{
 		class GameCamera;
+		class FinderController;
 	}
 
 	namespace core
@@ -88,6 +90,9 @@ namespace app
 		/** ピントの判定を記録 */
 		bool m_isLastShotInFocus;
 		
+		/** ファインダーコントローラー */
+		camera::FinderController m_finderController;
+
 		// UI関連
 		/** SoundOptionのUIレイアウト */
 		ui::UILayout m_soundOptionLayout;

@@ -108,16 +108,16 @@ namespace nsK2EngineLow
 		// 2Dパス(スプライト・フォント・imguiはこの後 = 加工の影響を受けない)
 		// ===========================================
 
-		// 登録されたスプライト・文字を、コピーパスの後に、登録した順番で描画する
-		for (auto* render2D : m_render2DList)
-		{
-			render2D->OnRender2D(rc);
-		}
-
 		// PhotoCaptureがあるならオンスクリーンレンダリングを行う
 		if (m_photoCapture != nullptr)
 		{
 			m_photoCapture->RenderOnscreen(rc);
+		}
+
+		// 登録されたスプライト・文字を、コピーパスの後に、登録した順番で描画する
+		for (auto* render2D : m_render2DList)
+		{
+			render2D->OnRender2D(rc);
 		}
 
 		// 毎フレームリストを空にする

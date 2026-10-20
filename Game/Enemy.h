@@ -1,10 +1,11 @@
 ﻿#pragma once
 #include "Source/Core/TransformNode.h"
+#include "Source/Camera/PhotoSubject.h"
 
 
 namespace app
 {
-	class Enemy
+	class Enemy : public camera::IPhotoSubject
 	{
 	public:
 
@@ -70,6 +71,12 @@ namespace app
 		 * @brief 敵の現在のステートを取得
 		 */
 		EnemyAnimationState& GetCurrentState() { return m_currentState; }
+
+		/**
+		 * @brief 敵に被写体のピントを合わせる位置を取得
+		 * @return 被写体のピントを合わせる位置(定義した場所で体の中心や顔のあたりの位置が変わる)
+		 */
+		Vector3 GetFocusPosition() const override;
 
 
 	private:

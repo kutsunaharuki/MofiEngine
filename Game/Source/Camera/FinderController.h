@@ -4,6 +4,9 @@
  */
 #pragma once
 #include "Source/Util/ParameterManager.h"
+#include "PhotoSubject.h"
+#include <vector>
+#include "Object/FinderParameter.h"
 
 
 namespace app
@@ -11,34 +14,9 @@ namespace app
 	namespace camera
 	{
 		/**
-		 * @brief ファインダーの調整用パラメーター
-		 * @details JSON : Assets/parameter/Camera/Finder.json(保存すると、ゲームを動かしたまま反映される)
-		 */
-		struct FinderParameter
-		{
-			/** ズームの速さ(1.0 がエンジンの標準の速さ) */
-			float zoomSpeed = 1.0f;
-			/** ピントを動かす速さ(1.0 がエンジンの標準の速さ) */
-			float focusSpeed = 1.0f;
-			/** 撮ってから、次に撮れるようになるまでの時間(秒) */
-			float shotCoolTime = 1.0f;
-
-			/**
-			 * @brief JSON から読む
-			 * @param file パラメーターファイル
-			 */
-			void Read(const util::ParameterFile& file)
-			{
-				zoomSpeed = file.GetFloat("zoomSpeed", zoomSpeed);
-				focusSpeed = file.GetFloat("focusSpeed", focusSpeed);
-				shotCoolTime = file.GetFloat("shotCoolTime", shotCoolTime);
-			}
-		};
-
-
-		/**
 		 * @brief ファインダー(写真撮影)の操作
-		 * @details 操作 : Y で覗く / やめる、十字の上下でピント、RB1 / LB1 でズーム、B で撮影。
+		 * @details 操作 : Y で覗く / やめる、RB1 / LB1 でズーム、B で撮影。
+		 *          ピントはオートフォーカス(画面の真ん中に近い被写体に、少しずつ合わせる)。
 		 *          撮影には、クールタイムがある
 		 */
 		class FinderController : public Noncopyable
@@ -71,13 +49,48 @@ namespace app
 			 * @return 残りの秒数(0 なら撮影できる)
 			 */
 			float GetCoolTimeRemaining() const { return m_coolTimer; }
+			/**
+			 * @brief ピントを合わせている被写体を取得
+			 * @return IPhotoSubjectのポインタ
+			 */
+			const IPhotoSubject* GetFocusSubject() const { return m_focusSubject; }
+
+
+		public:
+			/**
+			 * @brief 被写体を登録する
+			 * @param subject 被写体の情報を登録
+			 */
+			void RegisterSubject(const IPhotoSubject* subject);
+			/**
+			 * @brief 被写体の登録を解除する
+			 * @param subject 被写体の情報を解除
+			 */
+			void UnregisterSubject(const IPhotoSubject* subject);
+
+
+		private:
+			/**
+			 * @brief ファインダーの中心に近い被写体を選ぶ
+			 * @return 選ばれた被写体(無ければ nullptr)
+			 */
+			const IPhotoSubject* FinderFocusSubject();
+
+			/**
+			 * @brief ファインダーの中心に近い被写体にピントを合わせる
+			 */
+			void AutoFocus();
 
 
 		private:
 			/** 操作する写真撮影クラス */
 			PhotoCapture* m_photoCapture;
+			/** ピントを合わせている被写体 */
+			const IPhotoSubject* m_focusSubject;
 			/** 調整用パラメーター */
 			util::Parameter<FinderParameter> m_parameter;
+			/** 被写体のリスト */
+			std::vector<const IPhotoSubject*> m_subjectList;
 			/** クールタイムの残り(秒) */
 			float m_coolTimer;
 		};

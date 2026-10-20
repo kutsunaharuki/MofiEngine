@@ -10,13 +10,13 @@ namespace nsK2EngineLow
 	namespace
 	{
 		/** ファインダーのフレームバッファの横幅 */
-		constexpr int FINDER_FRAME_BUFFER_W = 768;
+		constexpr int FINDER_FRAME_BUFFER_W = 1920;
 		/** ファインダーのフレームバッファの縦幅 */
-		constexpr int FINDER_FRAME_BUFFER_H = 432;
+		constexpr int FINDER_FRAME_BUFFER_H = 1080;
 		/** ファインダーのスプライトの横幅 */
-		constexpr int FINDER_SPRITE_W = 640;
+		constexpr int FINDER_SPRITE_W = 1920;
 		/** ファインダーのスプライトの縦幅 */
-		constexpr int FINDER_SPRITE_H = 360;
+		constexpr int FINDER_SPRITE_H = 1080;
 		/** ファインダーのカメラの遠平面までの距離 */
 		constexpr float FINDER_CAMERA_FAR = 1000.0f;
 		/** ファインダーのカメラの近平面までの距離 */

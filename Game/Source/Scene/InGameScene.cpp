@@ -28,19 +28,8 @@ namespace app
 		const Vector3 INITIALIZE_POSITION = { 0.0f,0.0f,0.0f };
 		/** 初期スケール */
 		const Vector3 INITIALIZE_SCALE = { 2.0f,2.0f,2.0f };
-
 		/** 子の座標 */
 		const Vector3 CHILD_POSITION = { 10.0f,0.0f,0.0f };
-		/** 拡大の比率 */
-		constexpr float ZOOM_IN_RATE = 1.0f;
-		/** 縮小の比率 */
-		constexpr float ZOOM_OUT_RATE = -1.0f;
-
-		/** フォーカスの最大値 */
-		constexpr float FOCUS_MAX = 1.0f;
-		/** フォーカスの最小値 */
-		constexpr float FOCUS_MIN = -1.0f;
-
 		/** サウンドオプションのレイアウトのパス */
 		constexpr const char* SOUND_OPTION_LAYOUT_PATH = "Assets/parameter/UI/Sound/SoundOption.json";
 	}
@@ -72,6 +61,8 @@ namespace app
 			m_groundModelRender = nullptr;
 		}
 
+		// ファインダーコントローラーから敵の登録を解除
+		m_finderController.UnregisterSubject(m_enemy.get());
 		// PhotoCaptureの登録を外す
 		RenderingEngine::GetInstance().SetPhotoCapture(nullptr);
 	}
@@ -105,9 +96,14 @@ namespace app
 		m_photoCapture.Init();
 		// RenderingEngineにPhotoCaptureを登録
 		RenderingEngine::GetInstance().SetPhotoCapture(&m_photoCapture);
+		// ファインダーの操作(覗く・ピント・ズーム・撮影)を FinderController に任せる
+		m_finderController.Initialize(&m_photoCapture);
 
+		// 敵を作成
 		m_enemy = std::make_unique<app::Enemy>();
 		m_enemy->Init();
+		// ファインダーコントローラーに敵を登録する
+		m_finderController.RegisterSubject(m_enemy.get());
 		m_enemy->Update();
 
 		// 後々に響きそうなのでゲームカメラを作成しておく。
@@ -140,11 +136,9 @@ namespace app
 			return;
 		}
 
-		// ファインダーのON/OFFを切り替える
-		if (g_pad[0]->IsTrigger(enButtonY))
-		{
-			m_photoCapture.ToggleFinderActive();
-		}
+		// ファインダーの操作(覗く・十字の上下でピント・RB1/LB1)でズーム・Bで撮影
+		// ※ 撮影できたフレーム true が返る(クールタイム中は撮れない)
+		const bool isShot = m_finderController.Update();
 
 		// 主人公の更新(ファインダーを覗いている間は、撮影ステートになる)
 		// ※ カメラが主人公の新しい位置を追いかけるように、カメラより先に更新する
@@ -167,52 +161,27 @@ namespace app
 		m_enemy->SetRotation(enemyRot);
 		m_enemy->Update();
 
-		// 敵の位置からファインダー視点のカメラまでの距離
-		Vector3 toEnemy = m_enemy->GetPosition() - m_photoCapture.GetFinderCamera().GetPosition();
-		float enemyDistance = toEnemy.Length();
 
-		// 今のピントが敵に合っているかどうか
-		bool isInFocus = m_photoCapture.IsInFocus(enemyDistance);
+		/** ファインダーのオートフォーカス */
 
-		// ライトの定数バッファの参照を取得
-		auto& light = SceneLight::GetInstance().GetLightCB();
+		// オートフォーカスが選んだ被写体(いなければ nullptr)
+		const camera::IPhotoSubject* focusSubject = m_finderController.GetFocusSubject();
 
-		// ピントを合わせる
-		if (m_photoCapture.IsFinderActive() && g_pad[0]->IsPress(enButtonUp))
+		// 今のピントが、選んだ被写体に合っているかどうか(被写体がいなければ、合っていない)
+		// ※ ここで return すると、被写体がいないときに撮った写真が記録されず、前の結果が残ってしまう
+		bool isInFocus = false;
+		if (focusSubject != nullptr)
 		{
-			m_photoCapture.FinderFocus(FOCUS_MAX);
-		}
-		// ピントを外す
-		if (m_photoCapture.IsFinderActive() && g_pad[0]->IsPress(enButtonDown))
-		{
-			m_photoCapture.FinderFocus(FOCUS_MIN);
+			// ファインダーのカメラから、被写体のピントを合わせる位置(体の中心)までの距離
+			Vector3 toSubject = focusSubject->GetFocusPosition() - m_photoCapture.GetFinderCamera().GetPosition();
+			isInFocus = m_photoCapture.IsInFocus(toSubject.Length());
 		}
 
-		// ファインダーが有効の時だけ写真を撮る
-		if (m_photoCapture.IsFinderActive() && g_pad[0]->IsTrigger(enButtonB))
+		// 撮影できたフレームだけ、この瞬間のピントの判定を記録
+		if (isShot)
 		{
-			m_photoCapture.Shot();
-			// この瞬間のピントの判定を記録
 			m_isLastShotInFocus = isInFocus;
 		}
-
-		// ファインダー拡大
-		if (m_photoCapture.IsFinderActive() && g_pad[0]->IsPress(enButtonRB1))
-		{
-			m_photoCapture.FinderZoom(ZOOM_IN_RATE);
-		}
-		// ファインダー縮小
-		if (m_photoCapture.IsFinderActive() && g_pad[0]->IsPress(enButtonLB1))
-		{
-			m_photoCapture.FinderZoom(ZOOM_OUT_RATE);
-		}
-
-		// ファインダー用のカメラの参照を取得
-		Camera& camera = m_photoCapture.GetFinderCamera();
-
-		camera.SetPosition(g_camera3D->GetPosition());
-		camera.SetTarget(g_camera3D->GetTarget());
-		camera.Update();
 	}
 	
 	

@@ -279,9 +279,10 @@
     <ClCompile Include="Source\Actor\Character\Boy\BoyState.cpp" />
     <ClCompile Include="Source\Camera\FinderController.cpp" />
     <ClCompile Include="Source\Camera\GameCamera.cpp" />
+    <ClCompile Include="Source\Camera\Object\FinderParameter.cpp" />
+    <ClCompile Include="Source\Camera\PhotoSubject.cpp" />
     <ClCompile Include="Source\Core\StateMachineBase.cpp" />
     <ClCompile Include="Source\Core\TransformNode.cpp" />
-    <ClCompile Include="Source\Scene\DebugScene.cpp" />
     <ClCompile Include="Source\Scene\InGameScene.cpp" />
     <ClCompile Include="Source\Scene\IScene.cpp" />
     <ClCompile Include="Source\Scene\ResultScene.cpp" />
@@ -316,9 +317,10 @@
     <ClInclude Include="Source\Actor\Character\Boy\BoyState.h" />
     <ClInclude Include="Source\Camera\FinderController.h" />
     <ClInclude Include="Source\Camera\GameCamera.h" />
+    <ClInclude Include="Source\Camera\Object\FinderParameter.h" />
+    <ClInclude Include="Source\Camera\PhotoSubject.h" />
     <ClInclude Include="Source\Core\StateMachineBase.h" />
     <ClInclude Include="Source\Core\TransformNode.h" />
-    <ClInclude Include="Source\Scene\DebugScene.h" />
     <ClInclude Include="Source\Scene\InGameScene.h" />
     <ClInclude Include="Source\Scene\IScene.h" />
     <ClInclude Include="Source\Scene\ResultScene.h" />

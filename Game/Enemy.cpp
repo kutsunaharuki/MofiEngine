@@ -18,6 +18,8 @@ namespace app
 		const Vector3 ENEMY_SCALE = { 0.5f,0.5f,0.5f };
 		/** 敵のアニメーションクリップ数(インデックスで使用) */
 		const int ENEMY_ANIMATION_CLIP_NUM = static_cast<int>(Enemy::EnemyAnimationState::Max);
+		/** ピントを合わせる高さ(足元から。体の中心 ~ 顔のあたり) */
+		constexpr float ENEMY_FOCUS_POSITION_Y = 80.0f;
 	}
 
 
@@ -85,5 +87,13 @@ namespace app
 	void Enemy::Render(RenderContext & rc)
 	{
 		m_modelRender->Draw(rc);
+	}
+
+
+	Vector3 Enemy::GetFocusPosition() const
+	{
+		Vector3 focusPos = m_transform.GetWorldPosition();
+		focusPos.y += ENEMY_FOCUS_POSITION_Y;
+		return focusPos;
 	}
 }

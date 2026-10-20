@@ -5,7 +5,6 @@
 #include "stdafx.h"
 #include "TitleScene.h"
 #include "InGameScene.h"
-#include "DebugScene.h"
 #include "Source/Sound/SoundManager.h"
 #include "Source/UI/SoundOptionMenu/SoundOptionMenu.h"
 
@@ -116,16 +115,6 @@ namespace app
 			waitTime = 1.0f;
 			return true;
 		}
-
-#ifdef K2_DEBUG
-        // Select(スペースキー)で、開発用のシーンに入る
-        if (g_pad[0]->IsTrigger(enButtonSelect))
-        {
-            id = DebugScene::ID();
-            waitTime = 0.5f;
-            return true;
-        }
-#endif
         return false;
     }
 }
