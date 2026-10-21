@@ -295,6 +295,7 @@
     <ClCompile Include="Source\Util\Curve.cpp" />
     <ClCompile Include="Source\Util\JsonConverter.cpp" />
     <ClCompile Include="Source\UI\SoundOptionMenu\SoundOptionMenu.cpp" />
+    <ClCompile Include="Source\UI\FinderMenu\FinderMenu.cpp" />
     <ClCompile Include="Source\Sound\SoundManager.cpp" />
     <ClCompile Include="Source\Util\ParameterManager.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -334,6 +335,7 @@
     <ClInclude Include="Source\Util\Curve.h" />
     <ClInclude Include="Source\Util\JsonConverter.h" />
     <ClInclude Include="Source\UI\SoundOptionMenu\SoundOptionMenu.h" />
+    <ClInclude Include="Source\UI\FinderMenu\FinderMenu.h" />
     <ClInclude Include="Source\Sound\SoundManager.h" />
     <ClInclude Include="Source\Sound\SoundType.h" />
     <ClInclude Include="Source\Util\ParameterManager.h" />

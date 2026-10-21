@@ -347,6 +347,33 @@ namespace nsK2EngineLow
 	{
 		return m_viewAngle / FINDER_VIEW_ANGLE_WIDE;
 	}
+
+
+	float PhotoCapture::GetFinderZoomRate() const
+	{
+		// 画角が広い(WIDE) = 0、狭い(TELE) = 1
+		return (FINDER_VIEW_ANGLE_WIDE - m_viewAngle) / (FINDER_VIEW_ANGLE_WIDE - FINDER_VIEW_ANGLE_TELE);
+	}
+
+
+	float PhotoCapture::GetFocusDistanceRate() const
+	{
+		// 一番近い = 0、一番遠い = 1
+		const float rate = (m_focusDistance - FOCUS_DISTANCE_MIN) / (FOCUS_DISTANCE_MAX - FOCUS_DISTANCE_MIN);
+		return TClamp<float>::Clamp(rate, 0.0f, 1.0f);
+	}
+
+
+	float PhotoCapture::GetFocusDistanceMin() const
+	{
+		return FOCUS_DISTANCE_MIN;
+	}
+
+
+	float PhotoCapture::GetFocusDistanceMax() const
+	{
+		return FOCUS_DISTANCE_MAX;
+	}
 	
 
 	void PhotoCapture::FinderFocus(float amount)

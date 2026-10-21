@@ -46,6 +46,9 @@
     <Filter Include="Source\UI\SoundOptionMenu">
       <UniqueIdentifier>{3b8f2c51-6d0e-4a7b-9c42-1e5f7a9d0c63}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\UI\FinderMenu">
+      <UniqueIdentifier>{e2c47a19-5b83-4d6f-a0c1-8f39d2b6e754}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Sound">
       <UniqueIdentifier>{a7d41e92-58c3-4f06-b1e9-2c6d8f3a5b74}</UniqueIdentifier>
     </Filter>
@@ -145,6 +148,9 @@
     <ClCompile Include="Source\UI\SoundOptionMenu\SoundOptionMenu.cpp">
       <Filter>Source\UI\SoundOptionMenu</Filter>
     </ClCompile>
+    <ClCompile Include="Source\UI\FinderMenu\FinderMenu.cpp">
+      <Filter>Source\UI\FinderMenu</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Sound\SoundManager.cpp">
       <Filter>Source\Sound</Filter>
     </ClCompile>
@@ -237,6 +243,9 @@
     </ClInclude>
     <ClInclude Include="Source\UI\SoundOptionMenu\SoundOptionMenu.h">
       <Filter>Source\UI\SoundOptionMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\FinderMenu\FinderMenu.h">
+      <Filter>Source\UI\FinderMenu</Filter>
     </ClInclude>
     <ClInclude Include="Source\Sound\SoundManager.h">
       <Filter>Source\Sound</Filter>

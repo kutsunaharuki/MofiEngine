@@ -23,7 +23,6 @@ namespace app
 	}
 
 
-
 	Enemy::Enemy()
 		: m_modelRender(nullptr)
 		, m_transform()

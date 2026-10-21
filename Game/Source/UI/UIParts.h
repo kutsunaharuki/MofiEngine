@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "Source/Core/TransformNode.h"
+#include "Source/UI/Animation/UIAnimation.h"
 #include <algorithm>
 #include <functional>
 #include <memory>
@@ -125,8 +126,39 @@ namespace app
 			 */
 			uint32_t GetKey() const { return m_key; }
 
+			/**
+			 * @brief このUIのアニメーターを取得(初めて呼んだときに作る)
+			 * @return アニメーター(アニメーションの対象は、このUI)
+			 * @details アニメーションの更新は、各パーツの Update の中で行われる。
+			 *          使用例 : ui->GetAnimator().CreateAnimation<UIColorAnimation>(KEY)->SetParameter(...);
+			 *                   ui->GetAnimator().Play(KEY);
+			 * ※ ホットリロードでUIが作り直されると、アニメーションも消えるので、InitializeLogic で作り直す
+			 */
+			UIAnimator& GetAnimator()
+			{
+				if (m_animator == nullptr)
+				{
+					m_animator = std::make_unique<UIAnimator>();
+					m_animator->SetUI(this);
+				}
+				return *m_animator;
+			}
+
 
 		protected:
+			/**
+			 * @brief アニメーションを更新する
+			 * @details 各パーツの Update の最初に呼ぶ(アニメーションで変えた値を、そのフレームの描画に反映するため)
+			 */
+			void UpdateAnimation()
+			{
+				if (m_animator) m_animator->Update();
+			}
+
+
+		protected:
+			/** アニメーター(GetAnimator を呼ぶまでは nullptr) */
+			std::unique_ptr<UIAnimator> m_animator;
 			/** トランスフォーム */
 			core::TransformNode m_transform;
 			/** カラー */
@@ -221,6 +253,33 @@ namespace app
 		public:
 			UIIcon();
 			~UIIcon() override;
+
+			/** 更新処理 */
+			void Update() override;
+
+			/**
+			 * @brief 初期化
+			 * @param assetName
+			 * @param width 横
+			 * @param height 縦
+			 * @param position 位置
+			 * @param scale スケール
+			 * @param rotation 回転
+			 * @param color カラー
+			 * @param pivot 基底軸
+			 * @details 画像の読み込みは UIImage と同じ。
+			 *          ※ pivot の引数が無いと、UIImage の Initialize(pivot あり)が隠れて、UILayout から呼べなくなる
+			 */
+			void Initialize(
+				const char* assetName
+				, const float width
+				, const float height
+				, const Vector3& position
+				, const Vector3& scale
+				, const Quaternion& rotation
+				, const Vector4& color
+				, const Vector2& pivot = Vector2(0.5f, 0.5f)
+			);
 		};
 
 

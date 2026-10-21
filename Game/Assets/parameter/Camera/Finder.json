@@ -3,7 +3,9 @@
   "zoomSpeed": 1.0,
   "focusSpeed": 1.0,
   "shotCoolTime": 1.0,
-  "autoFocusSpeed":8.0,
-  "autoFocusAngle":20.0,
-  "autoFocusMaxDistance":1000.0
+  "autoFocusSpeed": 8.0,
+  "autoFocusMaxDistance": 1000.0,
+  "subjectFaceRadius": 30.0,
+  "subjectCircleMinRadius": 40.0,
+  "subjectCircleMaxRadius": 300.0
 }

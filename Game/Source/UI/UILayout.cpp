@@ -9,8 +9,8 @@
 
 namespace
 {
-	using app::util::JsonConverter;
-
+	using namespace app::ui;
+	using namespace app::util;
 
 	/**
 	 * @brief どのUIでも使うパラメーター
@@ -77,13 +77,20 @@ namespace
 	 * @brief UIを作る
 	 * @param canvas 作る先のキャンバス
 	 * @param type UIの種類(JSON の "type")
+	 * @param name UIの名前(JSON の "name"。警告に出す)
 	 * @param key UIのキー
 	 * @param item UIのJSON
-	 * @return 作ったUI(知らない種類なら nullptr)
+	 * @param filePath レイアウトの JSON のパス(警告に出す)
+	 * @return 作ったUI(知らない種類なら、警告を出して nullptr)
 	 */
-	app::ui::UIBase* CreateUI(app::ui::UICanvas* canvas, const std::string& type, const uint32_t key, const nlohmann::json& item)
+	UIBase* CreateUI(
+		app::ui::UICanvas* canvas,
+		const std::string& type,
+		const std::string& name,
+		const uint32_t key,
+		const nlohmann::json& item,
+		const std::string& filePath)
 	{
-		using namespace app::ui;
 
 		if (type == "UIImage")
 		{
@@ -148,6 +155,19 @@ namespace
 			ui->SetColor(parameter.color);
 			return ui;
 		}
+
+		// 知らない type(書き間違いなど)は作らずに、Visual Studio の出力ウィンドウに警告を出す
+		// ※ ホットリロード中に書きかけの JSON を読むこともあるので、止める(K2_ASSERT)のではなく出すだけにする
+		// ※ type は大文字・小文字まで一致している必要がある("UIicon" は "UIIcon" ではない)
+		std::string message = "[UILayout] 知らない type なので作らない: type=\"";
+		message += type;
+		message += "\" name=\"";
+		message += name;
+		message += "\" (";
+		message += filePath;
+		message += ")\n";
+		message += "            使える type : UIImage / UIIcon / UIGauge / UIDigit / UIText / UIDummy\n";
+		OutputDebugStringA(message.c_str());
 		return nullptr;
 	}
 }
@@ -223,7 +243,7 @@ namespace app
 					const uint32_t key = Hash32(name.c_str());
 					if (m_menu->HasUI(key)) continue;
 
-					CreateUI(canvas, type, key, item);
+					CreateUI(canvas, type, name, key, item, m_filePath);
 				}
 			}
 
@@ -242,7 +262,6 @@ namespace app
 			// 最初の更新日時を覚えて、1フレーム目に読み直さないようにする
 			m_lastWriteTime = util::JsonConverter::GetFileLastWriteTime(m_filePath);
 #endif
-
 			Reload();
 		}
 	}

@@ -164,13 +164,18 @@ namespace app
 
 		/** ファインダーのオートフォーカス */
 
+		// オートフォーカスとファインダーの UI
+		// ※ ファインダーのカメラと敵の位置が決まった後に呼ぶ(顔の画面の位置を計算するため)
+		m_finderController.LateUpdate();
+
 		// オートフォーカスが選んだ被写体(いなければ nullptr)
 		const camera::IPhotoSubject* focusSubject = m_finderController.GetFocusSubject();
 
 		// 今のピントが、選んだ被写体に合っているかどうか(被写体がいなければ、合っていない)
 		// ※ ここで return すると、被写体がいないときに撮った写真が記録されず、前の結果が残ってしまう
+		// ※ 真ん中の十字が、顔のまわりの丸の中に入っている(範囲内の)時だけ、合っている扱いにする
 		bool isInFocus = false;
-		if (focusSubject != nullptr)
+		if (focusSubject != nullptr && m_finderController.IsSubjectInRange())
 		{
 			// ファインダーのカメラから、被写体のピントを合わせる位置(体の中心)までの距離
 			Vector3 toSubject = focusSubject->GetFocusPosition() - m_photoCapture.GetFinderCamera().GetPosition();
@@ -196,8 +201,12 @@ namespace app
 		// モデル描画(地面)
 		m_groundModelRender->Draw(rc);
 
+		// ファインダーの UI(構えていない時は、何も描画されない)
+		m_finderController.Render(rc);
+
 		// サウンドオプションは毎フレーム描画を呼ぶ(閉じているときは、メニューの中で何も描画されない)
 		// ※ IsTrigger の中で呼ぶと、ボタンを押した1フレームしか描画されない
+		// ※ ファインダーの UI より後に描画して、手前に出す
 		m_soundOptionLayout.Render(rc);
 
 		// 敵の描画

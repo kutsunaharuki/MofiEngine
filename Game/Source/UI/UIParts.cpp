@@ -31,6 +31,9 @@ namespace app
 			// 初期化前は、スプライトが使えないので何もしない
 			if (!m_isInitialized) return;
 
+			// アニメーション → 位置の計算 → スプライトに反映、の順にする
+			// ※ UIIcon / UIGauge もこの関数を呼ぶので、アニメーションはここで1回だけ更新される
+			UpdateAnimation();
 			m_transform.UpdateTransform();
 			ApplyToSprite();
 		}
@@ -94,6 +97,26 @@ namespace app
 		{}
 
 
+		void UIIcon::Update()
+		{
+			// アニメーション・位置の計算・スプライトへの反映は、UIImage と同じ
+			// ※ UIImage::Update の中でアニメーションも更新されるので、ここでは呼ばない(2回進んでしまう)
+			// ※ m_transform.UpdateTransform() だけだと、スプライトに位置や色が渡らず、画面に出ない
+			UIImage::Update();
+
+			// アイコンだけの処理は、ここに足す
+		}
+
+
+		void UIIcon::Initialize(const char* assetName, const float width, const float height, const Vector3& position, const Vector3& scale, const Quaternion& rotation, const Vector4& color, const Vector2& pivot)
+		{
+			// 画像の読み込みと、位置・回転・スケール・色・基底軸の設定は、UIImage と同じ
+			// ※ 位置などを入れるだけで画像を読み込まない(m_spriteRender.Init を呼ばない)と、描画しても何も出ない
+			UIImage::Initialize(assetName, width, height, position, scale, rotation, color, pivot);
+
+			// アイコンだけの初期化は、ここに足す
+		}
+
 
 
 		/*************************************/
@@ -118,6 +141,8 @@ namespace app
 			scale.x *= m_rate;
 			m_transform.SetLocalScale(scale);
 
+			// アニメーション・位置の計算・スプライトへの反映は、UIImage と同じ
+			// ※ アニメーションはこの中で更新される。拡縮のアニメーションを付けると、ゲージの量のスケールより優先される
 			UIImage::Update();
 		}
 
@@ -178,6 +203,8 @@ namespace app
 				RebuildSprites();
 			}
 
+			// アニメーション → 位置の計算 → スプライトに反映、の順にする
+			UpdateAnimation();
 			m_transform.UpdateTransform();
 
 			const Vector3& basePosition = m_transform.GetWorldPosition();
@@ -292,6 +319,8 @@ namespace app
 
 		void UIText::Update()
 		{
+			// アニメーション → 位置の計算 → フォントに反映、の順にする
+			UpdateAnimation();
 			m_transform.UpdateTransform();
 
 			// 描画には、親の影響を受けたワールド値を使う
@@ -341,6 +370,8 @@ namespace app
 
 		void UIDummy::Update()
 		{
+			// 描画は無いが、位置のアニメーションで子のUIをまとめて動かすことがあるので更新する
+			UpdateAnimation();
 			m_transform.UpdateTransform();
 		}
 
@@ -371,6 +402,9 @@ namespace app
 
 		void UICanvas::Update()
 		{
+			// キャンバス自身のアニメーション(全体を拡縮・移動するなど)を先に進める
+			UpdateAnimation();
+
 			// ルートであるキャンバスのワールド値を、先に確定させる
 			// ※ 子のUIは、親のワールド行列を使って、自分の位置を計算する
 			m_transform.UpdateTransform();

@@ -4,6 +4,7 @@
  */
 #include "stdafx.h"
 #include "FinderController.h"
+#include "Source/UI/FinderMenu/FinderMenu.h"
 #include <algorithm>
 #include <cmath>
 
@@ -16,14 +17,39 @@ namespace app
 		{
 			/** 調整用パラメーターの JSON */
 			constexpr const char* FINDER_PARAMETER_PATH = "Assets/parameter/Camera/Finder.json";
-			/** 円周率 */
-			constexpr float PI = 3.1415926f;
+			/** ファインダーの UI のレイアウトの JSON */
+			constexpr const char* FINDER_LAYOUT_PATH = "Assets/parameter/UI/Finder/Finder.json";
+
+
+			/**
+			 * @brief 3D の位置を、画面の位置に変える
+			 * @param camera カメラ
+			 * @param worldPosition 3D の位置
+			 * @param out 画面の位置(画面の真ん中が原点、上が +Y。UI と同じ座標)
+			 * @return カメラの前にあれば true(後ろにある物は、画面に写らない)
+			 * @details Camera::CalcScreenPositionFromWorldPosition と同じ計算に、カメラの後ろかの判定を足したもの
+			 */
+			bool CalcScreenPosition(Camera& camera, const Vector3& worldPosition, Vector2& out)
+			{
+				Vector4 position(worldPosition.x, worldPosition.y, worldPosition.z, 1.0f);
+				camera.GetViewProjectionMatrix().Apply(position);
+
+				// w がマイナス(または 0)なら、カメラの後ろ
+				if (position.w <= 0.0001f) return false;
+
+				// -1 ~ 1 の範囲を、画面のピクセルにする(ファインダーの画面は画面全体に出ている)
+				out.x = (position.x / position.w) * UI_SPACE_WIDTH * 0.5f;
+				out.y = (position.y / position.w) * UI_SPACE_HEIGHT * 0.5f;
+				return true;
+			}
 		}
 
 
 		FinderController::FinderController()
 			: m_photoCapture(nullptr)
+			, m_finderMenu(nullptr)
 			, m_focusSubject(nullptr)
+			, m_isSubjectInRange(false)
 			, m_coolTimer(0.0f)
 		{}
 
@@ -37,6 +63,10 @@ namespace app
 			m_photoCapture = photoCapture;
 			m_parameter.Initialize(FINDER_PARAMETER_PATH);
 			m_coolTimer = 0.0f;
+
+			// ファインダーの UI を作る(最初は閉じている)
+			m_finderLayout.Initialize<ui::FinderMenu>(FINDER_LAYOUT_PATH);
+			m_finderMenu = m_finderLayout.GetMenu<ui::FinderMenu>();
 		}
 
 
@@ -57,14 +87,14 @@ namespace app
 			{
 				// 覗いていないときは、ピントを合わせている被写体はいない
 				m_focusSubject = nullptr;
+				m_isSubjectInRange = false;
 				return false;
 			}
 
 			// 調整パラメーターを取得
 			const FinderParameter& parameter = m_parameter.Get();
 
-			// オートフォーカス
-			AutoFocus();
+			// ※ オートフォーカスは、ファインダーのカメラを合わせた後の LateUpdate で行う
 
 			// ズーム(RB1 で寄る、LB1 で引く)
 			if (g_pad[0]->IsPress(enButtonRB1))
@@ -84,6 +114,54 @@ namespace app
 				return true;
 			}
 			return false;
+		}
+
+
+		void FinderController::LateUpdate()
+		{
+			if (m_photoCapture == nullptr) return;
+
+			// 構えている間だけ、ファインダーの UI を出す
+			SyncMenuOpen();
+
+			if (m_photoCapture->IsFinderActive())
+			{
+				// ピントを合わせる被写体を選んで、丸を出す
+				AutoFocus();
+
+				// つまみに、今のピントとズームの量を渡す
+				if (m_finderMenu)
+				{
+					m_finderMenu->SetFocusRate(m_photoCapture->GetFocusDistanceRate());
+					m_finderMenu->SetZoomRate(m_photoCapture->GetFinderZoomRate());
+				}
+			}
+
+			// UI の更新(閉じている時は、メニューの中で何もしない。JSON のホットリロードもここで確認される)
+			m_finderLayout.Update();
+		}
+
+
+		void FinderController::Render(RenderContext& rc)
+		{
+			// 閉じている時は、メニューの中で何も描画されない
+			m_finderLayout.Render(rc);
+		}
+
+
+		void FinderController::SyncMenuOpen()
+		{
+			if (m_finderMenu == nullptr) return;
+
+			const bool isFinderActive = m_photoCapture->IsFinderActive();
+			if (isFinderActive && !m_finderMenu->IsOpen())
+			{
+				m_finderMenu->Open();
+			}
+			else if (!isFinderActive && m_finderMenu->IsOpen())
+			{
+				m_finderMenu->Close();
+			}
 		}
 
 
@@ -116,65 +194,71 @@ namespace app
 		}
 
 
-		const IPhotoSubject* FinderController::FinderFocusSubject()
+		bool FinderController::FindFocusSubject(SubjectOnScreen& out)
 		{
 			// 調整用パラメーターを取得
-			const  FinderParameter& parameter = m_parameter.Get();
-			// 被写体を選ぶための変数を初期化
-			const IPhotoSubject* bestSubject = nullptr;
+			const FinderParameter& parameter = m_parameter.Get();
 
 			// 写真を撮る媒体からファインダーのカメラを取得
-			const Camera& camera = m_photoCapture->GetFinderCamera();
+			Camera& camera = m_photoCapture->GetFinderCamera();
 			// ファインダーのカメラから位置を取得
 			const Vector3 eye = camera.GetPosition();
-			// ファインダーのカメラから注視点と位置を引いたベクトルを計算
-			Vector3 forward = camera.GetTarget() - eye;
-			// 計算結果を正規化して長さを1にする
-			forward.Normalize();
 
-			// 真ん中をみなす角度をcosで計算する(度 → ラジアン → cos)
-			const float cosLimit = std::cos(parameter.autoFocusAngle * PI / 180.0f);
+			// 真ん中のグリッドの大きさの半分(この中に顔がある被写体だけが候補)
+			const Vector2 gridHalfSize = m_finderMenu ? m_finderMenu->GetGridHalfSize() : Vector2(0.0f, 0.0f);
 
-			// 計算した値を保持する
-			float bestCos = cosLimit;
+			bool isFound = false;
 
 			// 被写体のリストを全部見て計算する
-			auto it = m_subjectList.begin();
-			for (auto end = m_subjectList.end(); it != end; ++it)
+			for (const IPhotoSubject* subject : m_subjectList)
 			{
-				// 被写体のポインタを取得
-				const IPhotoSubject* subject = *it;
-				// 被写体の位置を取得
-				const Vector3 subjectPos = subject->GetFocusPosition();
-				// ファインダーのカメラから被写体までのベクトルを計算
-				Vector3 toSubject = subjectPos - eye;
+				// 被写体の顔の位置を取得
+				const Vector3 facePosition = subject->GetFocusPosition();
 
-				// 被写体までの距離(正規化する前に測る)
-				const float distance = toSubject.Length();
+				// 被写体までの距離
+				const float distance = (facePosition - eye).Length();
 				// 遠すぎる被写体と、カメラと同じ位置にいる被写体は選ばない
-				// ※ 長さ 0 のベクトルを正規化すると、計算が壊れる(NaN になる)
 				if (distance > parameter.autoFocusMaxDistance || distance < 0.001f) continue;
 
-				// 計算結果を正規化して長さを1にする
-				toSubject.Normalize();
-				// ファインダーの中心に近いかどうかを計算する
-				const float cosAngle = forward.Dot(toSubject);
-				
-				// 今までで一番中心に近ければ覚えておく
-				if (cosAngle > bestCos)
+				// 顔を画面の位置に変える(カメラの後ろにいる被写体は選ばない)
+				Vector2 screenPosition;
+				if (!CalcScreenPosition(camera, facePosition, screenPosition)) continue;
+
+				// 顔が真ん中のグリッドの外なら選ばない
+				if (std::fabs(screenPosition.x) > gridHalfSize.x || std::fabs(screenPosition.y) > gridHalfSize.y) continue;
+
+				// 画面の真ん中(十字)から顔までの距離(ピクセル)
+				const float screenDistance = std::sqrt(screenPosition.x * screenPosition.x + screenPosition.y * screenPosition.y);
+
+				// 今までで一番真ん中に近ければ覚えておく
+				if (isFound && screenDistance >= out.screenDistance) continue;
+
+				// 顔のまわりの丸の半径 = 顔の半径(3D)を画面に写した大きさ
+				// ※ 顔の位置と、そこから顔の半径だけ上の位置を画面に写して、その差を半径にする。遠い・ズームで自動で変わる
+				float circleRadius = parameter.subjectCircleMinRadius;
+				Vector2 faceTopScreenPosition;
+				const Vector3 faceTop(facePosition.x, facePosition.y + parameter.subjectFaceRadius, facePosition.z);
+				if (CalcScreenPosition(camera, faceTop, faceTopScreenPosition))
 				{
-					bestCos = cosAngle;
-					bestSubject = subject;
+					const float dx = faceTopScreenPosition.x - screenPosition.x;
+					const float dy = faceTopScreenPosition.y - screenPosition.y;
+					circleRadius = std::sqrt(dx * dx + dy * dy);
 				}
+				circleRadius = TClamp<float>::Clamp(circleRadius, parameter.subjectCircleMinRadius, parameter.subjectCircleMaxRadius);
+
+				out.subject = subject;
+				out.screenPosition = screenPosition;
+				out.circleRadius = circleRadius;
+				out.distance = distance;
+				out.screenDistance = screenDistance;
+				isFound = true;
 			}
-			return bestSubject;
+			return isFound;
 		}
 
 
 		void FinderController::AutoFocus()
 		{
-			// ファインダーのカメラの位置を取得
-			const Vector3 eyePos = m_photoCapture->GetFinderCamera().GetPosition();
 			// 現在のピント距離を取得
 			const float current = m_photoCapture->GetFocusDistance();
 			// 目標の距離
@@ -183,19 +267,40 @@ namespace app
 			const FinderParameter& parameter = m_parameter.Get();
 			// 1フレームの経過時間を取得
 			const float deltaTime = g_gameTime->GetFrameDeltaTime();
-			// ファインダーの中心に近い被写体を探す
-			const IPhotoSubject* subject = FinderFocusSubject();
 
+			// 顔が真ん中のグリッドの中にある、一番真ん中に近い被写体を探す
+			SubjectOnScreen focus;
+			const bool isFound = FindFocusSubject(focus);
 
-			// 被写体が見つかったら
-			if (subject != nullptr)
+			if (isFound)
 			{
-				Vector3 focusPosition = subject->GetFocusPosition() - eyePos;
-				target = focusPosition.Length();
+				// ピントの目標は、その被写体の顔までの距離(エンジンの範囲の外には出さない)
+				target = TClamp<float>::Clamp(focus.distance, m_photoCapture->GetFocusDistanceMin(), m_photoCapture->GetFocusDistanceMax());
+
+				// 真ん中の十字が、顔のまわりの丸の中に入っていれば「範囲内」
+				m_isSubjectInRange = focus.screenDistance <= focus.circleRadius;
+
+				// 顔のまわりに丸を出す(範囲内なら細い丸、範囲外なら太い丸)
+				if (m_finderMenu) m_finderMenu->ShowSubjectCircle(focus.screenPosition, focus.circleRadius, m_isSubjectInRange);
+			}
+			else
+			{
+				// 候補の被写体がいなければ、丸を出さない
+				m_isSubjectInRange = false;
+				if (m_finderMenu) m_finderMenu->HideSubjectCircle();
+
+				// 被写体を見失ったら、すぐにピンボケにする(少しずつではなく、その瞬間に外す)
+				// ※ 今のままにすると、一度合ったピントが、構えている間ずっと残ってしまう
+				// ※ 外す先は、覗いた瞬間と同じ「一番近い距離」(PhotoCapture::ToggleFinderActive と同じ)
+				//    次に被写体が見つかったら、そこから少しずつ合っていく
+				m_focusSubject = nullptr;
+				m_photoCapture->SetFocusDistance(m_photoCapture->GetFocusDistanceMin());
+				// ※ この後の「少しずつ近づける」処理を通ると補間されて、すぐに外れなくなるので、ここで終わる
+				return;
 			}
 
 			// 選んだ被写体を覚えておく(InGameSceneが撮影の判定に使う)
-			m_focusSubject = subject;
+			m_focusSubject = focus.subject;
 
 			// 今のピントを目標に少しずつ近づける
 			// ※ マイナスを付けないと t がマイナスになり、ピントが目標から離れていく

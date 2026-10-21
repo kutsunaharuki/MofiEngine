@@ -90,6 +90,26 @@ namespace nsK2EngineLow
 		 */
 		float GetFinderZoomRatio() const;
 		/**
+		 * @brief ズームの量を取得(UI 用)
+		 * @return 0.0(ズームなし) ~ 1.0(一番寄った)
+		 */
+		float GetFinderZoomRate() const;
+		/**
+		 * @brief ピントの距離の量を取得(UI 用)
+		 * @return 0.0(一番近い) ~ 1.0(一番遠い)
+		 */
+		float GetFocusDistanceRate() const;
+		/**
+		 * @brief ピントの距離の最小値を取得
+		 * @return 最小値
+		 */
+		float GetFocusDistanceMin() const;
+		/**
+		 * @brief ピントの距離の最大値を取得
+		 * @return 最大値
+		 */
+		float GetFocusDistanceMax() const;
+		/**
 		 * @brief ピント距離を動かす
 		 * @param amount 正:遠く、負:近く
 		 */

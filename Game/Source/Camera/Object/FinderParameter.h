@@ -21,12 +21,19 @@ namespace app
 			float focusSpeed = 1.0f;
 			/** 撮ってから、次に撮れるようになるまでの時間(秒) */
 			float shotCoolTime = 1.0f;
-			/** ピントが合う速さ */
-			float autoFocusSpeed = 1.0f;
-			/** 画面の真ん中とみなす角度 */
-			float autoFocusAngle = 1.0f;
+			/** ピントが合う速さ(大きいほど早く合う) */
+			float autoFocusSpeed = 8.0f;
 			/** これより遠い被写体は無視する距離 */
-			float autoFocusMaxDistance = 100.0f;
+			float autoFocusMaxDistance = 1000.0f;
+			/**
+			 * @brief 被写体の顔の半径(3D の大きさ)
+			 * @details これを画面に写した大きさが、顔のまわりの丸の大きさになる(遠い・ズームで変わる)
+			 */
+			float subjectFaceRadius = 30.0f;
+			/** 顔のまわりの丸の、半径の下限(ピクセル。遠すぎて点にならないように) */
+			float subjectCircleMinRadius = 40.0f;
+			/** 顔のまわりの丸の、半径の上限(ピクセル。近すぎて画面を覆わないように) */
+			float subjectCircleMaxRadius = 300.0f;
 
 
 			/**
@@ -39,8 +46,10 @@ namespace app
 				focusSpeed = file.GetFloat("focusSpeed", focusSpeed);
 				shotCoolTime = file.GetFloat("shotCoolTime", shotCoolTime);
 				autoFocusSpeed = file.GetFloat("autoFocusSpeed", autoFocusSpeed);
-				autoFocusAngle = file.GetFloat("autoFocusAngle", autoFocusAngle);
 				autoFocusMaxDistance = file.GetFloat("autoFocusMaxDistance", autoFocusMaxDistance);
+				subjectFaceRadius = file.GetFloat("subjectFaceRadius", subjectFaceRadius);
+				subjectCircleMinRadius = file.GetFloat("subjectCircleMinRadius", subjectCircleMinRadius);
+				subjectCircleMaxRadius = file.GetFloat("subjectCircleMaxRadius", subjectCircleMaxRadius);
 			}
 		};
 	}
