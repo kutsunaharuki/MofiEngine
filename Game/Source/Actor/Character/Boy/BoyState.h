@@ -16,11 +16,15 @@ namespace app
 
 		/**
 		 * @brief 主人公のステートの基底クラス
-		 * @details ステートマシンの共通の処理(移動・重力など)を使うために、ステートマシンを持つ
+		 * @details ステートマシンの共通の処理を使うために、ステートマシンを持つ
 		 */
 		class BoyStateBase : public core::IState
 		{
 		public:
+			/**
+			 * @brief コンストラクタ
+			 * @param stateMachine ステートマシン
+			 */
 			explicit BoyStateBase(BoyStateMachine& stateMachine) : m_stateMachine(stateMachine) {}
 			~BoyStateBase() override = default;
 
@@ -37,7 +41,7 @@ namespace app
 
 
 		/**
-		 * @brief 待機ステート
+		 * @brief カメラを構えていない待機ステート
 		 */
 		class BoyIdleState : public BoyStateBase
 		{
@@ -58,7 +62,7 @@ namespace app
 
 
 		/**
-		 * @brief 歩きステート
+		 * @brief カメラを構えていない歩行ステート
 		 */
 		class BoyWalkState : public BoyStateBase
 		{
@@ -79,7 +83,8 @@ namespace app
 
 
 		/**
-		 * @brief 走りステート
+		 * @brief カメラを構えていないときの走行ステート
+		 * @details 今のところ、走るステートは使うか未定
 		 */
 		class BoyRunState : public BoyStateBase
 		{
@@ -100,26 +105,18 @@ namespace app
 
 
 		/**
-		 * @brief ジャンプステート
-		 * @details 着地したら、ステートマシンにジャンプの終わりを伝える
+		 * @brief カメラを構えながらの待機ステート
 		 */
-		class BoyJumpState : public BoyStateBase
+		class BoyPhotoIdleState : public BoyStateBase
 		{
-			appState(BoyJumpState);
+			appState(BoyPhotoIdleState);
 
 		public:
-			explicit BoyJumpState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine), m_elapsedTime(0.0f), m_airMoveSpeed(0.0f) {}
+			explicit BoyPhotoIdleState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
 
 			void Enter() override;
 			void Update() override;
 			void Exit() override;
-
-
-		private:
-			/** ジャンプしてからの時間 */
-			float m_elapsedTime;
-			/** 空中で動く速さ(跳んだ瞬間の速さを引き継ぐ) */
-			float m_airMoveSpeed;
 		};
 
 
@@ -129,15 +126,55 @@ namespace app
 
 
 		/**
-		 * @brief 撮影ステート(ファインダーを覗いている)
-		 * @details 移動を止めて、カメラの向いている方向を向く
+		 * @brief カメラを構えながらの歩行ステート
 		 */
-		class BoyPhotoState : public BoyStateBase
+		class BoyPhotoWalkState : public BoyStateBase
 		{
-			appState(BoyPhotoState);
+			appState(BoyPhotoWalkState);
 
 		public:
-			explicit BoyPhotoState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+			explicit BoyPhotoWalkState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+		};
+
+
+
+		/*****************************************************/
+
+
+		/**
+		 * @brief 小さい物陰に隠れるステート
+		 */
+		class BoyLowHideState : public BoyStateBase
+		{
+			appState(BoyLowHideState);
+
+		public:
+			explicit BoyLowHideState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+		};
+
+
+
+
+		/*****************************************************/
+
+		
+		/**
+		 * @brief 高い物陰に隠れるステート
+		 */
+		class BoyHighHideState : public BoyStateBase
+		{
+			appState(BoyHighHideState);
+
+		public:
+			explicit BoyHighHideState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
 
 			void Enter() override;
 			void Update() override;

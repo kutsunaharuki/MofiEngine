@@ -1,0 +1,9 @@
+{
+  "walkSpeed": 150.0,
+  "runSpeed": 400.0,
+  "rotateSpeed": 15.0,
+  "photoWalkSpeed":200,
+  "gravity":1500.0,
+  "initialPosition": [0, 0, 0],
+  "initialScale": [3, 3, 3]
+}

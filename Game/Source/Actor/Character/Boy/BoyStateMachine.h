@@ -62,23 +62,14 @@ namespace app
 			 */
 			void StopMove();
 			/**
-			 * @brief 重力をかける
-			 * @details 地面に着いているときは、キャラクターコントローラーが縦の速度を 0 に戻す
-			 */
-			void ApplyGravity();
-			/**
-			 * @brief ジャンプの速度を与える
-			 */
-			void StartJump();
-			/**
-			 * @brief ジャンプが終わったことを伝える
-			 * @details ジャンプステートが着地したときに呼ぶ
-			 */
-			void EndJump() { m_isJumping = false; }
-			/**
 			 * @brief カメラの向いている方向を向く
 			 */
 			void FaceCameraForward();
+			/**
+			 * @brief ファインダーを覗いている時の歩行速度
+			 * @details ファインダーを覗いている時は、歩く速度が遅くなるのでここで処理する
+			 */
+			void SlowMove();
 
 
 		protected:
@@ -107,8 +98,6 @@ namespace app
 			Boy* m_boy;
 			/** 今の向き */
 			Quaternion m_rotation;
-			/** ジャンプ中か(着地するまで true) */
-			bool m_isJumping;
 		};
 	}
 }

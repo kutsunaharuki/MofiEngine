@@ -89,7 +89,6 @@ namespace app
 
 		// 主人公を作る(位置を決めてから Start を呼ぶ)
 		m_boy = std::make_unique<app::actor::Boy>();
-		m_boy->SetPosition(m_position);
 		m_boy->Start();
 
 		// 写真撮影クラスの初期化

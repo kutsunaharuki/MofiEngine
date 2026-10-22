@@ -272,6 +272,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\Actor\Actor.cpp" />
     <ClCompile Include="Source\Actor\ActorStateMachine.cpp" />
+    <ClCompile Include="Source\Actor\Character\Boy\Object\BoyParameter.cpp" />
     <ClCompile Include="Source\Actor\Character\CharacterBase.cpp" />
     <ClCompile Include="Source\Actor\Character\CharacterStateMachine.cpp" />
     <ClCompile Include="Source\Actor\Character\Boy\Boy.cpp" />
@@ -311,6 +312,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Source\Actor\Actor.h" />
     <ClInclude Include="Source\Actor\ActorStateMachine.h" />
+    <ClInclude Include="Source\Actor\Character\Boy\Object\BoyParameter.h" />
     <ClInclude Include="Source\Actor\Character\CharacterBase.h" />
     <ClInclude Include="Source\Actor\Character\CharacterStateMachine.h" />
     <ClInclude Include="Source\Actor\Character\Boy\Boy.h" />

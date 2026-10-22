@@ -33,7 +33,7 @@
         "asset":"Assets/spriteData/UI/Finder/FinderFocusCylinder.DDS",
         "width":95,
         "height":1032,
-        "position":[-820,0,0],
+        "position":[-810,0,0],
         "scale":[0.7,0.7,1]
       },
       {
@@ -42,7 +42,7 @@
         "asset":"Assets/spriteData/UI/Finder/FinderFocusKnob.DDS",
         "width":106,
         "height":74,
-        "position":[-810,0,0],
+        "position":[-805,0,0],
         "scale":[0.6,0.6,1],
         "rotation":0
       },
