@@ -60,27 +60,6 @@ namespace app
 
 
 		/*************************************/
-		// カメラを構えていないときの走行ステート
-		/*************************************/
-
-
-		void BoyRunState::Enter()
-		{
-			m_stateMachine.PlayAnimation(EnBoyAnimation::Run);
-		}
-
-
-		void BoyRunState::Update()
-		{}
-
-
-		void BoyRunState::Exit()
-		{}
-
-
-
-
-		/*************************************/
 		// カメラを構えている時の待機ステート
 		/*************************************/
 
@@ -92,7 +71,11 @@ namespace app
 
 
 		void BoyPhotoIdleState::Update()
-		{}
+		{
+			// 動かずに、カメラの向いている方向を向く
+			m_stateMachine.StopMove();
+			m_stateMachine.FaceCameraForward();
+		}
 
 
 		void BoyPhotoIdleState::Exit()
@@ -102,21 +85,92 @@ namespace app
 
 
 		/*************************************/
-		// カメラを構えている時の歩行ステート
+		// カメラを構えている時の前歩きステート
 		/*************************************/
 
 
-		void BoyPhotoWalkState::Enter()
+		void BoyPhotoWalkForwardState::Enter()
 		{
-			m_stateMachine.PlayAnimation(EnBoyAnimation::PhotoWalk);
+			m_stateMachine.PlayAnimation(EnBoyAnimation::PhotoWalkForward);
 		}
 
-		
-		void BoyPhotoWalkState::Update()
+
+		void BoyPhotoWalkForwardState::Update()
+		{
+			m_stateMachine.SlowMove();
+		}
+
+
+		void BoyPhotoWalkForwardState::Exit()
 		{}
 
 
-		void BoyPhotoWalkState::Exit()
+
+
+		/*************************************/
+		// カメラを構えている時の後ろ歩きステート
+		/*************************************/
+
+
+		void BoyPhotoWalkBackState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::PhotoWalkBack);
+		}
+
+
+		void BoyPhotoWalkBackState::Update()
+		{
+			m_stateMachine.SlowMove();
+		}
+
+
+		void BoyPhotoWalkBackState::Exit()
+		{}
+
+
+
+
+		/*************************************/
+		// カメラを構えている時の左歩きステート
+		/*************************************/
+
+
+		void BoyPhotoWalkLeftState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::PhotoWalkLeft);
+		}
+
+
+		void BoyPhotoWalkLeftState::Update()
+		{
+			m_stateMachine.SlowMove();
+		}
+
+
+		void BoyPhotoWalkLeftState::Exit()
+		{}
+
+
+
+
+		/*************************************/
+		// カメラを構えている時の右歩きステート
+		/*************************************/
+
+
+		void BoyPhotoWalkRightState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::PhotoWalkRight);
+		}
+
+
+		void BoyPhotoWalkRightState::Update()
+		{
+			m_stateMachine.SlowMove();
+		}
+
+
+		void BoyPhotoWalkRightState::Exit()
 		{}
 
 
@@ -134,7 +188,11 @@ namespace app
 
 
 		void BoyLowHideState::Update()
-		{}
+		{
+			// 屈んだまま、隠れている物の方を向く
+			m_stateMachine.StopMove();
+			m_stateMachine.RotateToward(m_stateMachine.GetDirectionToHideObject());
+		}
 
 
 		void BoyLowHideState::Exit()
@@ -155,7 +213,13 @@ namespace app
 
 
 		void BoyHighHideState::Update()
-		{}
+		{
+			// 壁を背にするので、壁と反対の方向を向く
+			m_stateMachine.StopMove();
+			Vector3 direction = m_stateMachine.GetDirectionToHideObject();
+			direction.Scale(-1.0f);
+			m_stateMachine.RotateToward(direction);
+		}
 
 
 		void BoyHighHideState::Exit()

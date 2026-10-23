@@ -16,13 +16,15 @@ namespace app
 			// 主人公のアニメーションデータ
 			const AnimationData BOY_ANIMATION_DATA[] =
 			{
-					{"Assets/animData/Boy/Idle.tka",      true} // ファインダーを覗いていない時の待機
-				,	{"Assets/animData/Boy/Walk.tka" ,     true} // ファインダーを覗いていない時の歩行
-				,	{"Assets/animData/Boy/Run.tka"  ,     true} // ファインダーを覗いていない時の走行
-				,	{"Assets/animData/Boy/PhotoIdle.tka", true} // ファインダーを覗いている時の待機
-				,	{"Assets/animData/Boy/PhotoWalk.tka", true} // ファインダーを覗いている時の歩行
-				,	{"Assets/animData/Boy/LowHide.tka",   true} // 小さい物陰に隠れる
-				,	{"Assets/animData/Boy/HighHide.tka",  true} // 高い物陰に隠れる
+					{"Assets/animData/Boy/Idle.tka",             true} // ファインダーを覗いていない時の待機
+				,	{"Assets/animData/Boy/Walk.tka" ,            true} // ファインダーを覗いていない時の歩行
+				,	{"Assets/animData/Boy/PhotoIdle.tka",        true} // ファインダーを覗いている時の待機
+				,	{"Assets/animData/Boy/PhotoWalkForward.tka", true} // ファインダーを覗いている時の前歩き
+				,	{"Assets/animData/Boy/PhotoWalkBack.tka",    true} // ファインダーを覗いている時の後ろ歩き
+				,	{"Assets/animData/Boy/PhotoWalkLeft.tka",    true} // ファインダーを覗いている時の左歩き
+				,	{"Assets/animData/Boy/PhotoWalkRight.tka",   true} // ファインダーを覗いている時の右歩き
+				,	{"Assets/animData/Boy/LowHide.tka",          true} // 小さい物陰に隠れる
+				,	{"Assets/animData/Boy/HightHide.tka",        true} // 高い物陰に隠れる
 			};
 
 			// 少年のアニメーションデータの数と、EnBoyAnimation の数があっているかをコンパイル時にチェックする
@@ -59,11 +61,10 @@ namespace app
 			// 調整用パラメーターの読み込み
 			m_parameter.Initialize(BOY_PARAMETER_PATH);
 
-			// Boyのパラメーターを取得してきて位置とスケールを設定(Startのため1回だけ読み込まれる)
+			// 調整パラメーターを取得
 			const BoyParameter& parameter = m_parameter.Get();
-			
+			// 初期位置だけ設定
 			SetPosition(parameter.initialPosition);
-			SetScale(parameter.initialScale);
 
 			// モデルとアニメーションの読み込み
 			Init(BOY_MODEL_DATA);
@@ -73,6 +74,18 @@ namespace app
 
 			// キャラクターコントローラーの初期化(今の位置で作るので、位置を決めてから Start を呼ぶ)
 			return CharacterBase::Start();
+		}
+
+
+		void Boy::Update()
+		{
+			// 調整パラメーターを取得
+			// ※ Get() を呼ぶと、JSONが変わっていれば読み直す
+			const BoyParameter& parameter = m_parameter.Get();
+
+			SetScale(parameter.updateScale);
+
+			CharacterBase::Update();
 		}
 
 

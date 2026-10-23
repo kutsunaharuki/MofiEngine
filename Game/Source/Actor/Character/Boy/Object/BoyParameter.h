@@ -25,10 +25,16 @@ namespace app
 			float gravity = 1500.0f;
 			/** ファインダーを覗いている時の歩行速度 */
 			float photoWalkSpeed = 100.0f;
+			/** 隠れられる物を探す距離(足元の中心から) */
+			float hideCheckDistance = 60.0f;
+			/** 小さい物を探すレイの高さ(膝くらい) */
+			float hideLowRayHeight = 30.0f;
+			/** 高い物を探すレイの高さ(頭くらい) */
+			float hideHighRayHeight = 110.0f;
 			/** 初期位置 */
 			Vector3 initialPosition = Vector3::Zero;
-			/** 初期スケール */
-			Vector3 initialScale = Vector3::One;
+			/** 更新されるスケール */
+			Vector3 updateScale = Vector3::One;
 
 			/**
 			 * @brief JSON から読む
@@ -41,8 +47,11 @@ namespace app
 				rotateSpeed = file.GetFloat("rotateSpeed", rotateSpeed);
 				gravity = file.GetFloat("gravity", gravity);
 				photoWalkSpeed = file.GetFloat("photoWalkSpeed", photoWalkSpeed);
+				hideCheckDistance = file.GetFloat("hideCheckDistance", hideCheckDistance);
+				hideLowRayHeight = file.GetFloat("hideLowRayHeight", hideLowRayHeight);
+				hideHighRayHeight = file.GetFloat("hideHighRayHeight", hideHighRayHeight);
 				initialPosition = file.GetVector3("initialPosition", initialPosition);
-				initialScale = file.GetVector3("initialScale", initialScale);
+				updateScale = file.GetVector3("updateScale", updateScale);
 			}
 		};
 	}

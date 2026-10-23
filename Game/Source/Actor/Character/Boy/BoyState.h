@@ -83,28 +83,6 @@ namespace app
 
 
 		/**
-		 * @brief カメラを構えていないときの走行ステート
-		 * @details 今のところ、走るステートは使うか未定
-		 */
-		class BoyRunState : public BoyStateBase
-		{
-			appState(BoyRunState);
-
-		public:
-			explicit BoyRunState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
-
-			void Enter() override;
-			void Update() override;
-			void Exit() override;
-		};
-
-
-
-
-		/*****************************************************/
-
-
-		/**
 		 * @brief カメラを構えながらの待機ステート
 		 */
 		class BoyPhotoIdleState : public BoyStateBase
@@ -126,14 +104,77 @@ namespace app
 
 
 		/**
-		 * @brief カメラを構えながらの歩行ステート
+		 * @brief カメラを構えながら前に歩くステート
 		 */
-		class BoyPhotoWalkState : public BoyStateBase
+		class BoyPhotoWalkForwardState : public BoyStateBase
 		{
-			appState(BoyPhotoWalkState);
+			appState(BoyPhotoWalkForwardState);
 
 		public:
-			explicit BoyPhotoWalkState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+			explicit BoyPhotoWalkForwardState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+		};
+
+
+
+
+		/*****************************************************/
+
+
+		/**
+		 * @brief カメラを構えながら後ろに歩くステート
+		 */
+		class BoyPhotoWalkBackState : public BoyStateBase
+		{
+			appState(BoyPhotoWalkBackState);
+
+		public:
+			explicit BoyPhotoWalkBackState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+		};
+
+
+
+
+		/*****************************************************/
+
+
+		/**
+		 * @brief カメラを構えながら左に歩くステート
+		 */
+		class BoyPhotoWalkLeftState : public BoyStateBase
+		{
+			appState(BoyPhotoWalkLeftState);
+
+		public:
+			explicit BoyPhotoWalkLeftState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+		};
+
+
+
+
+		/*****************************************************/
+
+
+		/**
+		 * @brief カメラを構えながら右に歩くステート
+		 */
+		class BoyPhotoWalkRightState : public BoyStateBase
+		{
+			appState(BoyPhotoWalkRightState);
+
+		public:
+			explicit BoyPhotoWalkRightState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
 
 			void Enter() override;
 			void Update() override;
@@ -147,6 +188,7 @@ namespace app
 
 		/**
 		 * @brief 小さい物陰に隠れるステート
+		 * @details 屈んで、隠れている物の方を向く
 		 */
 		class BoyLowHideState : public BoyStateBase
 		{
@@ -168,6 +210,7 @@ namespace app
 		
 		/**
 		 * @brief 高い物陰に隠れるステート
+		 * @details 立ったまま、壁を背にする
 		 */
 		class BoyHighHideState : public BoyStateBase
 		{

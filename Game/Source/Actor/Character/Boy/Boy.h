@@ -26,9 +26,11 @@ namespace app
 		{
 			Idle,                  // ファインダーを覗いていない時の待機
 			Walk,				   // ファインダーを覗いていない時の歩行
-			Run, 			       // ファインダーを覗いていない時の走行
 			PhotoIdle,		       // ファインダーを覗いている時の待機
-			PhotoWalk,			   // ファインダーを覗いている時の歩行
+			PhotoWalkForward,	   // ファインダーを覗いている時の前歩き
+			PhotoWalkBack,		   // ファインダーを覗いている時の後ろ歩き
+			PhotoWalkLeft,		   // ファインダーを覗いている時の左歩き
+			PhotoWalkRight,		   // ファインダーを覗いている時の右歩き
 			LowHide,			   // 小さい物陰に隠れる
 			HighHide,              // 高い物陰に隠れる
 			Max
@@ -48,6 +50,9 @@ namespace app
 
 			/** 初期化処理 */
 			bool Start() override;
+
+			/** 更新処理 */
+			void Update() override;
 
 
 		public:
