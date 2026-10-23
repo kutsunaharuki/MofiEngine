@@ -61,6 +61,12 @@
     <Filter Include="Source\Actor\Character\Boy\Object">
       <UniqueIdentifier>{e7f3c424-08ac-457a-be45-acee588c9072}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Actor\StageObject">
+      <UniqueIdentifier>{30030cc1-95c5-4770-9d3f-e3ba0ef77bf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Stage">
+      <UniqueIdentifier>{2a259500-d7ed-4c88-b390-0c682c19d76f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -180,6 +186,18 @@
     <ClCompile Include="Source\Actor\Character\Boy\Object\BoyParameter.cpp">
       <Filter>Source\Actor\Character\Boy\Object</Filter>
     </ClCompile>
+    <ClCompile Include="..\ThirdParty\ImGuizmo\ImGuizmo.cpp">
+      <Filter>Source\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\StageObject\StageObject.cpp">
+      <Filter>Source\Actor\StageObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Stage.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\StageEditor.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -283,6 +301,18 @@
     </ClInclude>
     <ClInclude Include="Source\Actor\Character\Boy\Object\BoyParameter.h">
       <Filter>Source\Actor\Character\Boy\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\ImGuizmo\ImGuizmo.h">
+      <Filter>Source\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\StageObject\StageObject.h">
+      <Filter>Source\Actor\StageObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Stage.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\StageEditor.h">
+      <Filter>Source\Stage</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

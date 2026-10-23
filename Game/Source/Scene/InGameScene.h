@@ -36,6 +36,12 @@ namespace app
 		class Boy;
 	}
 
+	namespace stage
+	{
+		class Stage;
+		class StageEditor;
+	}
+
 
 
 	/**
@@ -70,13 +76,15 @@ namespace app
 		std::unique_ptr<app::Enemy> m_enemy;
 		/** 主人公 */
 		std::unique_ptr<app::actor::Boy> m_boy;
+		/** ステージ(置物) */
+		std::unique_ptr<app::stage::Stage> m_stage;
+		/** ステージエディタ(Debug の時だけ作る。Release では nullptr) */
+		std::unique_ptr<app::stage::StageEditor> m_stageEditor;
 
 		/** ゲームカメラ */
 		app::camera::GameCamera* m_gameCamera;
 		/** スプライトレンダー */
 		SpriteRender* m_spriteRender;
-		/** 地面のモデルレンダー */
-		ModelRender* m_groundModelRender;
 		/** 地面の当たり判定(主人公が地面に立つために必要) */
 		PhysicsStaticObject m_groundPhysicsObject;
 		/** 主人公の初期位置 */

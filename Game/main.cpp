@@ -2,6 +2,7 @@
 
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
+#include "ImGuizmo.h"
 #include "system/system.h"
 
 #include<InitGUID.h>
@@ -58,6 +59,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
+		// ギズモ(ステージエディタで使う)のフレーム開始。ImGui::NewFrame の後に呼ぶ
+		ImGuizmo::BeginFrame();
 
 		g_engine->ExecuteUpdate();	// Update all game objects (IGameObject::Update).
 		g_engine->ExecuteRender();	// Render all game objects (IGameObject::Render).
