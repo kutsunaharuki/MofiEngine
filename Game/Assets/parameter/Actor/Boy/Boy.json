@@ -1,0 +1,13 @@
+{
+  "comment":"少年のパラメーター",
+  "walkSpeed": 150.0,
+  "runSpeed": 400.0,
+  "rotateSpeed": 15.0,
+  "photoWalkSpeed":200,
+  "hideCheckDistance": 60.0,
+  "hideLowRayHeight": 30.0,
+  "hideHighRayHeight": 110.0,
+  "gravity":1500.0,
+  "updatePosition": [0, 0, 0],
+  "updateScale": [3.4, 3.4, 3.4]
+}

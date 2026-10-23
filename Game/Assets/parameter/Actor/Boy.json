@@ -1,9 +1,0 @@
-{
-  "walkSpeed": 150.0,
-  "runSpeed": 400.0,
-  "airMoveSpeed": 250.0,
-  "jumpSpeed": 600.0,
-  "gravity": 1500.0,
-  "rotateSpeed": 15.0,
-  "jumpLandingCheckTime": 0.1
-}

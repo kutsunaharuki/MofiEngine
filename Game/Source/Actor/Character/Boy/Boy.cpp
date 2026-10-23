@@ -13,31 +13,36 @@ namespace app
 	{
 		namespace
 		{
-			// ステートがちゃんと切り替わるかの確認材料
-			/** アニメーションデータ(EnBoyAnimation の順番と合わせる) */
+			// 主人公のアニメーションデータ
 			const AnimationData BOY_ANIMATION_DATA[] =
 			{
-				{ "Assets/animData/idle.tka", true },	// 待機
-				{ "Assets/animData/walk.tka", true },	// 歩き
-				{ "Assets/animData/run.tka", true },	// 走り
-				{ "Assets/animData/jump.tka", false },	// ジャンプ
+					{"Assets/animData/Boy/Idle.tka",             true} // ファインダーを覗いていない時の待機
+				,	{"Assets/animData/Boy/Walk.tka" ,            true} // ファインダーを覗いていない時の歩行
+				,	{"Assets/animData/Boy/PhotoIdle.tka",        true} // ファインダーを覗いている時の待機
+				,	{"Assets/animData/Boy/PhotoWalkForward.tka", true} // ファインダーを覗いている時の前歩き
+				,	{"Assets/animData/Boy/PhotoWalkBack.tka",    true} // ファインダーを覗いている時の後ろ歩き
+				,	{"Assets/animData/Boy/PhotoWalkLeft.tka",    true} // ファインダーを覗いている時の左歩き
+				,	{"Assets/animData/Boy/PhotoWalkRight.tka",   true} // ファインダーを覗いている時の右歩き
+				,	{"Assets/animData/Boy/LowHide.tka",          true} // 小さい物陰に隠れる
+				,	{"Assets/animData/Boy/HightHide.tka",        true} // 高い物陰に隠れる
 			};
+
 			// 少年のアニメーションデータの数と、EnBoyAnimation の数があっているかをコンパイル時にチェックする
-			static_assert(sizeof(BOY_ANIMATION_DATA) / sizeof(BOY_ANIMATION_DATA[0]) == static_cast<size_t>(EnBoyAnimation::Num),
+			static_assert(sizeof(BOY_ANIMATION_DATA) / sizeof(BOY_ANIMATION_DATA[0]) == static_cast<size_t>(EnBoyAnimation::Max),
 				"BOY_ANIMATION_DATA と EnBoyAnimation の数が合っていません。");
 
 
 			/** モデルデータ(主人公のモデルができるまでは、ユニティちゃんを仮で使う) */
 			const ModelData BOY_MODEL_DATA =
 			{
-				"Assets/modelData/unityChan.tkm",
+				"Assets/modelData/Boy/Boy.tkm",
 				BOY_ANIMATION_DATA,
-				enModelUpAxisY,
-				static_cast<uint8_t>(EnBoyAnimation::Num)
+				enModelUpAxisZ,
+				static_cast<uint8_t>(EnBoyAnimation::Max)
 			};
 
 			/** 調整用パラメーターの JSON */
-			constexpr const char* BOY_PARAMETER_PATH = "Assets/parameter/Actor/Boy.json";
+			constexpr const char* BOY_PARAMETER_PATH = "Assets/parameter/Actor/Boy/Boy.json";
 		}
 
 
@@ -56,6 +61,11 @@ namespace app
 			// 調整用パラメーターの読み込み
 			m_parameter.Initialize(BOY_PARAMETER_PATH);
 
+			// 調整パラメーターを取得
+			const BoyParameter& parameter = m_parameter.Get();
+			// 初期位置だけ設定
+			SetPosition(parameter.initialPosition);
+
 			// モデルとアニメーションの読み込み
 			Init(BOY_MODEL_DATA);
 
@@ -64,6 +74,18 @@ namespace app
 
 			// キャラクターコントローラーの初期化(今の位置で作るので、位置を決めてから Start を呼ぶ)
 			return CharacterBase::Start();
+		}
+
+
+		void Boy::Update()
+		{
+			// 調整パラメーターを取得
+			// ※ Get() を呼ぶと、JSONが変わっていれば読み直す
+			const BoyParameter& parameter = m_parameter.Get();
+
+			SetScale(parameter.updateScale);
+
+			CharacterBase::Update();
 		}
 
 

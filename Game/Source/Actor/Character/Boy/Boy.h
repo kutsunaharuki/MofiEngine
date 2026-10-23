@@ -5,6 +5,7 @@
 #pragma once
 #include "Source/Actor/Character/CharacterBase.h"
 #include "Source/Util/ParameterManager.h"
+#include "Source/Actor/Character/Boy/Object/BoyParameter.h"
 
 
 namespace app
@@ -23,49 +24,16 @@ namespace app
 		 */
 		enum class EnBoyAnimation : uint8_t
 		{
-			Idle,
-			Walk,
-			Run,
-			Jump,
-			Num
-		};
-
-
-		/**
-		 * @brief 主人公の調整用パラメーター
-		 * @details JSON : Assets/parameter/Actor/Boy.json(保存すると、ゲームを動かしたまま反映される)
-		 */
-		struct BoyParameter
-		{
-			/** 歩く速さ */
-			float walkSpeed = 150.0f;
-			/** 走る速さ */
-			float runSpeed = 400.0f;
-			/** 空中で動ける速さ */
-			float airMoveSpeed = 250.0f;
-			/** ジャンプした瞬間の上向きの速度 */
-			float jumpSpeed = 600.0f;
-			/** 重力加速度 */
-			float gravity = 1500.0f;
-			/** 向きを変える速さ(大きいほど早く向く) */
-			float rotateSpeed = 15.0f;
-			/** ジャンプしてから、着地の判定を始めるまでの時間(秒) */
-			float jumpLandingCheckTime = 0.1f;
-
-			/**
-			 * @brief JSON から読む
-			 * @param file パラメーターファイル
-			 */
-			void Read(const util::ParameterFile& file)
-			{
-				walkSpeed = file.GetFloat("walkSpeed", walkSpeed);
-				runSpeed = file.GetFloat("runSpeed", runSpeed);
-				airMoveSpeed = file.GetFloat("airMoveSpeed", airMoveSpeed);
-				jumpSpeed = file.GetFloat("jumpSpeed", jumpSpeed);
-				gravity = file.GetFloat("gravity", gravity);
-				rotateSpeed = file.GetFloat("rotateSpeed", rotateSpeed);
-				jumpLandingCheckTime = file.GetFloat("jumpLandingCheckTime", jumpLandingCheckTime);
-			}
+			Idle,                  // ファインダーを覗いていない時の待機
+			Walk,				   // ファインダーを覗いていない時の歩行
+			PhotoIdle,		       // ファインダーを覗いている時の待機
+			PhotoWalkForward,	   // ファインダーを覗いている時の前歩き
+			PhotoWalkBack,		   // ファインダーを覗いている時の後ろ歩き
+			PhotoWalkLeft,		   // ファインダーを覗いている時の左歩き
+			PhotoWalkRight,		   // ファインダーを覗いている時の右歩き
+			LowHide,			   // 小さい物陰に隠れる
+			HighHide,              // 高い物陰に隠れる
+			Max
 		};
 
 
@@ -82,6 +50,9 @@ namespace app
 
 			/** 初期化処理 */
 			bool Start() override;
+
+			/** 更新処理 */
+			void Update() override;
 
 
 		public:

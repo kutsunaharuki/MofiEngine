@@ -12,6 +12,9 @@
 #include "Source/Actor/Character/Boy/Boy.h"
 #include "Source/UI/SoundOptionMenu/SoundOptionMenu.h"
 #include "Source/Sound/SoundManager.h"
+#include "Source/Stage/Stage.h"
+#include "Source/Stage/StageEditor.h"
+#include "Source/Util/ParameterManager.h"
 
 
 namespace app
@@ -32,6 +35,12 @@ namespace app
 		const Vector3 CHILD_POSITION = { 10.0f,0.0f,0.0f };
 		/** サウンドオプションのレイアウトのパス */
 		constexpr const char* SOUND_OPTION_LAYOUT_PATH = "Assets/parameter/UI/Sound/SoundOption.json";
+		/** ステージの配置(エディタで保存する JSON) */
+		constexpr const char* STAGE_FILE_PATH = "Assets/stage/Museum.json";
+		/** ステージの最初の配置(3ds Max で作った tkl。JSON が無い時に使う) */
+		constexpr const char* STAGE_TKL_PATH = "Assets/modelData/Stage/Museum.tkl";
+		/** ステージのモデルのフォルダ */
+		constexpr const char* STAGE_MODEL_DIRECTORY = "Assets/modelData/Stage/";
 	}
 
 
@@ -42,7 +51,6 @@ namespace app
 		, m_gRotation(Quaternion::Identity)
 		, m_gScale(Vector3::One)
 		, m_gameCamera(nullptr)
-		, m_groundModelRender(nullptr)
 		, m_isLastShotInFocus(false)
 		, m_soundOptionMenu(nullptr)
 	{}
@@ -54,11 +62,6 @@ namespace app
 		{
 			delete m_spriteRender;
 			m_spriteRender = nullptr;
-		}
-		if (m_groundModelRender != nullptr)
-		{
-			delete m_groundModelRender;
-			m_groundModelRender = nullptr;
 		}
 
 		// ファインダーコントローラーから敵の登録を解除
@@ -77,23 +80,25 @@ namespace app
 		// タイトルのBGMを鳴らす
 		sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
 
-		// 地面のモデルレンダーを初期化
-		m_groundModelRender = new ModelRender;
-		m_groundModelRender->Init("Assets/modelData/ground.tkm", nullptr, enModelUpAxisZ, 0, false, true);
-		m_groundModelRender->SetTRS(m_gPosition, m_gRotation, m_gScale);
-		m_groundModelRender->Update();
+		// ステージの置物を作る。エディタで保存した JSON が無ければ、3ds Max の tkl から作る
+		m_stage = std::make_unique<stage::Stage>();
+		if (!m_stage->Load(STAGE_FILE_PATH))
+		{
+			m_stage->ImportTkl(STAGE_TKL_PATH, STAGE_MODEL_DIRECTORY);
+		}
 
-		// 地面の形から当たり判定を作る(ワールド行列が決まってから作る)
-		Model& groundModel = m_groundModelRender->GetModel();
-		m_groundPhysicsObject.CreateFromModel(groundModel, groundModel.GetWorldMatrix());
+#ifdef APP_ENABLE_PARAMETER_HOTRELOAD
+		// ステージエディタは Debug の時だけ
+		m_stageEditor = std::make_unique<stage::StageEditor>(m_stage.get(), STAGE_FILE_PATH, STAGE_TKL_PATH, STAGE_MODEL_DIRECTORY);
+#endif
 
-		// 主人公を作る(位置を決めてから Start を呼ぶ)
+		// 主人公を作る
 		m_boy = std::make_unique<app::actor::Boy>();
-		m_boy->SetPosition(m_position);
 		m_boy->Start();
 
 		// 写真撮影クラスの初期化
 		m_photoCapture.Init();
+
 		// RenderingEngineにPhotoCaptureを登録
 		RenderingEngine::GetInstance().SetPhotoCapture(&m_photoCapture);
 		// ファインダーの操作(覗く・ピント・ズーム・撮影)を FinderController に任せる
@@ -109,6 +114,7 @@ namespace app
 		// 後々に響きそうなのでゲームカメラを作成しておく。
 		m_gameCamera = new app::camera::GameCamera;
 		m_gameCamera->Start();
+
 		// カメラは主人公を追いかけて、主人公はカメラの向きを基準に動く
 		m_gameCamera->SetTarget(&m_boy->GetTransform());
 		m_boy->SetGameCamera(m_gameCamera);
@@ -119,6 +125,14 @@ namespace app
 	
 	void InGameScene::Update()
 	{
+		// ステージの更新と、エディタ(Debug の時だけ)
+		// ※ サウンドオプションを開いている間も編集できるように、一番先に呼ぶ
+		m_stage->Update();
+		if (m_stageEditor != nullptr)
+		{
+			m_stageEditor->Update();
+		}
+
 		// サウンドオプションの更新(開いているときだけ、中で入力を受け付ける)
 		m_soundOptionLayout.Update();
 
@@ -198,8 +212,8 @@ namespace app
 			m_boy->Render(rc);
 		}
 
-		// モデル描画(地面)
-		m_groundModelRender->Draw(rc);
+		// ステージの置物
+		m_stage->Render(rc);
 
 		// ファインダーの UI(構えていない時は、何も描画されない)
 		m_finderController.Render(rc);

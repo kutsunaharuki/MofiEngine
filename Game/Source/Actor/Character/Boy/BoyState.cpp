@@ -6,17 +6,15 @@
 #include "BoyState.h"
 #include "BoyStateMachine.h"
 #include <algorithm>
+#include "Object/BoyParameter.h"
 
 
 namespace app
 {
 	namespace actor
 	{
-		// ※ 速さなどの調整する値は、Assets/parameter/Actor/Boy.json にある(BoyParameter)
-
-
 		/*************************************/
-		// BoyIdleState
+		// カメラを構えていないときの待機ステート
 		/*************************************/
 
 
@@ -29,7 +27,6 @@ namespace app
 		void BoyIdleState::Update()
 		{
 			m_stateMachine.StopMove();
-			m_stateMachine.ApplyGravity();
 		}
 
 
@@ -40,7 +37,7 @@ namespace app
 
 
 		/*************************************/
-		// BoyWalkState
+		// カメラを構えていないときの歩行ステート
 		/*************************************/
 
 
@@ -53,7 +50,6 @@ namespace app
 		void BoyWalkState::Update()
 		{
 			m_stateMachine.Move(m_stateMachine.GetParameter().walkSpeed);
-			m_stateMachine.ApplyGravity();
 		}
 
 
@@ -64,91 +60,169 @@ namespace app
 
 
 		/*************************************/
-		// BoyRunState
+		// カメラを構えている時の待機ステート
 		/*************************************/
 
 
-		void BoyRunState::Enter()
+		void BoyPhotoIdleState::Enter()
 		{
-			m_stateMachine.PlayAnimation(EnBoyAnimation::Run);
+			m_stateMachine.PlayAnimation(EnBoyAnimation::PhotoIdle);
 		}
 
 
-		void BoyRunState::Update()
+		void BoyPhotoIdleState::Update()
 		{
-			m_stateMachine.Move(m_stateMachine.GetParameter().runSpeed);
-			m_stateMachine.ApplyGravity();
-		}
-
-
-		void BoyRunState::Exit()
-		{}
-
-
-
-
-		/*************************************/
-		// BoyJumpState
-		/*************************************/
-
-
-		void BoyJumpState::Enter()
-		{
-			m_elapsedTime = 0.0f;
-
-			// 走りながら跳んだときに、急に遅くならないように、跳んだ瞬間の速さを引き継ぐ
-			// ※ 止まって跳んだときも、空中では airMoveSpeed までは動ける
-			m_airMoveSpeed = (std::max)(m_stateMachine.GetHorizontalSpeed(), m_stateMachine.GetParameter().airMoveSpeed);
-
-			m_stateMachine.PlayAnimation(EnBoyAnimation::Jump, 0.1f);
-			m_stateMachine.StartJump();
-		}
-
-
-		void BoyJumpState::Update()
-		{
-			m_elapsedTime += g_gameTime->GetFrameDeltaTime();
-
-			// 空中でも、入力の方向に動ける
-			m_stateMachine.Move(m_airMoveSpeed);
-			m_stateMachine.ApplyGravity();
-
-			// 着地したら、ジャンプを終わる(次のフレームで待機か移動に変わる)
-			// ※ ジャンプした直後は、まだ地面に着いている扱いなので、少し待ってから判定する
-			if (m_elapsedTime > m_stateMachine.GetParameter().jumpLandingCheckTime && m_stateMachine.IsOnGround())
-			{
-				m_stateMachine.EndJump();
-			}
-		}
-
-
-		void BoyJumpState::Exit()
-		{}
-
-
-
-
-		/*************************************/
-		// BoyPhotoState
-		/*************************************/
-
-
-		void BoyPhotoState::Enter()
-		{
-			m_stateMachine.PlayAnimation(EnBoyAnimation::Idle);
-		}
-
-
-		void BoyPhotoState::Update()
-		{
-			// 撮影中は動かずに、カメラの向いている方向を向く
+			// 動かずに、カメラの向いている方向を向く
 			m_stateMachine.StopMove();
 			m_stateMachine.FaceCameraForward();
-			m_stateMachine.ApplyGravity();
 		}
 
 
-		void BoyPhotoState::Exit()
+		void BoyPhotoIdleState::Exit()
+		{}
+
+
+
+
+		/*************************************/
+		// カメラを構えている時の前歩きステート
+		/*************************************/
+
+
+		void BoyPhotoWalkForwardState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::PhotoWalkForward);
+		}
+
+
+		void BoyPhotoWalkForwardState::Update()
+		{
+			m_stateMachine.SlowMove();
+		}
+
+
+		void BoyPhotoWalkForwardState::Exit()
+		{}
+
+
+
+
+		/*************************************/
+		// カメラを構えている時の後ろ歩きステート
+		/*************************************/
+
+
+		void BoyPhotoWalkBackState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::PhotoWalkBack);
+		}
+
+
+		void BoyPhotoWalkBackState::Update()
+		{
+			m_stateMachine.SlowMove();
+		}
+
+
+		void BoyPhotoWalkBackState::Exit()
+		{}
+
+
+
+
+		/*************************************/
+		// カメラを構えている時の左歩きステート
+		/*************************************/
+
+
+		void BoyPhotoWalkLeftState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::PhotoWalkLeft);
+		}
+
+
+		void BoyPhotoWalkLeftState::Update()
+		{
+			m_stateMachine.SlowMove();
+		}
+
+
+		void BoyPhotoWalkLeftState::Exit()
+		{}
+
+
+
+
+		/*************************************/
+		// カメラを構えている時の右歩きステート
+		/*************************************/
+
+
+		void BoyPhotoWalkRightState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::PhotoWalkRight);
+		}
+
+
+		void BoyPhotoWalkRightState::Update()
+		{
+			m_stateMachine.SlowMove();
+		}
+
+
+		void BoyPhotoWalkRightState::Exit()
+		{}
+
+
+
+
+		/*************************************/
+		// 低い隠れステート
+		/*************************************/
+
+
+		void BoyLowHideState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::LowHide);
+		}
+
+
+		void BoyLowHideState::Update()
+		{
+			// 屈んだまま、隠れている物の方を向く
+			m_stateMachine.StopMove();
+			m_stateMachine.RotateToward(m_stateMachine.GetDirectionToHideObject());
+		}
+
+
+		void BoyLowHideState::Exit()
+		{}
+
+
+
+
+		/*************************************/
+		// 高い隠れステート
+		/*************************************/
+
+
+		void BoyHighHideState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::HighHide);
+		}
+
+
+		void BoyHighHideState::Update()
+		{
+			// 壁を背にするので、壁と反対の方向を向く
+			m_stateMachine.StopMove();
+			Vector3 direction = m_stateMachine.GetDirectionToHideObject();
+			direction.Scale(-1.0f);
+			m_stateMachine.RotateToward(direction);
+		}
+
+
+		void BoyHighHideState::Exit()
 		{}
 	}
 }

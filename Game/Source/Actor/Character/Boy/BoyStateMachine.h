@@ -46,11 +46,12 @@ namespace app
 			 */
 			bool HasMoveInput() const;
 			/**
-			 * @brief 入力の方向に移動して、その方向を向く
+			 * @brief 入力の方向に移動する
 			 * @param speed 移動速度
+			 * @param isRotate 移動する方向を向くか(撮影中はカメラの方を向くので false にする)
 			 * @details 縦(y)の速度は変えない
 			 */
-			void Move(const float speed);
+			void Move(const float speed, const bool isRotate = true);
 			/**
 			 * @brief 今の横(XZ平面)の速さを取得
 			 * @return 横の速さ
@@ -62,23 +63,25 @@ namespace app
 			 */
 			void StopMove();
 			/**
-			 * @brief 重力をかける
-			 * @details 地面に着いているときは、キャラクターコントローラーが縦の速度を 0 に戻す
-			 */
-			void ApplyGravity();
-			/**
-			 * @brief ジャンプの速度を与える
-			 */
-			void StartJump();
-			/**
-			 * @brief ジャンプが終わったことを伝える
-			 * @details ジャンプステートが着地したときに呼ぶ
-			 */
-			void EndJump() { m_isJumping = false; }
-			/**
 			 * @brief カメラの向いている方向を向く
 			 */
 			void FaceCameraForward();
+			/**
+			 * @brief ファインダーを覗いている時の移動
+			 * @details 覗いていない時より遅く歩いて、向きはカメラの向いている方向のままにする
+			 */
+			void SlowMove();
+			/**
+			 * @brief 指定した方向へ、なめらかに向きを変える
+			 * @param direction 向きたい方向(XZ平面)
+			 */
+			void RotateToward(const Vector3& direction);
+			/**
+			 * @brief 自分から、隠れている物への方向を取得
+			 * @return 方向(XZ平面、長さ1)
+			 * @details 隠れるステートで、向きを決めるのに使う
+			 */
+			Vector3 GetDirectionToHideObject() const;
 
 
 		protected:
@@ -90,16 +93,31 @@ namespace app
 
 
 		private:
+			/** 近くにある、隠れられる物の種類 */
+			enum class EnHideType : uint8_t
+			{
+				None,	// 何もない
+				Low,	// 小さい物(屈んで隠れる)
+				High,	// 壁や高い物(壁を背にして隠れる)
+			};
+
 			/**
 			 * @brief スティックの入力を、カメラから見た移動方向(XZ平面)にする
 			 * @return 移動方向(長さ1。入力が無ければ 0)
 			 */
 			Vector3 CalcMoveDirection() const;
 			/**
-			 * @brief 指定した方向へ、なめらかに向きを変える
-			 * @param direction 向きたい方向(XZ平面)
+			 * @brief スティックの向きから、撮影中の歩きステート(前後左右)を選ぶ
+			 * @return 歩きステート
 			 */
-			void RotateToward(const Vector3& direction);
+			core::IState* FindPhotoWalkState();
+			/**
+			 * @brief 近くに隠れられる物があるかを調べる
+			 * @return 隠れられる物の種類
+			 * @details 膝と頭の高さでレイを飛ばして、膝だけ当たれば小さい物、両方当たれば壁とする。
+			 *          当たった位置は m_hideObjectPosition に入れる
+			 */
+			EnHideType CheckHideType();
 
 
 		private:
@@ -107,8 +125,8 @@ namespace app
 			Boy* m_boy;
 			/** 今の向き */
 			Quaternion m_rotation;
-			/** ジャンプ中か(着地するまで true) */
-			bool m_isJumping;
+			/** 隠れている物の位置(レイが当たった位置) */
+			Vector3 m_hideObjectPosition;
 		};
 	}
 }

@@ -15,7 +15,7 @@ namespace app
 		/** 敵の初期位置 */
 		const Vector3 ENEMY_POSITION = { 0.0f,0.0f,300.0f };
 		/** 敵の初期スケール */
-		const Vector3 ENEMY_SCALE = { 0.5f,0.5f,0.5f };
+		const Vector3 ENEMY_SCALE = { 1.5f,1.5f,1.5f };
 		/** 敵のアニメーションクリップ数(インデックスで使用) */
 		const int ENEMY_ANIMATION_CLIP_NUM = static_cast<int>(Enemy::EnemyAnimationState::Max);
 		/** ピントを合わせる高さ(足元から。体の中心 ~ 顔のあたり) */
