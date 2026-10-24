@@ -237,6 +237,9 @@
     <ClCompile Include="graphics\RenderingEngine.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
+    <ClCompile Include="util\Profiler.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
     <ClCompile Include="graphics\ModelRender.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
@@ -254,6 +257,9 @@
     </ClCompile>
     <ClCompile Include="math\TClamp.cpp">
       <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="geometry\Frustum.cpp">
+      <Filter>geometry</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -492,6 +498,9 @@
     <ClInclude Include="util\TResourceBank.h">
       <Filter>util</Filter>
     </ClInclude>
+    <ClInclude Include="util\Profiler.h">
+      <Filter>util</Filter>
+    </ClInclude>
     <ClInclude Include="physics\PhysicsGhostObject.h">
       <Filter>physics</Filter>
     </ClInclude>
@@ -564,6 +573,9 @@
     </ClInclude>
     <ClInclude Include="math\TClamp.h">
       <Filter>math</Filter>
+    </ClInclude>
+    <ClInclude Include="geometry\Frustum.h">
+      <Filter>geometry</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -127,9 +127,14 @@ namespace app
 	{
 		// ステージの更新と、エディタ(Debug の時だけ)
 		// ※ サウンドオプションを開いている間も編集できるように、一番先に呼ぶ
-		m_stage->Update();
+		{
+			// 置物の数が多いので、どれくらいかかっているかを計る
+			K2_PROFILE_CPU("Stage Update");
+			m_stage->Update();
+		}
 		if (m_stageEditor != nullptr)
 		{
+			K2_PROFILE_CPU("Stage Editor");
 			m_stageEditor->Update();
 		}
 
@@ -157,7 +162,10 @@ namespace app
 		// 主人公の更新(ファインダーを覗いている間は、撮影ステートになる)
 		// ※ カメラが主人公の新しい位置を追いかけるように、カメラより先に更新する
 		m_boy->SetIsFinderActive(m_photoCapture.IsFinderActive());
-		m_boy->Update();
+		{
+			K2_PROFILE_CPU("Boy Update");
+			m_boy->Update();
+		}
 
 		// ファインダーを覗いている間だけ、1人称にする
 		m_gameCamera->SetFirstPeerson(m_photoCapture.IsFinderActive());
@@ -173,14 +181,20 @@ namespace app
 		Quaternion enemyRot;
 		enemyRot.SetRotationDegY(180.0f);
 		m_enemy->SetRotation(enemyRot);
-		m_enemy->Update();
+		{
+			K2_PROFILE_CPU("Enemy Update");
+			m_enemy->Update();
+		}
 
 
 		/** ファインダーのオートフォーカス */
 
 		// オートフォーカスとファインダーの UI
 		// ※ ファインダーのカメラと敵の位置が決まった後に呼ぶ(顔の画面の位置を計算するため)
-		m_finderController.LateUpdate();
+		{
+			K2_PROFILE_CPU("Finder LateUpdate");
+			m_finderController.LateUpdate();
+		}
 
 		// オートフォーカスが選んだ被写体(いなければ nullptr)
 		const camera::IPhotoSubject* focusSubject = m_finderController.GetFocusSubject();
@@ -213,7 +227,10 @@ namespace app
 		}
 
 		// ステージの置物
-		m_stage->Render(rc);
+		{
+			K2_PROFILE_CPU("Stage Render (register)");
+			m_stage->Render(rc);
+		}
 
 		// ファインダーの UI(構えていない時は、何も描画されない)
 		m_finderController.Render(rc);

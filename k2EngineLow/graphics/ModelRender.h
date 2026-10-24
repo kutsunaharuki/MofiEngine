@@ -21,6 +21,9 @@ namespace nsK2EngineLow
 		 * @param numAnimClips アニメーションクリップ配列の番号
 		 * @param isShadow 影を落とすかどうか
 		 * @param reShadow 影を受けるかどうか
+		 * @param cullMode カリングモード(どちらの面を描かないか)
+		 * @details スケールがマイナス(反転)のモデルは、ポリゴンの表と裏が入れ替わるので、
+		 *          D3D12_CULL_MODE_FRONT を渡す。渡さないと、表の面が消えて裏返しに見える
 		 */
 		void Init(
 			const char* tkmFilePath,
@@ -28,7 +31,8 @@ namespace nsK2EngineLow
 			EnModelUpAxis upAxis = EnModelUpAxis::enModelUpAxisZ,
 			int numAnimClips = 0,
 			const bool isShadow = true,
-			const bool reShadow = true);
+			const bool reShadow = true,
+			const D3D12_CULL_MODE cullMode = D3D12_CULL_MODE_BACK);
 
 		/**
 		 * @brief アニメーションの再生

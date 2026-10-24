@@ -304,6 +304,7 @@
     <ClCompile Include="Source\UI\FinderMenu\FinderMenu.cpp" />
     <ClCompile Include="Source\Sound\SoundManager.cpp" />
     <ClCompile Include="Source\Util\ParameterManager.cpp" />
+    <ClCompile Include="Source\Util\ProfilerWindow.cpp" />
     <ClCompile Include="Source\Actor\StageObject\StageObject.cpp" />
     <ClCompile Include="Source\Stage\Stage.cpp" />
     <ClCompile Include="Source\Stage\StageEditor.cpp" />
@@ -349,6 +350,7 @@
     <ClInclude Include="Source\Sound\SoundManager.h" />
     <ClInclude Include="Source\Sound\SoundType.h" />
     <ClInclude Include="Source\Util\ParameterManager.h" />
+    <ClInclude Include="Source\Util\ProfilerWindow.h" />
     <ClInclude Include="..\ThirdParty\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Source\Actor\StageObject\StageObject.h" />
     <ClInclude Include="Source\Stage\Stage.h" />

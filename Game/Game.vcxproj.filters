@@ -171,6 +171,9 @@
     <ClCompile Include="Source\Util\ParameterManager.cpp">
       <Filter>Source\Util</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Util\ProfilerWindow.cpp">
+      <Filter>Source\Util</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Camera\GameCamera.cpp">
       <Filter>Source\Camera</Filter>
     </ClCompile>
@@ -285,6 +288,9 @@
       <Filter>Source\Camera</Filter>
     </ClInclude>
     <ClInclude Include="Source\Util\ParameterManager.h">
+      <Filter>Source\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Util\ProfilerWindow.h">
       <Filter>Source\Util</Filter>
     </ClInclude>
     <ClInclude Include="Source\Camera\GameCamera.h">

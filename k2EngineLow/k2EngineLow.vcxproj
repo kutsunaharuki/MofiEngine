@@ -264,6 +264,7 @@
     <ClCompile Include="gameObject\IGameObject.cpp" />
     <ClCompile Include="geometry\AABB.cpp" />
     <ClCompile Include="geometry\BSP.cpp" />
+    <ClCompile Include="geometry\Frustum.cpp" />
     <ClCompile Include="graphics\Animation.cpp" />
     <ClCompile Include="graphics\AnimationClip.cpp" />
     <ClCompile Include="graphics\AnimationPlayController.cpp" />
@@ -298,6 +299,7 @@
     <ClCompile Include="graphics\raytracing\RaytracingWorld.cpp" />
     <ClCompile Include="graphics\raytracing\TLASBuffer.cpp" />
     <ClCompile Include="graphics\RenderingEngine.cpp" />
+    <ClCompile Include="util\Profiler.cpp" />
     <ClCompile Include="graphics\RenderTarget.cpp" />
     <ClCompile Include="graphics\RootSignature.cpp" />
     <ClCompile Include="graphics\RWStructuredBuffer.cpp" />
@@ -358,6 +360,7 @@
     <ClInclude Include="gameObject\IGameobject.h" />
     <ClInclude Include="geometry\AABB.h" />
     <ClInclude Include="geometry\BSP.h" />
+    <ClInclude Include="geometry\Frustum.h" />
     <ClInclude Include="graphics\Animation.h" />
     <ClInclude Include="graphics\AnimationClip.h" />
     <ClInclude Include="graphics\AnimationPlayController.h" />
@@ -452,6 +455,7 @@
     <ClInclude Include="tkFile\TknFile.h" />
     <ClInclude Include="tkFile\TksFile.h" />
     <ClInclude Include="util\TResourceBank.h" />
+    <ClInclude Include="util\Profiler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

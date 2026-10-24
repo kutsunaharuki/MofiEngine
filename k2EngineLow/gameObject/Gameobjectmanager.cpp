@@ -46,7 +46,11 @@ namespace nsK2EngineLow {
 		}
 		
 		//物理エンジンのアップデートを呼び出す。
-		PhysicsWorld::GetInstance()->Update(1.0f / 60.0f);
+		{
+			// 処理時間の計測(物理)
+			K2_PROFILE_CPU("Physics");
+			PhysicsWorld::GetInstance()->Update(1.0f / 60.0f);
+		}
 	}
 	void GameObjectManager::ExecuteRender(RenderContext& rc)
 	{

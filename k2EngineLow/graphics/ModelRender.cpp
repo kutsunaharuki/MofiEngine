@@ -33,7 +33,8 @@ namespace nsK2EngineLow
 		EnModelUpAxis upAxis,
 		int numAnimClips,
 		const bool isShadow,
-		const bool reShadow)
+		const bool reShadow,
+		const D3D12_CULL_MODE cullMode)
 	{
 		// Step3-1
 		/** 1. スケルトンの初期化 */
@@ -66,6 +67,8 @@ namespace nsK2EngineLow
 		deferredInitData.m_vsSkinEntryPointFunc = "VSMainSkin";
 		// モデルの上方向(フォワード用・ファインダー用と合わせる)
 		deferredInitData.m_modelUpAxis = upAxis;
+		// どちらの面を描かないか(反転したモデルは表と裏が入れ替わるので、フォワード用・影用とも合わせる)
+		deferredInitData.m_cullMode = cullMode;
 
 		// パイプラインは絵描き先のフォーマットを知っている必要がある
 		// ※ RenderingEngine の G-Buffer(m_gAlbedoRT / m_gNormalRT / m_gDepthRT)のフォーマットと必ず合わせる
@@ -90,6 +93,8 @@ namespace nsK2EngineLow
 
 		// モデルの何軸を上方向として扱うかを設定
 		m_modelInitData.m_modelUpAxis = upAxis;
+		// カリングモードを設定
+		m_modelInitData.m_cullMode = cullMode;
 
 		m_modelInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		// 影を落とすかどうかを設定
@@ -115,6 +120,8 @@ namespace nsK2EngineLow
 			m_shadowModelInitData.m_vsSkinEntryPointFunc = "VSMainSkin";
 			// モデルの上方向(本体と合わせないと、影だけ寝てしまう)
 			m_shadowModelInitData.m_modelUpAxis = upAxis;
+			// カリングモード(本体と合わせないと、反転したモデルの影が欠ける)
+			m_shadowModelInitData.m_cullMode = cullMode;
 			// フォーマットが合っていないとD3D12 が実行時エラーを出す
 			m_shadowModelInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R32_FLOAT;
 			m_shadowModel.Init(m_shadowModelInitData);

@@ -85,6 +85,17 @@ namespace app
 
 			SetScale(parameter.updateScale);
 
+			// 重力
+			// ※ ステートの Move / StopMove は横(XZ)しか変えないので、縦(y)はここで決める
+			// ※ 地面にいる時は落ちる速さを 0 に戻す。戻さないと、たまり続けて、段差から落ちた瞬間に一気に落ちる
+			Vector3 moveSpeed = GetMoveSpeed();
+			if (IsOnGround()) moveSpeed.y = 0.0f;
+			
+			moveSpeed.y -= parameter.gravity * g_gameTime->GetFrameDeltaTime();
+			// 移動速度を設定
+			SetMoveSpeed(moveSpeed);
+
+			// ステートマシン → キャラクターコントローラー(床に当たったら止まる)→ モデルの順に更新する
 			CharacterBase::Update();
 		}
 

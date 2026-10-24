@@ -45,6 +45,8 @@ namespace app
 			void DrawFileMenu();
 			/** 置物の一覧 */
 			void DrawObjectList();
+			/** ポリゴン数(全体の合計と、モデルごとの内訳) */
+			void DrawPolygonStats();
 			/** 選んでいる置物の値 */
 			void DrawInspector();
 			/** 置物の追加 */

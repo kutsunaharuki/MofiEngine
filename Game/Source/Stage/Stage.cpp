@@ -6,7 +6,7 @@
 #include "Stage.h"
 #include "Source/Actor/StageObject/StageObject.h"
 #include "Source/Util/JsonConverter.h"
-#include "level3D/Level.h"
+#include "level3D/TklFile.h"
 #include <fstream>
 
 
@@ -78,10 +78,23 @@ namespace app
 
 		void Stage::Render(RenderContext& rc)
 		{
+			/** 2.視錐台の範囲内にあるオブジェクトのみを描画 */
+			// このフレームのカメラの映る範囲(視錐台)
+			Frustum frustum;
+			frustum.Update(g_camera3D->GetViewProjectionMatrix());
+
+			int visibleCount = 0;
 			for (auto& object : m_objectList)
 			{
+				// 映る範囲外なら描画に登録しない(G-Buffer にもファインダーにも描かれない)
+				if (!frustum.IsInside(object->GetBoundingCenter(), object->GetBoundingRadius())) continue;
+
 				object->Render(rc);
+				visibleCount++;
 			}
+
+			// Profiler に描いた数を出す
+			Profiler::GetInstance().SetCounter("Stage visible", visibleCount);
 		}
 
 
@@ -142,28 +155,59 @@ namespace app
 
 			Clear();
 
-			// Level が、3ds Max の Z-up から Y-up への変換をしてくれるので、それを使う
-			Level level;
-			level.Init(tklFilePath, [&](LevelObjectData& objectData)
+			// ※ エンジンの Level は、スケールを行列の長さで求めるので、3ds Max のミラーで置いた物の
+			//    反転(マイナスのスケール)が消えて、向きも壊れる。なので、行列を自分で分解する
+			TklFile tklFile;
+			tklFile.Load(tklFilePath);
+			tklFile.QuaryObject([&](TklFile::SObject& object)
 			{
-				// 名前はワイド文字なので、普通の文字列にする(モデル名は英数字だけ)
-				std::string name;
-				for (const wchar_t* c = objectData.name; *c != L'\0'; ++c)
+				// Level と同じく、ルート(Scene Root)の直下のオブジェクトだけを置く
+				if (object.parentNo != 0) return;
+
+				// 3ds Max のワールド行列(Z-up)。1~3行目が各軸(スケール込み)、4行目が位置
+				Vector3 axisX(object.bindPose[0][0], object.bindPose[0][1], object.bindPose[0][2]);
+				Vector3 axisY(object.bindPose[1][0], object.bindPose[1][1], object.bindPose[1][2]);
+				Vector3 axisZ(object.bindPose[2][0], object.bindPose[2][1], object.bindPose[2][2]);
+				const Vector3 maxPosition(object.bindPose[3][0], object.bindPose[3][1], object.bindPose[3][2]);
+
+				Vector3 maxScale(axisX.Length(), axisY.Length(), axisZ.Length());
+				axisX.Normalize();
+				axisY.Normalize();
+				axisZ.Normalize();
+
+				// X軸 × Y軸 が Z軸と逆を向いていたら、反転している
+				// X のスケールをマイナスにして、X軸を戻すと、残りは正しい回転になる
+				Vector3 crossXY;
+				crossXY.Cross(axisX, axisY);
+				if (crossXY.Dot(axisZ) < 0.0f)
 				{
-					name += static_cast<char>(*c);
+					maxScale.x = -maxScale.x;
+					axisX.Scale(-1.0f);
 				}
 
+				Matrix rotationMatrix = Matrix::Identity;
+				rotationMatrix.m[0][0] = axisX.x; rotationMatrix.m[0][1] = axisX.y; rotationMatrix.m[0][2] = axisX.z;
+				rotationMatrix.m[1][0] = axisY.x; rotationMatrix.m[1][1] = axisY.y; rotationMatrix.m[1][2] = axisY.z;
+				rotationMatrix.m[2][0] = axisZ.x; rotationMatrix.m[2][1] = axisZ.y; rotationMatrix.m[2][2] = axisZ.z;
+				Quaternion maxRotation;
+				maxRotation.SetRotation(rotationMatrix);
+
+				// Z-up から Y-up に変換する(Level と同じ変換。X軸まわりに90度回すのと同じ)
+				const Vector3 position(maxPosition.x, maxPosition.z, -maxPosition.y);
+				Quaternion rotation = maxRotation;
+				rotation.y = maxRotation.z;
+				rotation.z = -maxRotation.y;
+				const Vector3 scale(maxScale.x, maxScale.z, maxScale.y);
+
+				const std::string name = object.name.get();
 				AddObject(
 					name,
 					modelDirectory + name + ".tkm",
-					objectData.position,
-					actor::StageObject::ToRotationDeg(objectData.rotation),
-					objectData.scale,
+					position,
+					actor::StageObject::ToRotationDeg(rotation),
+					scale,
 					true
 				);
-
-				// true を返すと、Level は自分でモデル(MapChip)を作らない
-				return true;
 			});
 
 			return !m_objectList.empty();

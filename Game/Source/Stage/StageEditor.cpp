@@ -8,7 +8,10 @@
 #include "Source/Actor/StageObject/StageObject.h"
 #include "imgui.h"
 #include "ImGuizmo.h"
+#include <algorithm>
 #include <cstring>
+#include <map>
+#include <vector>
 
 
 namespace app
@@ -23,6 +26,24 @@ namespace app
 			const Vector3 DUPLICATE_OFFSET = { 50.0f, 0.0f, 0.0f };
 			/** 一覧の高さ */
 			constexpr float OBJECT_LIST_HEIGHT = 200.0f;
+			/** モデルごとのポリゴン数の表の高さ */
+			constexpr float POLYGON_TABLE_HEIGHT = 200.0f;
+
+
+			/**
+			 * @brief 数を3桁ごとにカンマで区切った文字列にする(1234567 → "1,234,567")
+			 * @param value 数
+			 * @return 文字列
+			 */
+			std::string FormatNumber(const long long value)
+			{
+				std::string text = std::to_string(value < 0 ? -value : value);
+				for (int i = static_cast<int>(text.size()) - 3; i > 0; i -= 3)
+				{
+					text.insert(static_cast<size_t>(i), ",");
+				}
+				return value < 0 ? "-" + text : text;
+			}
 
 
 			/**
@@ -98,6 +119,8 @@ namespace app
 			DrawFileMenu();
 			ImGui::Separator();
 			DrawGizmoSetting();
+			ImGui::Separator();
+			DrawPolygonStats();
 			ImGui::Separator();
 			DrawObjectList();
 			ImGui::Separator();
@@ -202,6 +225,80 @@ namespace app
 		}
 
 
+		void StageEditor::DrawPolygonStats()
+		{
+			// モデルごとに、1個のポリゴン数と、置いている数をまとめる
+			struct ModelStats
+			{
+				std::string name;
+				int triangleCount = 0;
+				int objectCount = 0;
+				long long GetTotal() const { return static_cast<long long>(triangleCount) * objectCount; }
+			};
+			std::map<std::string, ModelStats> statsMap;
+			long long totalTriangleCount = 0;
+			for (int i = 0; i < m_stage->GetObjectCount(); ++i)
+			{
+				const actor::StageObject* object = m_stage->GetStageObject(i);
+				ModelStats& stats = statsMap[object->GetModelPath()];
+				stats.name = object->GetName();
+				stats.triangleCount = object->GetTriangleCount();
+				stats.objectCount++;
+				totalTriangleCount += object->GetTriangleCount();
+			}
+
+			ImGui::Text("Total triangles: %s  (objects: %d, models: %d)",
+				FormatNumber(totalTriangleCount).c_str(), m_stage->GetObjectCount(), static_cast<int>(statsMap.size()));
+
+			if (!ImGui::CollapsingHeader("Triangles by model")) return;
+
+			// 合計の多い順(重いモデルが上)
+			std::vector<ModelStats> statsList;
+			statsList.reserve(statsMap.size());
+			for (const auto& pair : statsMap)
+			{
+				statsList.push_back(pair.second);
+			}
+			std::sort(statsList.begin(), statsList.end(), [](const ModelStats& a, const ModelStats& b)
+			{
+				return a.GetTotal() > b.GetTotal();
+			});
+
+			const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit;
+			if (!ImGui::BeginTable("TrianglesByModel", 5, flags, ImVec2(0.0f, POLYGON_TABLE_HEIGHT))) return;
+
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableSetupColumn("Model", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Tris");
+			ImGui::TableSetupColumn("Count");
+			ImGui::TableSetupColumn("Total");
+			ImGui::TableSetupColumn("%");
+			ImGui::TableHeadersRow();
+
+			for (const ModelStats& stats : statsList)
+			{
+				ImGui::TableNextRow();
+
+				// 名前をクリックすると、一覧をそのモデルで絞り込む
+				ImGui::TableSetColumnIndex(0);
+				if (ImGui::Selectable(stats.name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns))
+				{
+					strncpy_s(m_filter, stats.name.c_str(), _TRUNCATE);
+				}
+				ImGui::TableSetColumnIndex(1);
+				ImGui::TextUnformatted(FormatNumber(stats.triangleCount).c_str());
+				ImGui::TableSetColumnIndex(2);
+				ImGui::Text("%d", stats.objectCount);
+				ImGui::TableSetColumnIndex(3);
+				ImGui::TextUnformatted(FormatNumber(stats.GetTotal()).c_str());
+				ImGui::TableSetColumnIndex(4);
+				const float percent = totalTriangleCount > 0 ? static_cast<float>(stats.GetTotal()) * 100.0f / static_cast<float>(totalTriangleCount) : 0.0f;
+				ImGui::Text("%.1f", percent);
+			}
+			ImGui::EndTable();
+		}
+
+
 		void StageEditor::DrawObjectList()
 		{
 			ImGui::Text("Objects: %d", m_stage->GetObjectCount());
@@ -213,8 +310,9 @@ namespace app
 				const actor::StageObject* object = m_stage->GetStageObject(i);
 				if (!IsMatchFilter(object->GetName(), m_filter)) continue;
 
-				// 同じ名前が並ぶので、番号も出す。## の後ろで ID を分ける
-				const std::string label = std::to_string(i) + ": " + object->GetName() + "##" + std::to_string(i);
+				// 同じ名前が並ぶので、番号も出す。後ろにポリゴンの数。## の後ろで ID を分ける
+				const std::string label = std::to_string(i) + ": " + object->GetName()
+					+ "  (" + FormatNumber(object->GetTriangleCount()) + ")##" + std::to_string(i);
 				if (ImGui::Selectable(label.c_str(), i == m_selectedIndex))
 				{
 					m_selectedIndex = i;
@@ -235,6 +333,7 @@ namespace app
 
 			ImGui::Text("%s", object->GetName().c_str());
 			ImGui::TextDisabled("%s", object->GetModelPath().c_str());
+			ImGui::Text("Triangles: %s", FormatNumber(object->GetTriangleCount()).c_str());
 
 			// 値を変えている間は見た目だけ動かして、放した時にコリジョンを作り直す
 			bool isEditEnd = false;
@@ -256,12 +355,23 @@ namespace app
 			isEditEnd |= ImGui::IsItemDeactivatedAfterEdit();
 
 			Vector3 scale = object->GetScale();
+			const bool isMirrored = actor::StageObject::IsMirrored(scale);
 			if (ImGui::DragFloat3("Scale", scale.v, 0.01f))
 			{
 				object->SetScale(scale);
 				MarkDirty();
 			}
 			isEditEnd |= ImGui::IsItemDeactivatedAfterEdit();
+
+			// 反転の有無は、モデルを作る時にしか決められない(表と裏のどちらを描くか)ので、変わったら知らせる
+			if (actor::StageObject::IsMirrored(object->GetScale()) != isMirrored)
+			{
+				m_message = "Mirror changed: Save and Reload to fix faces.";
+			}
+			if (actor::StageObject::IsMirrored(object->GetScale()))
+			{
+				ImGui::TextDisabled("Mirrored (negative scale)");
+			}
 
 			bool isCollision = object->IsCollision();
 			if (ImGui::Checkbox("Collision", &isCollision))
@@ -350,9 +460,16 @@ namespace app
 			ImGuizmo::SetRect(0.0f, 0.0f, io.DisplaySize.x, io.DisplaySize.y);
 
 			// 位置・回転・スケールから、ワールド行列を作る
+			// ※ ギズモは、行列を分解する時にスケールをプラスにしてしまうので、反転(マイナス)は外して渡して、戻す時に付け直す
 			Vector3 position = object->GetPosition();
 			Vector3 rotationDeg = object->GetRotationDeg();
-			Vector3 scale = object->GetScale();
+			const Vector3& originalScale = object->GetScale();
+			const Vector3 scaleSign(
+				originalScale.x < 0.0f ? -1.0f : 1.0f,
+				originalScale.y < 0.0f ? -1.0f : 1.0f,
+				originalScale.z < 0.0f ? -1.0f : 1.0f
+			);
+			Vector3 scale(originalScale.x * scaleSign.x, originalScale.y * scaleSign.y, originalScale.z * scaleSign.z);
 			Matrix worldMatrix;
 			ImGuizmo::RecomposeMatrixFromComponents(position.v, rotationDeg.v, scale.v, &worldMatrix.m[0][0]);
 
@@ -376,6 +493,7 @@ namespace app
 			{
 				// ドラッグした結果を、位置・回転・スケールに戻す
 				ImGuizmo::DecomposeMatrixToComponents(&worldMatrix.m[0][0], position.v, rotationDeg.v, scale.v);
+				scale.Set(scale.x * scaleSign.x, scale.y * scaleSign.y, scale.z * scaleSign.z);
 				object->SetPosition(position);
 				object->SetRotationDeg(rotationDeg);
 				object->SetScale(scale);

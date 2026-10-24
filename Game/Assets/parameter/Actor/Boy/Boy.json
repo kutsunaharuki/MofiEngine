@@ -8,6 +8,6 @@
   "hideLowRayHeight": 30.0,
   "hideHighRayHeight": 110.0,
   "gravity":1500.0,
-  "updatePosition": [0, 0, 0],
+  "initialPosition": [0, 0, 0],
   "updateScale": [3.4, 3.4, 3.4]
 }

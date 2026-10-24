@@ -108,8 +108,22 @@ namespace app
 			 */
 			bool IsCollision() const { return m_isCollision; }
 
+			/**
+			 * @brief モデルのポリゴン(三角形)の数を取得
+			 * @return 三角形の数
+			 * @details 読み込んだ時に1回だけ数えて覚えておく
+			 */
+			int GetTriangleCount() const { return m_triangleCount; }
+
 
 		public:
+			/**
+			 * @brief スケールが反転しているか
+			 * @param scale スケール
+			 * @return 反転していれば true
+			 * @details 3ds Max のミラーで置いた物は、スケールがマイナスになる
+			 */
+			static bool IsMirrored(const Vector3& scale);
 			/**
 			 * @brief 度数の回転から Quaternion を作る
 			 * @param rotationDeg 回転(度数)
@@ -124,6 +138,16 @@ namespace app
 			 * @details tkl から読み込んだ回転を、度数にするのに使う
 			 */
 			static Vector3 ToRotationDeg(const Quaternion& rotation);
+			/**
+			 * @brief モデルを囲む球の中心(ワールド)を取得
+			 * @return 球の中心(ワールド)
+			 */
+			const Vector3& GetBoundingCenter() const { return m_boundingCenter; }
+			/**
+			 * @brief モデルを囲む球の半径を取得
+			 * @return 球の半径
+			 */
+			float GetBoundingRadius() const { return m_boundingRadius; }
 
 
 		private:
@@ -132,9 +156,20 @@ namespace app
 			 * @details コリジョンはモデルのワールド行列から作るので、作る前にも呼ぶ
 			 */
 			void ApplyTransform();
+			/**
+			 * @brief 囲む球を今のワールド行列で計算し直す
+			 */
+			void UpdateBoundingSphere();
 
 
 		private:
+			/** モデルを囲むボックス(モデルの座標系。読み込み時に1回だけ作る) */
+			AABB m_localAABB;
+			/** 囲む球の中心(ワールド) */
+			Vector3 m_boundingCenter;
+			/** 囲む球の半径 */
+			float m_boundingRadius;
+
 			/** 名前(一覧の表示と保存用) */
 			std::string m_name;
 			/** モデルのパス(保存用。ModelRender からは取れない) */
@@ -148,6 +183,8 @@ namespace app
 			std::unique_ptr<PhysicsStaticObject> m_physicsObject;
 			/** コリジョンを付けるか */
 			bool m_isCollision;
+			/** モデルのポリゴン(三角形)の数 */
+			int m_triangleCount;
 		};
 	}
 }
