@@ -139,6 +139,14 @@ namespace app
 			 */
 			static Vector3 ToRotationDeg(const Quaternion& rotation);
 			/**
+			 * @brief 回転の行列を度数の回転にする
+			 * @param rotationMatrix 回転だけの行列(スケールと位置は入れない)
+			 * @return 回転(度数)
+			 * @details ToQuaternion と同じ順番(X → Y → Z)で分ける。
+			 *          Y がちょうど ±90 度の時(ジンバルロック)も、正しい向きになるように求める
+			 */
+			static Vector3 RotationMatrixToDeg(const Matrix& rotationMatrix);
+			/**
 			 * @brief モデルを囲む球の中心(ワールド)を取得
 			 * @return 球の中心(ワールド)
 			 */

@@ -492,8 +492,22 @@ namespace app
 			if (ImGuizmo::Manipulate(&viewMatrix.m[0][0], &projectionMatrix.m[0][0], operation, mode, &worldMatrix.m[0][0], nullptr, m_isSnap ? snap : nullptr))
 			{
 				// ドラッグした結果を、位置・回転・スケールに戻す
-				ImGuizmo::DecomposeMatrixToComponents(&worldMatrix.m[0][0], position.v, rotationDeg.v, scale.v);
-				scale.Set(scale.x * scaleSign.x, scale.y * scaleSign.y, scale.z * scaleSign.z);
+				// ※ ImGuizmo::DecomposeMatrixToComponents は、Y の回転がちょうど ±90 度の時に X と Z の回転を捨ててしまうので、自分で分ける
+				//    1~3行目 = 各軸(スケール込み)、4行目 = 位置
+				Vector3 axisX(worldMatrix.m[0][0], worldMatrix.m[0][1], worldMatrix.m[0][2]);
+				Vector3 axisY(worldMatrix.m[1][0], worldMatrix.m[1][1], worldMatrix.m[1][2]);
+				Vector3 axisZ(worldMatrix.m[2][0], worldMatrix.m[2][1], worldMatrix.m[2][2]);
+				position.Set(worldMatrix.m[3][0], worldMatrix.m[3][1], worldMatrix.m[3][2]);
+				scale.Set(axisX.Length() * scaleSign.x, axisY.Length() * scaleSign.y, axisZ.Length() * scaleSign.z);
+
+				axisX.Normalize();
+				axisY.Normalize();
+				axisZ.Normalize();
+				Matrix rotationMatrix = Matrix::Identity;
+				rotationMatrix.m[0][0] = axisX.x; rotationMatrix.m[0][1] = axisX.y; rotationMatrix.m[0][2] = axisX.z;
+				rotationMatrix.m[1][0] = axisY.x; rotationMatrix.m[1][1] = axisY.y; rotationMatrix.m[1][2] = axisY.z;
+				rotationMatrix.m[2][0] = axisZ.x; rotationMatrix.m[2][1] = axisZ.y; rotationMatrix.m[2][2] = axisZ.z;
+				rotationDeg = actor::StageObject::RotationMatrixToDeg(rotationMatrix);
 				object->SetPosition(position);
 				object->SetRotationDeg(rotationDeg);
 				object->SetScale(scale);

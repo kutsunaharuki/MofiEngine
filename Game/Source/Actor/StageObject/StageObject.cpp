@@ -7,12 +7,24 @@
 #include "imgui.h"
 #include "ImGuizmo.h"
 #include <cfloat>
+#include <cmath>
 
 
 namespace app
 {
 	namespace actor
 	{
+		namespace
+		{
+			/**
+			 * sin(Y の回転) がこれより大きいと、Y がほぼ ±90 度とみなす(ジンバルロック)
+			 * ※ 小さすぎると、±90 度に近いだけの回転まで Z を 0 にしてしまい、向きがずれる。
+			 *    美術館の 1240 個で試して、ずれが一番小さかった値(0.9999 だと最大 0.6 度ずれた)
+			 */
+			constexpr float GIMBAL_LOCK_THRESHOLD = 0.999999f;
+		}
+
+
 		StageObject::StageObject()
 			: m_rotationDeg(Vector3::Zero)
 			, m_isCollision(false)
@@ -163,12 +175,40 @@ namespace app
 		{
 			Matrix rotationMatrix;
 			rotationMatrix.MakeRotationFromQuaternion(rotation);
+			return RotationMatrixToDeg(rotationMatrix);
+		}
 
-			float translation[3];
-			float scale[3];
-			Vector3 rotationDeg;
-			ImGuizmo::DecomposeMatrixToComponents(&rotationMatrix.m[0][0], translation, rotationDeg.v, scale);
-			return rotationDeg;
+
+		Vector3 StageObject::RotationMatrixToDeg(const Matrix& rotationMatrix)
+		{
+			// ToQuaternion(ImGuizmo の RecomposeMatrixFromComponents)と同じ「X → Y → Z」の順番の回転として分ける
+			// 回転の行列は X(a) × Y(b) × Z(c) で、
+			//   m[0][2] = -sin(b)
+			//   m[0][0] = cos(b)cos(c),  m[0][1] = cos(b)sin(c)
+			//   m[1][2] = sin(a)cos(b),  m[2][2] = cos(a)cos(b)
+			// になる
+			const auto& m = rotationMatrix.m;
+			const float sinB = (std::max)(-1.0f, (std::min)(1.0f, -m[0][2]));
+
+			Vector3 rotationRad;
+			rotationRad.y = std::asin(sinB);
+
+			if (std::fabs(sinB) < GIMBAL_LOCK_THRESHOLD)
+			{
+				rotationRad.x = std::atan2(m[1][2], m[2][2]);
+				rotationRad.z = std::atan2(m[0][1], m[0][0]);
+			}
+			else
+			{
+				// Y がちょうど ±90 度の時は、cos(b) = 0 になって、上の式では X と Z が求められない(ジンバルロック)
+				// この時は X と Z が同じ向きの回転になるので、Z を 0 にして、全部 X の回転として求める
+				//   m[1][1] = cos(a),  m[2][1] = -sin(a)
+				// ※ ImGuizmo の DecomposeMatrixToComponents は、ここで X と Z を 0 にしてしまうので使わない
+				rotationRad.x = std::atan2(-m[2][1], m[1][1]);
+				rotationRad.z = 0.0f;
+			}
+
+			return Vector3(Math::RadToDeg(rotationRad.x), Math::RadToDeg(rotationRad.y), Math::RadToDeg(rotationRad.z));
 		}
 
 

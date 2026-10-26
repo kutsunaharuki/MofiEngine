@@ -8,7 +8,7 @@
 #include "ResultScene.h"
 #include "Source/Camera/GameCamera.h"
 #include "imgui.h"
-#include "Enemy.h"
+#include "Source/Actor/Character/Enemy/EnemyBase.h"
 #include "Source/Actor/Character/Boy/Boy.h"
 #include "Source/UI/SoundOptionMenu/SoundOptionMenu.h"
 #include "Source/Sound/SoundManager.h"
@@ -104,9 +104,11 @@ namespace app
 		// ファインダーの操作(覗く・ピント・ズーム・撮影)を FinderController に任せる
 		m_finderController.Initialize(&m_photoCapture);
 
-		// 敵を作成
-		m_enemy = std::make_unique<app::Enemy>();
-		m_enemy->Init();
+		// 大男を作成
+		m_enemy = std::make_unique<app::actor::EnemyBase>(app::actor::EnemyBase::EnemyType::BigMan);
+		m_enemy->Start();
+
+
 		// ファインダーコントローラーに敵を登録する
 		m_finderController.RegisterSubject(m_enemy.get());
 		m_enemy->Update();
