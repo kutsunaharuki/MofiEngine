@@ -42,7 +42,7 @@ namespace app
 			};
 
 			/** 調整用パラメーターの JSON */
-			constexpr const char* BOY_PARAMETER_PATH = "Assets/parameter/Actor/Boy/Boy.json";
+			constexpr const char* BOY_PARAMETER_PATH = "Assets/parameter/Actor/Character/Boy/Boy.json";
 		}
 
 

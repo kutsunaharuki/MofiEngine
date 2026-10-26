@@ -34,6 +34,7 @@ namespace app
 	namespace actor
 	{
 		class Boy;
+		class EnemyBase;
 	}
 
 	namespace stage
@@ -73,7 +74,7 @@ namespace app
 		/** 写真撮影クラス */
 		nsK2EngineLow::PhotoCapture m_photoCapture;
 		/** 敵 */
-		std::unique_ptr<app::Enemy> m_enemy;
+		std::unique_ptr<app::actor::EnemyBase> m_enemy;
 		/** 主人公 */
 		std::unique_ptr<app::actor::Boy> m_boy;
 		/** ステージ(置物) */
