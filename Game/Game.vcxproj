@@ -272,7 +272,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Preview|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\Actor\Actor.cpp" />
@@ -283,6 +282,9 @@
     <ClCompile Include="Source\Actor\Character\Boy\Boy.cpp" />
     <ClCompile Include="Source\Actor\Character\Boy\BoyStateMachine.cpp" />
     <ClCompile Include="Source\Actor\Character\Boy\BoyState.cpp" />
+    <ClCompile Include="Source\Actor\Character\Enemy\EnemyBase.cpp" />
+    <ClCompile Include="Source\Actor\Character\Enemy\EnemyController.cpp" />
+    <ClCompile Include="Source\Actor\Character\Enemy\EnemyStateMachine.cpp" />
     <ClCompile Include="Source\Camera\FinderController.cpp" />
     <ClCompile Include="Source\Camera\GameCamera.cpp" />
     <ClCompile Include="Source\Camera\Object\FinderParameter.cpp" />
@@ -316,7 +318,6 @@
     <ClCompile Include="system\system.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Enemy.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Source\Actor\Actor.h" />
@@ -327,6 +328,9 @@
     <ClInclude Include="Source\Actor\Character\Boy\Boy.h" />
     <ClInclude Include="Source\Actor\Character\Boy\BoyStateMachine.h" />
     <ClInclude Include="Source\Actor\Character\Boy\BoyState.h" />
+    <ClInclude Include="Source\Actor\Character\Enemy\EnemyBase.h" />
+    <ClInclude Include="Source\Actor\Character\Enemy\EnemyController.h" />
+    <ClInclude Include="Source\Actor\Character\Enemy\EnemyStateMachine.h" />
     <ClInclude Include="Source\Camera\FinderController.h" />
     <ClInclude Include="Source\Camera\GameCamera.h" />
     <ClInclude Include="Source\Camera\Object\FinderParameter.h" />
