@@ -94,11 +94,10 @@ const UINT UI_SPACE_WIDTH = 1920;	// UI空間の幅。
 const UINT UI_SPACE_HEIGHT = 1080;	// UI空間の高さ。
 static const int MAX_BONE = 512;	// ボーンの最大数。
 
-// フラスタム
-#include "geometry/Frustum.h"
-
 // 写真撮影
 #include "graphics/PhotoCapture.h"
+
+#include "geometry/Frustum.h"
 
 #include "graphics/RenderingEngine.h"
 #include "util/Profiler.h"

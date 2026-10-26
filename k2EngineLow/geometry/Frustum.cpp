@@ -3,6 +3,7 @@
  * @brief フラスタム
  */
 #include "k2EngineLowPreCompile.h"
+#include "Frustum.h"
 
 
 namespace nsK2EngineLow
