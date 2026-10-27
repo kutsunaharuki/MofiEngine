@@ -1,8 +1,0 @@
-{
-  "comment":"敵のパラメーター",
-  "moveSpeed":[],
-  "alertSpeed":250.0,
-  "focusPositionY":[0,100,0],
-  "initialPosition":[0,0,0],
-  "initialScale":[1.5,1.5,1.5]
-}

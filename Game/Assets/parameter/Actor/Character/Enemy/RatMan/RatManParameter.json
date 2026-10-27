@@ -1,0 +1,8 @@
+{
+  "comment":"ねずみ男のパラメーター",
+  "moveSpeed":100.0,
+  "alertSpeed":120.0,
+  "focusHeight":100.0,
+  "initialPosition":[0,0,0],
+  "initialScale":[1.5,1.5,1.5]
+}

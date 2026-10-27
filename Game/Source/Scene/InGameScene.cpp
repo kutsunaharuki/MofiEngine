@@ -9,6 +9,7 @@
 #include "Source/Camera/GameCamera.h"
 #include "imgui.h"
 #include "Source/Actor/Character/Enemy/EnemyBase.h"
+#include "Source/Actor/Character/Enemy/EnemyStateMachine.h"
 #include "Source/Actor/Character/Boy/Boy.h"
 #include "Source/UI/SoundOptionMenu/SoundOptionMenu.h"
 #include "Source/Sound/SoundManager.h"
@@ -158,11 +159,9 @@ namespace app
 		}
 
 		// ファインダーの操作(覗く・十字の上下でピント・RB1/LB1)でズーム・Bで撮影
-		// ※ 撮影できたフレーム true が返る(クールタイム中は撮れない)
 		const bool isShot = m_finderController.Update();
 
 		// 主人公の更新(ファインダーを覗いている間は、撮影ステートになる)
-		// ※ カメラが主人公の新しい位置を追いかけるように、カメラより先に更新する
 		m_boy->SetIsFinderActive(m_photoCapture.IsFinderActive());
 		{
 			K2_PROFILE_CPU("Boy Update");
@@ -179,10 +178,11 @@ namespace app
 		finderCamera.SetTarget(g_camera3D->GetTarget());
 		finderCamera.Update();
 
-		// 敵の位置更新
-		Quaternion enemyRot;
-		enemyRot.SetRotationDegY(180.0f);
-		m_enemy->SetRotation(enemyRot);
+		// 確認用:右へ歩かせる(EnemyController ができたら消す)
+		m_enemy->GetEnemyStateMachine()->SetMoveDirection(Vector3(1.0f, 0.0f, 0.0f));
+		m_enemy->GetEnemyStateMachine()->SetMoveAmount(1.0f);
+
+		// 敵の更新
 		{
 			K2_PROFILE_CPU("Enemy Update");
 			m_enemy->Update();

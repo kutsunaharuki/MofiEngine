@@ -79,7 +79,7 @@ namespace app
 
 
 		public:
-			ActorStateMachine(Actor* owner);
+			explicit ActorStateMachine(Actor* owner);
 			virtual ~ActorStateMachine() override = default;
 
 

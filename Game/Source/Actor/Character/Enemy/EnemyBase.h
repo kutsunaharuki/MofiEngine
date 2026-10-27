@@ -7,12 +7,18 @@
 #include "Source/Camera/PhotoSubject.h"
 #include "Source/Actor/Character/CharacterBase.h"
 #include <cstdint>
+#include "Source/Util/ParameterManager.h"
+#include "Object/EnemyParameter.h"
 
 
 namespace app
 {
 	namespace actor
 	{
+		/** 前方宣言 */
+		class EnemyStateMachine;
+
+
 		/**
 		 * @brief 敵の親となるクラス
 		 * @details 敵の種類でモデルとパラメーターを切り替える
@@ -36,6 +42,7 @@ namespace app
 				Idle,      // 待機
 				Walk,      // 歩く
 				Alert,     // 警戒
+				Steal,     // 盗む
 				Max        // 最大数
 			};
 
@@ -63,14 +70,28 @@ namespace app
 			 */
 			Vector3 GetFocusPosition() const override;
 
+			/**
+			 * @brief 敵のステートマシンを取得
+			 * @return 敵のステートマシン
+			 * @detalis 敵のステートマシンは CharacterStateMachine が所持しているので変換して返す
+			 */
+			EnemyStateMachine* GetEnemyStateMachine();
+
+			/**
+			 * @brief 調整パラメーターを取得
+			 * @return 調整パラメーター(JSON が変わっていれば、読み直してから返す)
+			 * @details Get() が読み直しで中身を書き換えるので、const 関数にはできない
+			 */
+			const EnemyParameter& GetParameter() { return m_enemyParameter.Get(); }
+
 
 		private:
 			/** 敵の種類 */
 			EnemyType m_enemyType;
-			/** アニメーションクリップ */
-			std::unique_ptr<AnimationClip> m_animationClip;
-			/** 敵のアニメーションのリスト */
-			std::vector<std::unique_ptr<AnimationClip[]>> m_enemyAnimationClipList;
+			/** 敵のパラメーター情報 */
+			util::Parameter<EnemyParameter> m_enemyParameter;
+			/** ピントを合わせる高さ */
+			float m_focusHeight;
 		};
 	}
 }

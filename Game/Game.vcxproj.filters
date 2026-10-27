@@ -52,12 +52,6 @@
     <Filter Include="Source\Actor\Character\Enemy">
       <UniqueIdentifier>{70ccefc4-e0ab-4242-9ec8-38c5e8ba7271}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Actor\Character\Enemy\BigMan">
-      <UniqueIdentifier>{80dc1ac1-aef0-4f31-939e-47c6cefafa29}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Actor\Character\Enemy\RatMan">
-      <UniqueIdentifier>{91340299-4ec4-453b-8355-c5d8d199468b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Actor\Character\Boy\Object">
       <UniqueIdentifier>{e7f3c424-08ac-457a-be45-acee588c9072}</UniqueIdentifier>
     </Filter>
@@ -66,6 +60,9 @@
     </Filter>
     <Filter Include="Source\Stage">
       <UniqueIdentifier>{2a259500-d7ed-4c88-b390-0c682c19d76f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Actor\Character\Enemy\Object">
+      <UniqueIdentifier>{b9faf3bf-2ca3-4825-8000-3414d43255ac}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -207,6 +204,12 @@
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyBase.cpp">
       <Filter>Source\Actor\Character\Enemy</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Enemy\EnemyState.cpp">
+      <Filter>Source\Actor\Character\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Enemy\Object\EnemyParameter.cpp">
+      <Filter>Source\Actor\Character\Enemy\Object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -331,6 +334,12 @@
     </ClInclude>
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyBase.h">
       <Filter>Source\Actor\Character\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Enemy\EnemyState.h">
+      <Filter>Source\Actor\Character\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Enemy\Object\EnemyParameter.h">
+      <Filter>Source\Actor\Character\Enemy\Object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

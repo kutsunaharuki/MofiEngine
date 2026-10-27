@@ -284,7 +284,9 @@
     <ClCompile Include="Source\Actor\Character\Boy\BoyState.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyBase.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyController.cpp" />
+    <ClCompile Include="Source\Actor\Character\Enemy\EnemyState.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyStateMachine.cpp" />
+    <ClCompile Include="Source\Actor\Character\Enemy\Object\EnemyParameter.cpp" />
     <ClCompile Include="Source\Camera\FinderController.cpp" />
     <ClCompile Include="Source\Camera\GameCamera.cpp" />
     <ClCompile Include="Source\Camera\Object\FinderParameter.cpp" />
@@ -330,7 +332,9 @@
     <ClInclude Include="Source\Actor\Character\Boy\BoyState.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyBase.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyController.h" />
+    <ClInclude Include="Source\Actor\Character\Enemy\EnemyState.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyStateMachine.h" />
+    <ClInclude Include="Source\Actor\Character\Enemy\Object\EnemyParameter.h" />
     <ClInclude Include="Source\Camera\FinderController.h" />
     <ClInclude Include="Source\Camera\GameCamera.h" />
     <ClInclude Include="Source\Camera\Object\FinderParameter.h" />

@@ -17,7 +17,7 @@ namespace app
 		class CharacterStateMachine : public ActorStateMachine
 		{
 		public:
-			CharacterStateMachine(CharacterBase* owner);
+			explicit CharacterStateMachine(CharacterBase* owner);
 			virtual ~CharacterStateMachine() override = default;
 
 			/**
