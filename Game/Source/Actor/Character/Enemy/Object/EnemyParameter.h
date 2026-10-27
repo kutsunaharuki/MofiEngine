@@ -1,6 +1,6 @@
 ﻿/**
- * @file RatManParameter.h
- * @brief ねずみ男の調整パラメーター
+ * @file EnemyParameter.h
+ * @brief 敵の調整パラメーター
  */
 #pragma once
 #include "Source/Util/ParameterManager.h"
@@ -11,13 +11,13 @@ namespace app
 	namespace actor
 	{
 		/**
-		 * @brief ねずみ男の調整パラメーター
+		 * @brief 敵の調整パラメーター
 		 */
-		struct RatManParameter
+		struct EnemyParameter
 		{
-			/** 移動速度 */
-			float moveSpeed;
-			/** 警戒時の移動速度 */
+			/** 移動速度(3D) */
+			Vector3 bigmanMoveSpeed;
+			/** 警戒時の速度 */
 			float alertSpeed;
 			/** ピントを合わせる位置(Y座標) */
 			Vector3 focusPositionY;
@@ -25,10 +25,10 @@ namespace app
 			Vector3 initialPosition;
 			/** 初期スケール */
 			Vector3 initialScale;
-			
 
-			RatManParameter()
-				: moveSpeed(1.0f)
+
+			EnemyParameter()
+				: bigmanMoveSpeed(Vector3::Zero)
 				, alertSpeed(1.0f)
 				, focusPositionY(Vector3::Zero)
 				, initialPosition(Vector3::Zero)
@@ -40,7 +40,7 @@ namespace app
 			 * @brief JSONからパラメーターを読む
 			 * @param file パラメーターファイル
 			 */
-			void Road(const util::ParameterFile& file)
+			void Read(const util::ParameterFile& file)
 			{
 				moveSpeed = file.GetFloat("moveSpeed", moveSpeed);
 				alertSpeed = file.GetFloat("alertSpeed", alertSpeed);
@@ -51,3 +51,4 @@ namespace app
 		};
 	}
 }
+
