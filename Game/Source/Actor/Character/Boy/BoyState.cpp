@@ -49,7 +49,8 @@ namespace app
 
 		void BoyWalkState::Update()
 		{
-			m_stateMachine.Move(m_stateMachine.GetParameter().walkSpeed);
+			const BoyParameter& parameter = m_stateMachine.GetParameter();
+			m_stateMachine.Move(parameter.walkSpeed);
 		}
 
 
@@ -206,6 +207,13 @@ namespace app
 		/*************************************/
 
 
+		namespace
+		{
+			/** ベクトルを反転するためのスケール */
+			constexpr float VECTOR_SCALE = -1.0f;
+		}
+
+
 		void BoyHighHideState::Enter()
 		{
 			m_stateMachine.PlayAnimation(EnBoyAnimation::HighHide);
@@ -217,7 +225,7 @@ namespace app
 			// 壁を背にするので、壁と反対の方向を向く
 			m_stateMachine.StopMove();
 			Vector3 direction = m_stateMachine.GetDirectionToHideObject();
-			direction.Scale(-1.0f);
+			direction.Scale(VECTOR_SCALE);
 			m_stateMachine.RotateToward(direction);
 		}
 
