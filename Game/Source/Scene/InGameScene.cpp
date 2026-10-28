@@ -178,7 +178,7 @@ namespace app
 		finderCamera.SetTarget(g_camera3D->GetTarget());
 		finderCamera.Update();
 
-		// 確認用:右へ歩かせる(EnemyController ができたら消す)
+		// 確認用:右へ歩かせる
 		m_enemy->GetEnemyStateMachine()->SetMoveDirection(Vector3(1.0f, 0.0f, 0.0f));
 		m_enemy->GetEnemyStateMachine()->SetMoveAmount(1.0f);
 

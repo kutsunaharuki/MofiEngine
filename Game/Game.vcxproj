@@ -283,7 +283,6 @@
     <ClCompile Include="Source\Actor\Character\Boy\BoyStateMachine.cpp" />
     <ClCompile Include="Source\Actor\Character\Boy\BoyState.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyBase.cpp" />
-    <ClCompile Include="Source\Actor\Character\Enemy\EnemyController.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyState.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyStateMachine.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\Object\EnemyParameter.cpp" />
@@ -331,7 +330,6 @@
     <ClInclude Include="Source\Actor\Character\Boy\BoyStateMachine.h" />
     <ClInclude Include="Source\Actor\Character\Boy\BoyState.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyBase.h" />
-    <ClInclude Include="Source\Actor\Character\Enemy\EnemyController.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyState.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyStateMachine.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\Object\EnemyParameter.h" />
