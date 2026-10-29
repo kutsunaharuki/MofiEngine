@@ -124,6 +124,12 @@ namespace app
 			 */
 			float GetCellSize() const { return m_setting.cellSize; }
 			/**
+			 * @brief 地図を作った時の設定を取得する
+			 * @return 地図を作った時の設定
+			 * @details デバッグ表示で、Build と同じ条件(高さの帯・敵の半径)を使うため
+			 */
+			const NavGridSetting& GetSetting() const { return m_setting; }
+			/**
 			 * @brief 地図が出来ているか
 			 * @return 出来ていれば true、出来ていなければ false
 			 */

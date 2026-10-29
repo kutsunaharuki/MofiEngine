@@ -13,6 +13,14 @@
 
 namespace app
 {
+	namespace ai
+	{
+		/** 前方宣言 */
+		class NavGrid;
+		class Pathfinder;
+	}
+
+
 	namespace actor
 	{
 		/** 前方宣言 */
@@ -84,6 +92,13 @@ namespace app
 			 */
 			const EnemyParameter& GetParameter() { return m_enemyParameter.Get(); }
 
+			/**
+			 * @brief 経路探索に使うものを設定
+			 * @param pathfinder 道順を求める
+			 * @parma navGrid 地図
+			 */
+			void SetNavigation(const ai::Pathfinder* pathfinder, const ai::NavGrid* navGrid);
+
 
 		private:
 			/** 敵の種類 */
@@ -92,6 +107,11 @@ namespace app
 			util::Parameter<EnemyParameter> m_enemyParameter;
 			/** ピントを合わせる高さ */
 			float m_focusHeight;
+
+			/** 道順を求める */
+			const ai::Pathfinder* m_pathfinder;
+			/** 地図 */
+			const ai::NavGrid* m_navGrid;
 		};
 	}
 }

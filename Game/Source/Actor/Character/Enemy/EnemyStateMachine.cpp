@@ -5,6 +5,9 @@
 #include "stdafx.h"
 #include "EnemyStateMachine.h"
 #include "EnemyState.h"
+#include "Source/AI/Navigation/NavGrid.h"
+#include "Source/AI/Navigation/Pathfinder.h"
+#include "Source/AI/Navigation/PathFollower.h"
 
 
 namespace app
@@ -31,6 +34,8 @@ namespace app
 			, m_moveDirection(Vector3::Zero)
 			, m_isAlert(false)
 			, m_rotation(Quaternion::Identity)
+			, m_pathfinder(nullptr)
+			, m_pathFollower(std::make_unique<ai::PathFollower>())
 		{
 			// 敵のステートを追加
 			AddState<EnemyIdleState>(*this);
@@ -39,6 +44,10 @@ namespace app
 		}
 		
 		
+		EnemyStateMachine::~EnemyStateMachine()
+		{}
+
+
 		void EnemyStateMachine::Move(const float speed)
 		{
 			Vector3 direction = m_moveDirection;
@@ -87,6 +96,86 @@ namespace app
 			const float t = TClamp<float>::Clamp(ROTATE_SPEED * deltaTime, ROTATION_VALUE_LOW, ROTATION_VALUE_HIGH);
 			m_rotation.Slerp(t, m_rotation, target);
 			SetRotation(m_rotation);
+		}
+
+		void EnemyStateMachine::SetNavigation(const ai::Pathfinder* pathfinder, const ai::NavGrid* navGrid)
+		{
+			m_pathfinder = pathfinder;
+			// 地図はうろつきの壁チェックに使う
+			m_pathFollower->SetNavGrid(navGrid);
+		}
+
+		bool EnemyStateMachine::MoveTo(const Vector3 & goal)
+		{
+			// Pathfinder を借りていなければ探せない
+			if (m_pathfinder == nullptr) return false;
+
+			m_goal = goal;
+			
+			std::vector<Vector3> path;
+			if (!m_pathfinder->FindPath(GetTransform().GetWorldPosition(), goal, path))
+			{
+				// 道が見つからなければ止まる
+				StopPathFollow();
+				return false;
+			}
+
+			// 道順を設定
+			m_pathFollower->SetPath(path);
+			return true;
+		}
+
+
+		void EnemyStateMachine::StopPathFollow()
+		{
+			// 止まらせる
+			m_pathFollower->Clear();
+			m_moveDirection = Vector3::Zero;
+			m_moveAmount = 0.0f;
+		}
+
+
+		void EnemyStateMachine::UpdatePathFollow()
+		{
+			// 道順が無ければ、外から設定された移動方向・移動量をそのまま使用する
+			if (!m_pathFollower->HasPath()) return;
+
+			const Vector3& position = GetTransform().GetWorldPosition();
+			const float deltaTime = g_gameTime->GetFrameDeltaTime();
+
+			m_pathFollower->Update(position, deltaTime);
+
+			// 詰まったら、今の位置から道順を求め直す(敵同士がぶつかった時などの保険)
+			if (m_pathFollower->IsStuck())
+			{
+				if (MoveTo(m_goal))
+				{
+					// 求め直した場所でこのフレームの方向を出し直す
+					m_pathFollower->Update(position, deltaTime);
+				}
+			}
+
+			// 既存の入り口に流すだけ
+			m_moveDirection = m_pathFollower->GetDirection();
+			m_moveAmount = m_pathFollower->GetMoveAmount();
+		}
+
+		
+		void EnemyStateMachine::SetWanderSetting(const ai::WanderSetting & setting)
+		{
+			m_pathFollower->SetWanderSetting(setting);
+		}
+
+		
+		bool EnemyStateMachine::IsFollowingPath() const
+		{
+			return m_pathFollower->HasPath();
+		}
+
+		
+		bool EnemyStateMachine::IsArrived() const
+		{
+			return m_pathFollower->IsArrived();
 		}
 
 

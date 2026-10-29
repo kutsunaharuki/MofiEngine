@@ -85,6 +85,8 @@ namespace app
 		EnemyBase::EnemyBase(EnemyType type)
 			: m_enemyType(type)
 			, m_focusHeight(0.0f)
+			, m_pathfinder(nullptr)
+			, m_navGrid(nullptr)
 		{}
 
 
@@ -112,7 +114,8 @@ namespace app
 
 			// 敵のステートマシンを作成
 			m_characterStateMachine = std::make_unique<EnemyStateMachine>(this);
-
+			// 預かっていた経路探索を作ったステートマシンに渡す
+			GetEnemyStateMachine()->SetNavigation(m_pathfinder, m_navGrid);
 			return CharacterBase::Start();
 		}
 
@@ -122,6 +125,9 @@ namespace app
 			// ※ GetFocusPosition は const なので、Get()(JSON が変わっていれば読み直す)を呼べない。ここで読んでおく
 			m_focusHeight = m_enemyParameter.Get().focusHeight;
 
+			// ステートマシンが Walk / Idle を選ぶ前に道順から移動方向と移動量を決めておく
+			GetEnemyStateMachine()->UpdatePathFollow();
+
 			CharacterBase::Update();
 		}
 
@@ -130,6 +136,21 @@ namespace app
 		{
 			// Start() で m_characterStateMachine に EnemyStateMachine を作っているのでそのままキャストして返す
 			return static_cast<EnemyStateMachine*>(m_characterStateMachine.get());
+		}
+
+
+		void EnemyBase::SetNavigation(const ai::Pathfinder* pathfinder, const ai::NavGrid* navGrid)
+		{
+			// ステートマシンができるまで預かっておく
+			m_pathfinder = pathfinder;
+			m_navGrid = navGrid;
+
+
+			// すでにステートマシンができてればすぐ渡す
+			if (m_characterStateMachine)
+			{
+				GetEnemyStateMachine()->SetNavigation(m_pathfinder, m_navGrid);
+			}
 		}
 
 

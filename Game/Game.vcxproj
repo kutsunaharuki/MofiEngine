@@ -336,6 +336,7 @@
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyState.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyStateMachine.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\Object\EnemyParameter.h" />
+    <ClInclude Include="Source\AI\Navigation\NavGrid.h" />
     <ClInclude Include="Source\AI\Navigation\Pathfinder.h" />
     <ClInclude Include="Source\AI\Navigation\PathFollower.h" />
     <ClInclude Include="Source\Camera\FinderController.h" />

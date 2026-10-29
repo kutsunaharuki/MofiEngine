@@ -359,6 +359,9 @@
     <ClInclude Include="Source\AI\Navigation\Pathfinder.h">
       <Filter>Source\AI\Navigation</Filter>
     </ClInclude>
+    <ClInclude Include="Source\AI\Navigation\NavGrid.h">
+      <Filter>Source\AI\Navigation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Game.rc" />

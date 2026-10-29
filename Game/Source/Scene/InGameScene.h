@@ -7,12 +7,20 @@
 #include "IScene.h"
 #include "Source/UI/UILayout.h"
 #include "Source/Camera/FinderController.h"
+#include <memory>
+#include <string>
 
 
 namespace app
 {
 	/** 前方宣言 */
 	class Enemy;
+
+	namespace ai
+	{
+		class NavGrid;
+		class Pathfinder;
+	}
 
 	namespace ui
 	{
@@ -71,6 +79,15 @@ namespace app
 
 
 	private:
+		/**
+		 * @brief 経路探索のデバッグ表示
+		 * @details NavGridのミニマップ(赤:通れない)と敵の道順を描く。
+		 *          ボタンで敵を主人公の位置へ向かわせたり、地図を作り直したりできる。
+		 */
+		void DrawNavigationDebug();
+
+
+	private:
 		/** 写真撮影クラス */
 		nsK2EngineLow::PhotoCapture m_photoCapture;
 		/** 敵 */
@@ -82,8 +99,18 @@ namespace app
 		/** ステージエディタ(Debug の時だけ作る。Release では nullptr) */
 		std::unique_ptr<app::stage::StageEditor> m_stageEditor;
 
+		/** 敵の一覧 */
+		std::vector<std::unique_ptr<actor::EnemyBase>> m_enemyList;
+		/** 経路探索のデバッグ表示に出す、最後の操作の結果 */
+		std::string m_navDebugMessage;
+
+		/** 経路探索の地図 */
+		std::unique_ptr<app::ai::NavGrid> m_navGrid;
+		/** 道順を求める */
+		std::unique_ptr<app::ai::Pathfinder> m_pathfinder;
+
 		/** ゲームカメラ */
-		app::camera::GameCamera* m_gameCamera;
+		std::unique_ptr<app::camera::GameCamera> m_gameCamera;
 		/** スプライトレンダー */
 		SpriteRender* m_spriteRender;
 		/** 地面の当たり判定(主人公が地面に立つために必要) */
