@@ -257,5 +257,12 @@ namespace app
 			if (index < 0 || index >= GetObjectCount()) return nullptr;
 			return m_objectList[index].get();
 		}
+
+
+		const actor::StageObject* Stage::GetStageObject(const int index) const
+		{
+			if (index < 0 || index >= GetObjectCount()) return nullptr;
+			return m_objectList[index].get();
+		}
 	}
 }

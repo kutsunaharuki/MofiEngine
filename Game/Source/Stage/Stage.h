@@ -103,6 +103,12 @@ namespace app
 			 * @return 置物(範囲外なら nullptr)
 			 */
 			actor::StageObject* GetStageObject(const int index);
+			/**
+			 * @brief 置物を取得(const版)
+			 * @param index 番号
+			 * @return 置物(範囲外なら nullptr)
+			 */
+			const actor::StageObject* GetStageObject(const int index) const;
 
 
 		private:

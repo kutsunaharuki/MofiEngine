@@ -286,6 +286,7 @@
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyState.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyStateMachine.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\Object\EnemyParameter.cpp" />
+    <ClCompile Include="Source\AI\Navigation\NavGrid.cpp" />
     <ClCompile Include="Source\Camera\FinderController.cpp" />
     <ClCompile Include="Source\Camera\GameCamera.cpp" />
     <ClCompile Include="Source\Camera\Object\FinderParameter.cpp" />
@@ -333,6 +334,7 @@
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyState.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyStateMachine.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\Object\EnemyParameter.h" />
+    <ClInclude Include="Source\AI\Navigation\NavGrid.h" />
     <ClInclude Include="Source\Camera\FinderController.h" />
     <ClInclude Include="Source\Camera\GameCamera.h" />
     <ClInclude Include="Source\Camera\Object\FinderParameter.h" />
@@ -344,6 +346,7 @@
     <ClInclude Include="Source\Scene\ResultScene.h" />
     <ClInclude Include="Source\Scene\SceneManager.h" />
     <ClInclude Include="Source\Scene\TitleScene.h" />
+    <ClInclude Include="Source\Stage\HidePoint.h" />
     <ClInclude Include="Source\UI\Animation\UIAnimation.h" />
     <ClInclude Include="Source\UI\UILayout.h" />
     <ClInclude Include="Source\UI\UIMenu.h" />

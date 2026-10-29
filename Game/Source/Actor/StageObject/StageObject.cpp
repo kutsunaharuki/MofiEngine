@@ -32,6 +32,8 @@ namespace app
 			, m_boundingCenter(Vector3::Zero)
 			, m_physicsObject(nullptr)
 			, m_boundingRadius(0.0f)
+			, m_worldAABBMin(Vector3::Zero)
+			, m_worldAABBMax(Vector3::Zero)
 		{}
 
 
@@ -244,6 +246,20 @@ namespace app
 			}
 			// 8つの角の平均なので8で割る(ベクトルをスカラーで拡大)
 			m_boundingCenter.Scale(1.0f / 8.0f);
+
+			// 8つの角から、ワールドの箱(AABB)の小さい方と大きい方を求める
+			m_worldAABBMin = Vector3(FLT_MAX, FLT_MAX, FLT_MAX);
+			m_worldAABBMax = Vector3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+			for (const Vector3& corner : corners)
+			{
+				m_worldAABBMin.x = (std::min)(m_worldAABBMin.x, corner.x);
+				m_worldAABBMin.y = (std::min)(m_worldAABBMin.y, corner.y);
+				m_worldAABBMin.z = (std::min)(m_worldAABBMin.z, corner.z);
+				m_worldAABBMax.x = (std::max)(m_worldAABBMax.x, corner.x);
+				m_worldAABBMax.y = (std::max)(m_worldAABBMax.y, corner.y);
+				m_worldAABBMax.z = (std::max)(m_worldAABBMax.z, corner.z);
+			}
 
 
 			// 半径 = 中心から一番遠い角までの距離

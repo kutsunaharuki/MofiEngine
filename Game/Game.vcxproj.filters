@@ -64,6 +64,12 @@
     <Filter Include="Source\Actor\Character\Enemy\Object">
       <UniqueIdentifier>{b9faf3bf-2ca3-4825-8000-3414d43255ac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\AI">
+      <UniqueIdentifier>{0d204109-1f80-4a98-abdc-9f68d70d9474}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\AI\Navigation">
+      <UniqueIdentifier>{8e038473-6889-4318-b70e-c6aadce36403}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -207,6 +213,9 @@
     <ClCompile Include="Source\Actor\Character\Enemy\Object\EnemyParameter.cpp">
       <Filter>Source\Actor\Character\Enemy\Object</Filter>
     </ClCompile>
+    <ClCompile Include="Source\AI\Navigation\NavGrid.cpp">
+      <Filter>Source\AI\Navigation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -334,6 +343,12 @@
     </ClInclude>
     <ClInclude Include="Source\Actor\Character\Enemy\Object\EnemyParameter.h">
       <Filter>Source\Actor\Character\Enemy\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\HidePoint.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\AI\Navigation\NavGrid.h">
+      <Filter>Source\AI\Navigation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

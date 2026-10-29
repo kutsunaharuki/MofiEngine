@@ -157,6 +157,17 @@ namespace app
 			 */
 			float GetBoundingRadius() const { return m_boundingRadius; }
 
+			/**
+			 * @brief モデルを囲む箱の小さい方の角(ワールド)を取得
+			 * @return 箱の小さい方の角(ワールド)
+			 */
+			const Vector3& GetWorldAABBMin() const { return m_worldAABBMin; }
+			/**
+			 * @brief モデルを囲む箱の大きい方の角(ワールド)を取得
+			 * @return 箱の大きい方の角(ワールド)
+			 */
+			const Vector3& GetWorldAABBMax() const { return m_worldAABBMax; }
+
 
 		private:
 			/**
@@ -177,6 +188,12 @@ namespace app
 			Vector3 m_boundingCenter;
 			/** 囲む球の半径 */
 			float m_boundingRadius;
+
+			/** 囲む箱の小さい方の角(ワールド) */
+			Vector3 m_worldAABBMin;
+			/** 囲む箱の大きい方の角(ワールド) */
+			Vector3 m_worldAABBMax;
+
 
 			/** 名前(一覧の表示と保存用) */
 			std::string m_name;
