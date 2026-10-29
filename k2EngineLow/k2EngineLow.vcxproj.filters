@@ -261,12 +261,6 @@
     <ClCompile Include="geometry\Frustum.cpp">
       <Filter>geometry</Filter>
     </ClCompile>
-    <ClCompile Include="AI\PathFinding\Pathfinder.cpp">
-      <Filter>AI\PathFinding</Filter>
-    </ClCompile>
-    <ClCompile Include="AI\PathFinding\PathFollower.cpp">
-      <Filter>AI\PathFinding</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="k2EngineLowPreCompile.h" />
@@ -582,12 +576,6 @@
     </ClInclude>
     <ClInclude Include="geometry\Frustum.h">
       <Filter>geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="AI\PathFinding\PathFollower.h">
-      <Filter>AI\PathFinding</Filter>
-    </ClInclude>
-    <ClInclude Include="AI\PathFinding\Pathfinder.h">
-      <Filter>AI\PathFinding</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

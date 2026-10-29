@@ -216,6 +216,12 @@
     <ClCompile Include="Source\AI\Navigation\NavGrid.cpp">
       <Filter>Source\AI\Navigation</Filter>
     </ClCompile>
+    <ClCompile Include="Source\AI\Navigation\Pathfinder.cpp">
+      <Filter>Source\AI\Navigation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\AI\Navigation\PathFollower.cpp">
+      <Filter>Source\AI\Navigation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -347,7 +353,10 @@
     <ClInclude Include="Source\Stage\HidePoint.h">
       <Filter>Source\Stage</Filter>
     </ClInclude>
-    <ClInclude Include="Source\AI\Navigation\NavGrid.h">
+    <ClInclude Include="Source\AI\Navigation\PathFollower.h">
+      <Filter>Source\AI\Navigation</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\AI\Navigation\Pathfinder.h">
       <Filter>Source\AI\Navigation</Filter>
     </ClInclude>
   </ItemGroup>
