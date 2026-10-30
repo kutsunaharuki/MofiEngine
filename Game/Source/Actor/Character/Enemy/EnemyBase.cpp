@@ -127,10 +127,14 @@ namespace app
 
 		void EnemyBase::Update()
 		{
+			const EnemyParameter& parameter = m_enemyParameter.Get();
+
 			// ピントの高さを覚えておく
 			// ※ GetFocusPosition は const なので、Get()(JSON が変わっていれば読み直す)を呼べない。ここで読んでおく
-			m_focusHeight = m_enemyParameter.Get().focusHeight;
+			m_focusHeight = parameter.focusHeight;
 
+			// SetSetting は値をコピーしているだけなので目的地モードをやり直したりはしない
+			m_destinationMode->SetSetting(parameter.destinationMode);
 			// 行き先を決める(頭) → 道順をたどる(運転手) → ステートを選んで動く、の順番
 			m_destinationMode->Update(g_gameTime->GetFrameDeltaTime());
 

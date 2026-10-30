@@ -4,5 +4,16 @@
   "alertSpeed":250.0,
   "focusHeight":100.0,
   "initialPosition":[0,0,0],
-  "sainitialScale":[0.6,0.6,0.6]
+  "initialScale":[0.6,0.6,0.6],
+
+
+  "wanderAmplitudeDeg":30,
+  "wanderFrequency":0.5,
+  "stealTime":5.0,
+  "lookAroundTime":10.0,
+  "detourCheckInterval":10.0,
+  "detourChance":0.5,
+  "detourRadiusCell":10,
+  "maxDetourPerTarget":2,
+  "retryInterval":1.0
 }

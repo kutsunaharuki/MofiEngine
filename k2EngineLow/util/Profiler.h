@@ -14,6 +14,7 @@ namespace nsK2EngineLow
 	/**
 	 * @brief CPU と GPU の処理時間を計測するクラス
 	 * @details 計りたい所を K2_PROFILE_CPU / K2_PROFILE_GPU / K2_PROFILE で囲むと、その区間の時間を計る。
+	 *          K2_DEBUG の構成(Debug / Preview)でだけ動く。Release ではマクロが空になる(K2_PROFILER_ENABLED)
 	 *          結果は一定時間(0.5秒)ごとに平均して、GetCpuSamples などで取れる(画面の表示は ImGui 側で行う)
 	 *
 	 * CPU : std::chrono で、区間の始まりと終わりの時刻の差を計る
@@ -271,6 +272,14 @@ namespace nsK2EngineLow
 }
 
 
+// 計測は K2_DEBUG の構成(Debug / Preview)でだけ行う。Release では下のマクロが空になり、計測の処理が残らない
+#ifdef K2_DEBUG
+#define K2_PROFILER_ENABLED
+#endif
+
+
+#ifdef K2_PROFILER_ENABLED
+
 // 変数名がぶつからないように、行番号を付けた名前にする
 #define K2_PROFILE_CONCAT_INNER(a, b) a##b
 #define K2_PROFILE_CONCAT(a, b) K2_PROFILE_CONCAT_INNER(a, b)
@@ -281,3 +290,20 @@ namespace nsK2EngineLow
 #define K2_PROFILE_GPU(name) nsK2EngineLow::ScopedGpuProfile K2_PROFILE_CONCAT(gpuProfile_, __LINE__)(name)
 /** このスコープの CPU と GPU の時間を両方計る */
 #define K2_PROFILE(name) K2_PROFILE_CPU(name); K2_PROFILE_GPU(name)
+/** CPU と GPU の区間の始まり(スコープで囲めない所で使う。K2_PROFILE_END と組で使う) */
+#define K2_PROFILE_BEGIN(name) nsK2EngineLow::Profiler::GetInstance().BeginCpu(name); nsK2EngineLow::Profiler::GetInstance().BeginGpu(name)
+/** CPU と GPU の区間の終わり */
+#define K2_PROFILE_END() nsK2EngineLow::Profiler::GetInstance().EndGpu(); nsK2EngineLow::Profiler::GetInstance().EndCpu()
+/** 数を記録する(描いたモデルの数など) */
+#define K2_PROFILE_COUNTER(name, value) nsK2EngineLow::Profiler::GetInstance().SetCounter(name, value)
+
+#else
+
+#define K2_PROFILE_CPU(name) ((void)0)
+#define K2_PROFILE_GPU(name) ((void)0)
+#define K2_PROFILE(name) ((void)0)
+#define K2_PROFILE_BEGIN(name) ((void)0)
+#define K2_PROFILE_END() ((void)0)
+#define K2_PROFILE_COUNTER(name, value) ((void)0)
+
+#endif

@@ -45,9 +45,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	// End of start-up code.
 	//////////////////////////////////////
 
+#ifdef K2_PROFILER_ENABLED
 	// 処理時間(CPU・GPU)を表示するウィンドウ(F1 で表示・非表示)
 	app::util::ProfilerWindow profilerWindow;
 	Profiler& profiler = Profiler::GetInstance();
+#endif
 
 	// Game loop.
 	while (DispatchWindowMessage())
@@ -59,8 +61,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		// Drive one frame of the low-level engine yourself.
 		// (K2Engine used to hide this behind K2Engine::Execute().)
 		g_engine->BeginFrame();		// Begin the frame: clear the screen, update input, etc.
+#ifdef K2_PROFILER_ENABLED
 		// 計測のフレーム開始(コマンドリストの記録が始まった後に呼ぶ)
 		profiler.BeginFrame();
+#endif
 
 		// imguiのフレーム開始
 		ImGui_ImplDX12_NewFrame();
@@ -86,8 +90,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		// デモウィンドウを表示
 		//ImGui::ShowDemoWindow();
 
+#ifdef K2_PROFILER_ENABLED
 		// 処理時間のウィンドウ(ImGui::Render の前に呼ぶ)
 		profilerWindow.Draw();
+#endif
 
 		{
 			K2_PROFILE("ImGui");
@@ -99,8 +105,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmdList);
 		}
 
+#ifdef K2_PROFILER_ENABLED
 		// GPU の計測を閉じる(コマンドリストを閉じる EndFrame の前に呼ぶ)
 		profiler.EndGpuFrame();
+#endif
 
 		{
 			// 画面に出して、前のフレームの GPU の処理が終わるのを待つ
@@ -113,9 +121,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	// Shut down.
 	FinalizeGame();
 
+#ifdef K2_PROFILER_ENABLED
 	// 計測用の GPU のリソースを解放する
 	// ※ GPU がまだ使っているかもしれないので、GPU の処理が終わる FinalizeGame の後にする
 	profiler.Release();
+#endif
 
 #ifdef _DEBUG
 	ReportLiveObjects();

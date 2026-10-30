@@ -96,9 +96,9 @@ namespace app
 				ImGui::TextColored(ImVec4(0.3f, 0.8f, 1.0f, 1.0f), "Bottleneck: CPU");
 			}
 
-#ifdef K2_DEBUG
-			// Debug は最適化されていないので、CPU の時間が何倍も長くなる
-			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.3f, 1.0f), "Debug build: measure in Release for real numbers.");
+#ifdef _DEBUG
+			// Debug は最適化されていないので、CPU の時間が何倍も長くなる(Release ではプロファイラーが無いので、Preview で計る)
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.3f, 1.0f), "Debug build: measure in Preview for real numbers.");
 #endif
 
 			ImGui::PlotLines("CPU frame", profiler.GetCpuFrameHistory(), Profiler::HISTORY_COUNT, 0, nullptr, 0.0f, GRAPH_MAX_MS, ImVec2(0.0f, GRAPH_HEIGHT));

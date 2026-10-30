@@ -16,19 +16,17 @@ namespace nsK2EngineLow
 
 	void RenderingEngine::Execute(RenderContext& rc)
 	{
-		// 処理時間の計測(パスごとに CPU と GPU の時間を計る)
-		Profiler& profiler = Profiler::GetInstance();
+		// 処理時間の計測(パスごとに CPU と GPU の時間を計る。Release では何もしない)
 		// 描いた数も記録する(リストは毎フレーム空にするので、空にする前に記録する)
-		profiler.SetCounter("Shadow casters", static_cast<int>(m_shadowCasters.size()));
-		profiler.SetCounter("G-Buffer models", static_cast<int>(m_models.size()));
-		profiler.SetCounter("Finder models", static_cast<int>(m_finderModels.size()));
-		profiler.SetCounter("2D renders", static_cast<int>(m_render2DList.size()));
+		K2_PROFILE_COUNTER("Shadow casters", static_cast<int>(m_shadowCasters.size()));
+		K2_PROFILE_COUNTER("G-Buffer models", static_cast<int>(m_models.size()));
+		K2_PROFILE_COUNTER("Finder models", static_cast<int>(m_finderModels.size()));
+		K2_PROFILE_COUNTER("2D renders", static_cast<int>(m_render2DList.size()));
 
 		//=====================================================
 		// パス1: シャドウマップパス
 		//=====================================================
-		profiler.BeginCpu("Shadow");
-		profiler.BeginGpu("Shadow");
+		K2_PROFILE_BEGIN("Shadow");
 		for (int i = 0; i < MAX_SHADOW; i++)
 		{
 			// 書き込める状態になるまで待つ
@@ -52,16 +50,14 @@ namespace nsK2EngineLow
 			// 描き終わるまで待つ → 以後テクスチャとして読める
 			rc.WaitUntilFinishDrawingToRenderTarget(m_shadowMap[i]);
 		}
-		profiler.EndGpu();
-		profiler.EndCpu();
+		K2_PROFILE_END();
 
 		// =============================================
 		// パス2: G-Buffer パス(ディファードレンダリング)
 		// モデルを、アルベド・法線・ワールド座標の3枚に同時に描く(ライティングはまだしない)
 		// =============================================
 
-		profiler.BeginCpu("G-Buffer");
-		profiler.BeginGpu("G-Buffer");
+		K2_PROFILE_BEGIN("G-Buffer");
 
 		RenderTarget* gBuffers[] = { &m_gAlbedoRT, &m_gNormalRT, &m_gDepthRT };
 		const int gBufferCount = static_cast<int>(sizeof(gBuffers) / sizeof(gBuffers[0]));
@@ -77,8 +73,7 @@ namespace nsK2EngineLow
 		}
 		// 描き終わるまで待つ → 以後テクスチャとして読める
 		rc.WaitUntilFinishDrawingToRenderTargets(gBufferCount, gBuffers);
-		profiler.EndGpu();
-		profiler.EndCpu();
+		K2_PROFILE_END();
 
 		// =============================================
 		// パス3: ディファードライティングパス
@@ -88,8 +83,7 @@ namespace nsK2EngineLow
 		// 視点の位置を、今のカメラの位置にする(スペキュラと、DoF 用の距離の計算に使う)
 		SceneLight::GetInstance().GetLightCB().light.eyePos = g_camera3D->GetPosition();
 
-		profiler.BeginCpu("Deferred Lighting");
-		profiler.BeginGpu("Deferred Lighting");
+		K2_PROFILE_BEGIN("Deferred Lighting");
 
 		rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
 		rc.SetRenderTargetAndViewport(m_mainRenderTarget);
@@ -101,8 +95,7 @@ namespace nsK2EngineLow
 
 		// 書き込める状態になるまで待つ → 以後テクスチャとして読める
 		rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
-		profiler.EndGpu();
-		profiler.EndCpu();
+		K2_PROFILE_END();
 
 		// PhotoCaptureがあるならオフスクリーンレンダリングを行う
 		if (m_photoCapture != nullptr)
@@ -119,8 +112,7 @@ namespace nsK2EngineLow
 		// コピーパス : 加工が終わった絵を画面に出す
 		// ============================================
 
-		profiler.BeginCpu("Copy + 2D");
-		profiler.BeginGpu("Copy + 2D");
+		K2_PROFILE_BEGIN("Copy + 2D");
 
 		// 原因 : ビューポートが、ファインダー用の640x360のままになっていて戻っていない
 		g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
@@ -146,8 +138,7 @@ namespace nsK2EngineLow
 		{
 			render2D->OnRender2D(rc);
 		}
-		profiler.EndGpu();
-		profiler.EndCpu();
+		K2_PROFILE_END();
 
 		// 毎フレームリストを空にする
 		m_models.clear();

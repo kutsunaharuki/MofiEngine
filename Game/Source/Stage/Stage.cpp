@@ -94,7 +94,7 @@ namespace app
 			}
 
 			// Profiler に描いた数を出す
-			Profiler::GetInstance().SetCounter("Stage visible", visibleCount);
+			K2_PROFILE_COUNTER("Stage visible", visibleCount);
 		}
 
 
