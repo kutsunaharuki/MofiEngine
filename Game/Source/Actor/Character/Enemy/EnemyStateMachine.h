@@ -55,6 +55,21 @@ namespace app
 			 */
 			inline void SetAlert(bool isAlert) { m_isAlert = isAlert; }
 			/**
+			 * @brief 警戒状態かどうか
+			 * @return 警戒状態なら true
+			 */
+			inline bool IsAlert() const { return m_isAlert; }
+			/**
+			 * @brief 盗んでいるかを設定
+			 * @param isStealing 盗んでいるなら true(盗むステートになる)
+			 */
+			inline void SetStealing(const bool isStealing) { m_isStealing = isStealing; }
+			/**
+			 * @brief 盗んでいるか
+			 * @return 盗んでいるなら true
+			 */
+			inline bool IsStealing() const { return m_isStealing; }
+			/**
 			 * @brief 移動量を設定
 			 * @param amount 移動量
 			 */
@@ -129,6 +144,11 @@ namespace app
 			 * @return 道順を辿る係
 			 */
 			const ai::PathFollower& GetPathFollower() { return *m_pathFollower; }
+			/**
+			 * @brief 地図を取得(寄り道する場所を探すのに使う)
+			 * @return 地図(設定されていなければ nullptr)
+			 */
+			const ai::NavGrid* GetNavGrid() const { return m_navGrid; }
 
 
 		protected:
@@ -148,12 +168,16 @@ namespace app
 			Vector3 m_moveDirection;
 			/** 警戒状態かどうか */
 			bool m_isAlert;
+			/** 盗んでいるか */
+			bool m_isStealing;
 			/** 回転 */
 			Quaternion m_rotation;
 
 
 			/** 道順を求める */
 			const ai::Pathfinder* m_pathfinder;
+			/** 地図(寄り道する場所を探すのに使う) */
+			const ai::NavGrid* m_navGrid;
 			/** 道順を辿る */
 			std::unique_ptr<ai::PathFollower> m_pathFollower;
 			/** 今の行き先(詰まった時に求め直す為) */

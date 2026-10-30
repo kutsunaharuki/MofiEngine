@@ -201,10 +201,19 @@
     <ClCompile Include="Source\Stage\StageEditor.cpp">
       <Filter>Source\Stage</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Stage\StageLayout.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyStateMachine.cpp">
       <Filter>Source\Actor\Character\Enemy</Filter>
     </ClCompile>
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyBase.cpp">
+      <Filter>Source\Actor\Character\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Enemy\EnemyDestinationMode.cpp">
+      <Filter>Source\Actor\Character\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Enemy\EnemyController.cpp">
       <Filter>Source\Actor\Character\Enemy</Filter>
     </ClCompile>
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyState.cpp">
@@ -338,10 +347,19 @@
     <ClInclude Include="Source\Stage\StageEditor.h">
       <Filter>Source\Stage</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Stage\StageLayout.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyStateMachine.h">
       <Filter>Source\Actor\Character\Enemy</Filter>
     </ClInclude>
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyBase.h">
+      <Filter>Source\Actor\Character\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Enemy\EnemyDestinationMode.h">
+      <Filter>Source\Actor\Character\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Enemy\EnemyController.h">
       <Filter>Source\Actor\Character\Enemy</Filter>
     </ClInclude>
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyState.h">

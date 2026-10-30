@@ -16,10 +16,13 @@
 #include "Source/Stage/Stage.h"
 #include "Source/Actor/StageObject/StageObject.h"
 #include "Source/Stage/StageEditor.h"
+#include "Source/Stage/StageLayout.h"
 #include "Source/Util/ParameterManager.h"
 #include "Source/AI/Navigation/NavGrid.h"
 #include "Source/AI/Navigation/Pathfinder.h"
 #include "Source/AI/Navigation/PathFollower.h"
+#include "Source/Actor/Character/Enemy/EnemyDestinationMode.h"
+#include <cmath>
 
 
 namespace app
@@ -46,6 +49,8 @@ namespace app
 		constexpr const char* STAGE_TKL_PATH = "Assets/modelData/Stage/Museum.tkl";
 		/** ステージのモデルのフォルダ */
 		constexpr const char* STAGE_MODEL_DIRECTORY = "Assets/modelData/Stage/";
+		/** ステージの構造(階・区画・階段) */
+		constexpr const char* STAGE_LAYOUT_PATH = "Assets/stage/MuseumLayout.json";
 
 		/** 経路探索のミニマップで、1マスのを何ピクセルで描くか */
 		constexpr float NAV_DEBUG_PIXEL_PER_CELL = 6.0f;
@@ -113,10 +118,20 @@ namespace app
 		// 敵の一覧にねずみ男を追加する
 		//m_enemyList.push_back(std::make_unique<actor::EnemyBase>(actor::EnemyBase::EnemyType::RatMan));
 
+		// ステージの構造(階・区画・階段)を読み込む
+		m_stageLayout = std::make_unique<stage::StageLayout>();
+		m_stageLayout->Load(STAGE_LAYOUT_PATH);
+
+		// ステージの置物から、盗みに行く美術品を探しておく(階を決めるので、構造を先に渡す)
+		m_enemyController.SetLayout(m_stageLayout.get());
+		m_enemyController.CollectArtTargets(*m_stage);
+
 		// 敵の一覧の敵に経路探索の地図を設定して
 		for (auto& enemy : m_enemyList)
 		{
 			enemy->SetNavigation(m_pathfinder.get(), m_navGrid.get());
+			// 敵の入力に登録する(美術品の一覧が渡される)
+			m_enemyController.RegisterEnemy(enemy.get());
 			enemy->Start();
 		}
 
@@ -149,11 +164,10 @@ namespace app
 			m_finderController.RegisterSubject(enemy.get());
 		}
 		
-		// 動作確認用
-		const Vector3& boyPosition = m_boy->GetTransform().GetWorldPosition();
+		// 行き先は目的地モードが自動で決める
 		for (auto& enemy : m_enemyList)
 		{
-			enemy->GetEnemyStateMachine()->MoveTo(boyPosition);
+			// 最初のフレームの位置と向きを決めておく(ファインダーが顔の位置を計算するため)
 			enemy->Update();
 		}
 
@@ -227,6 +241,9 @@ namespace app
 		// 確認用:右へ歩かせる
 		//m_enemy->GetEnemyStateMachine()->SetMoveDirection(Vector3(1.0f, 0.0f, 0.0f));
 		//m_enemy->GetEnemyStateMachine()->SetMoveAmount(1.0f);
+
+		// 敵がいる階が変わっていたら、その階の美術品の一覧を渡し直す(敵の更新より先に呼ぶ)
+		m_enemyController.Update();
 
 		for(auto& enemy : m_enemyList)
 		{
@@ -346,6 +363,26 @@ namespace app
 			m_navDebugMessage = "Stopped.";
 		}
 		ImGui::SameLine();
+		// ステージから美術品を探し直す(エディタで置物を動かした後に押す)
+		if (ImGui::Button("Collect art"))
+		{
+			const int count = m_enemyController.CollectArtTargets(*m_stage);
+			m_navDebugMessage = "Art targets: " + std::to_string(count);
+		}
+		ImGui::SameLine();
+		// 主人公の今の位置に美術品の目印を置く / 全部消す
+		if (ImGui::Button("Add target at Boy"))
+		{
+			m_enemyController.AddTarget(m_boy->GetTransform().GetWorldPosition());
+			m_navDebugMessage = "Targets: " + std::to_string(m_enemyController.GetTargetCount());
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Clear targets"))
+		{
+			m_enemyController.ClearTargets();
+			m_navDebugMessage = "Targets cleared.";
+		}
+		ImGui::SameLine();
 
 		// エディタで置物を動かした後に押す(地図が古いままだと、敵が棚に突っ込む)
 		if (ImGui::Button("Rebuild NavGrid"))
@@ -356,7 +393,7 @@ namespace app
 
 		if (!m_navDebugMessage.empty())
 		{
-			ImGui::TextUnformatted("NavGrid is not built");
+			ImGui::TextUnformatted(m_navDebugMessage.c_str());
 		}
 
 		if (!m_navGrid->IsBuilt())
@@ -370,6 +407,12 @@ namespace app
 		const int height = m_navGrid->GetHeight();
 		ImGui::Text("Cells: %d x %d", width, height);
 
+		// 地図の階の美術品だけを出す(ほかの階の美術品は、敵も向かわない)
+		const int navFloor = m_enemyController.ToFloorIndex(m_navGrid->GetSetting().floorHeight);
+		const std::vector<Vector3> targetList = m_enemyController.MakeFloorTargetList(navFloor);
+		ImGui::Text("Art targets  floor %d: %d  (all floors: %d)",
+			navFloor, static_cast<int>(targetList.size()), m_enemyController.GetTargetCount());
+
 		// 敵ごとの状態(道順の点の数・今何番目か・着いたか)
 		for (int i = 0; i < static_cast<int>(m_enemyList.size()); ++i)
 		{
@@ -380,10 +423,26 @@ namespace app
 				static_cast<int>(follower.GetPath().size()), follower.GetIndex(),
 				follower.IsArrived() ? "yes" : "no",
 				follower.IsStuck() ? "yes" : "no");
+
+			// 目的地モードの今の段階と、向かっている美術品の番号
+			const actor::EnemyDestinationMode* destinationMode = m_enemyList[i]->GetDestinationMode();
+			if (destinationMode != nullptr)
+			{
+				ImGui::Text("        phase %s  target %d / %d",
+					destinationMode->GetPhaseName(), destinationMode->GetTargetIndex(),
+					static_cast<int>(targetList.size()));
+			}
 		}
 
 		const Vector3& boyWorld = m_boy->GetTransform().GetWorldPosition();
 		ImGui::Text("Boy  pos(%.0f, %.0f, %.0f)", boyWorld.x, boyWorld.y, boyWorld.z);
+
+		// 主人公がいる階と区画(ステージの構造の JSON が合っているかの確認用)
+		const int boyFloor = m_stageLayout->FindFloorIndex(boyWorld.y);
+		const stage::StageArea* boyArea = m_stageLayout->FindArea(boyWorld);
+		ImGui::Text("Boy  floor %s  area %s",
+			boyFloor >= 0 ? m_stageLayout->GetFloor(boyFloor).name.c_str() : "-",
+			boyArea != nullptr ? boyArea->name.c_str() : "-");
 
 		// 地図を作った時の高さの帯(この範囲に入る置物が塞ぐ)。主人公の y(床の高さ)とずれていないか確認する
 		const ai::NavGridSetting& debugSetting = m_navGrid->GetSetting();
@@ -455,6 +514,42 @@ namespace app
 			{
 				drawList->AddCircleFilled(enemyScreen, pixel, IM_COL32(80, 200, 255, 255));
 			}
+		}
+
+		// 主人公がいる階の区画の枠(オレンジ)
+		// ※ 区画は地図の外にはみ出すことがあるので、マス番号を通さずに座標から直接求める
+		if (boyFloor >= 0)
+		{
+			const float cellSize = m_navGrid->GetCellSize();
+			const Vector3 gridOrigin = m_navGrid->CellToWorld(0, 0) - Vector3(cellSize * 0.5f, 0.0f, cellSize * 0.5f);
+			auto worldToScreenFree = [&](const float worldX, const float worldZ)
+				{
+					return ImVec2(
+						origin.x + (worldX - gridOrigin.x) / cellSize * pixel,
+						origin.y + (height - (worldZ - gridOrigin.z) / cellSize) * pixel);
+				};
+
+			for (const stage::StageArea& area : m_stageLayout->GetFloor(boyFloor).areaList)
+			{
+				// 奥(z)を上にしているので、max.z が上の辺になる
+				const ImVec2 topLeft = worldToScreenFree(area.min.x, area.max.z);
+				const ImVec2 bottomRight = worldToScreenFree(area.max.x, area.min.z);
+				drawList->AddRect(topLeft, bottomRight, IM_COL32(255, 160, 40, 255), 0.0f, 0, 2.0f);
+				drawList->AddText(ImVec2(topLeft.x + 2.0f, topLeft.y + 2.0f), IM_COL32(255, 160, 40, 255), area.name.c_str());
+			}
+		}
+
+		// 美術品の目印(紫の四角と番号)
+		for (int i = 0; i < static_cast<int>(targetList.size()); ++i)
+		{
+			ImVec2 targetScreen;
+			if (!worldToScreen(targetList[i], targetScreen)) continue;
+			drawList->AddRectFilled(
+				ImVec2(targetScreen.x - pixel, targetScreen.y - pixel),
+				ImVec2(targetScreen.x + pixel, targetScreen.y + pixel),
+				IM_COL32(200, 100, 255, 255));
+			drawList->AddText(ImVec2(targetScreen.x + pixel, targetScreen.y - pixel * 2.0f),
+				IM_COL32(255, 255, 255, 255), std::to_string(i).c_str());
 		}
 
 		ImVec2 boyScreen;

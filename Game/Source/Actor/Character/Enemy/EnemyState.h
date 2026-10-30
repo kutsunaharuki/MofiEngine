@@ -95,6 +95,28 @@ namespace app
 			void Exit() override;
 		};
 
+
+
+
+		/*******************************************/
+
+
+		/**
+		 * @brief 敵の盗むステート
+		 * @details 美術品の前で止まって、盗むアニメーションを再生する
+		 */
+		class EnemyStealState : public EnemyState
+		{
+			appState(EnemyStealState);
+
+		public:
+			explicit EnemyStealState(EnemyStateMachine& stateMachine) : EnemyState(stateMachine) {}
+			~EnemyStealState() override = default;
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+		};
+
 	}
 }
-

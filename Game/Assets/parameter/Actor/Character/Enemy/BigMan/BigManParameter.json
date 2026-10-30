@@ -1,8 +1,8 @@
 {
   "comment":"大男のパラメーター",
-  "moveSpeed":180.0,
+  "moveSpeed":140.0,
   "alertSpeed":250.0,
   "focusHeight":100.0,
   "initialPosition":[0,0,0],
-  "initialScale":[1,1,1]
+  "sainitialScale":[0.6,0.6,0.6]
 }

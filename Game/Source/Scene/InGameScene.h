@@ -7,8 +7,10 @@
 #include "IScene.h"
 #include "Source/UI/UILayout.h"
 #include "Source/Camera/FinderController.h"
+#include "Source/Actor/Character/Enemy/EnemyController.h"
 #include <memory>
 #include <string>
+#include <vector>
 
 
 namespace app
@@ -49,6 +51,7 @@ namespace app
 	{
 		class Stage;
 		class StageEditor;
+		class StageLayout;
 	}
 
 
@@ -98,6 +101,8 @@ namespace app
 		std::unique_ptr<app::stage::Stage> m_stage;
 		/** ステージエディタ(Debug の時だけ作る。Release では nullptr) */
 		std::unique_ptr<app::stage::StageEditor> m_stageEditor;
+		/** ステージの構造(階・区画・階段) */
+		std::unique_ptr<app::stage::StageLayout> m_stageLayout;
 
 		/** 敵の一覧 */
 		std::vector<std::unique_ptr<actor::EnemyBase>> m_enemyList;
@@ -134,6 +139,9 @@ namespace app
 		ui::UILayout m_soundOptionLayout;
 		/** サウンドオプションメニュー */
 		ui::SoundOptionMenu* m_soundOptionMenu;
+
+		/** 敵の入力(ステージから美術品を探して、盗みに行く一覧を敵に渡す) */
+		actor::EnemyController m_enemyController;
 
 	};
 }

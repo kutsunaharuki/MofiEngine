@@ -33,14 +33,18 @@ namespace app
 			, m_moveAmount(0.0f)
 			, m_moveDirection(Vector3::Zero)
 			, m_isAlert(false)
+			, m_isStealing(false)
 			, m_rotation(Quaternion::Identity)
 			, m_pathfinder(nullptr)
+			, m_navGrid(nullptr)
 			, m_pathFollower(std::make_unique<ai::PathFollower>())
+			, m_goal(Vector3::Zero)
 		{
 			// 敵のステートを追加
 			AddState<EnemyIdleState>(*this);
 			AddState<EnemyWalkState>(*this);
 			AddState<EnemyAlertState>(*this);
+			AddState<EnemyStealState>(*this);
 		}
 		
 		
@@ -101,6 +105,8 @@ namespace app
 		void EnemyStateMachine::SetNavigation(const ai::Pathfinder* pathfinder, const ai::NavGrid* navGrid)
 		{
 			m_pathfinder = pathfinder;
+			// 寄り道する場所を探すのに使う
+			m_navGrid = navGrid;
 			// 地図はうろつきの壁チェックに使う
 			m_pathFollower->SetNavGrid(navGrid);
 		}
@@ -183,6 +189,8 @@ namespace app
 		{
 			// 上になるほど優先度が高い
 			if (m_isAlert) return FindState(EnemyAlertState::ID());
+			// 警戒の次に優先する(盗んでいる間は歩かない)
+			if (m_isStealing) return FindState(EnemyStealState::ID());
 			if (m_moveAmount > MOVE_AMOUNT_THRESHOLD) return FindState(EnemyWalkState::ID());
 
 			return FindState(EnemyIdleState::ID());

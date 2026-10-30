@@ -75,5 +75,28 @@ namespace app
 		
 		void EnemyAlertState::Exit()
 		{}
+
+
+
+
+		/************************************************/
+
+
+		void EnemyStealState::Enter()
+		{
+			// 盗むアニメーションを再生
+			m_stateMachine.PlayAnimation(EnemyBase::EnemyAnimation::Steal);
+		}
+
+
+		void EnemyStealState::Update()
+		{
+			// 盗んでいる間はその場で止まる
+			m_stateMachine.StopMove();
+		}
+
+
+		void EnemyStealState::Exit()
+		{}
 	}
 }

@@ -7,6 +7,8 @@
 #include "Source/Camera/PhotoSubject.h"
 #include "Source/Actor/Character/CharacterBase.h"
 #include <cstdint>
+#include <memory>
+#include <vector>
 #include "Source/Util/ParameterManager.h"
 #include "Object/EnemyParameter.h"
 
@@ -25,6 +27,7 @@ namespace app
 	{
 		/** 前方宣言 */
 		class EnemyStateMachine;
+		class EnemyDestinationMode;
 
 
 		/**
@@ -98,6 +101,17 @@ namespace app
 			 * @parma navGrid 地図
 			 */
 			void SetNavigation(const ai::Pathfinder* pathfinder, const ai::NavGrid* navGrid);
+			/**
+			 * @brief 盗みに行く美術品の位置の一覧を設定
+			 * @param targetList 美術品の位置の一覧
+			 * @details Start より前に呼んでも、後に呼んでもよい(目的地モードは Start で作られるので、それまでは預かっておく)
+			 */
+			void SetTargetList(const std::vector<Vector3>& targetList);
+			/**
+			 * @brief 目的地モードを取得(デバッグ表示用)
+			 * @return 目的地モード(Start 前は nullptr)
+			 */
+			const EnemyDestinationMode* GetDestinationMode() const { return m_destinationMode.get(); }
 
 
 		private:
@@ -112,6 +126,15 @@ namespace app
 			const ai::Pathfinder* m_pathfinder;
 			/** 地図 */
 			const ai::NavGrid* m_navGrid;
+
+			/**
+			 * 目的地モード(美術品を盗みに行く頭)
+			 * ※ ステートマシンを借りるので、ステートマシン(CharacterBase が持つ)より先に消える必要がある。
+			 *    派生クラスのメンバーは基底クラスより先に消えるので大丈夫
+			 */
+			std::unique_ptr<EnemyDestinationMode> m_destinationMode;
+			/** 美術品の位置の一覧(目的地モードができるまで預かる) */
+			std::vector<Vector3> m_targetList;
 		};
 	}
 }

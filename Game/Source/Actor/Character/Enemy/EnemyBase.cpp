@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "EnemyBase.h"
 #include "EnemyStateMachine.h"
+#include "EnemyDestinationMode.h"
 
 
 namespace app
@@ -116,6 +117,11 @@ namespace app
 			m_characterStateMachine = std::make_unique<EnemyStateMachine>(this);
 			// 預かっていた経路探索を作ったステートマシンに渡す
 			GetEnemyStateMachine()->SetNavigation(m_pathfinder, m_navGrid);
+
+			// 目的地モードを作って、預かっていた美術品の一覧を渡す
+			m_destinationMode = std::make_unique<EnemyDestinationMode>(GetEnemyStateMachine());
+			m_destinationMode->SetTargetList(m_targetList);
+
 			return CharacterBase::Start();
 		}
 
@@ -125,7 +131,11 @@ namespace app
 			// ※ GetFocusPosition は const なので、Get()(JSON が変わっていれば読み直す)を呼べない。ここで読んでおく
 			m_focusHeight = m_enemyParameter.Get().focusHeight;
 
+			// 行き先を決める(頭) → 道順をたどる(運転手) → ステートを選んで動く、の順番
+			m_destinationMode->Update(g_gameTime->GetFrameDeltaTime());
+
 			// ステートマシンが Walk / Idle を選ぶ前に道順から移動方向と移動量を決めておく
+			// ※ 順番を逆にすると、待機中は移動量が 0 のまま → 歩行に切り替わらない
 			GetEnemyStateMachine()->UpdatePathFollow();
 
 			CharacterBase::Update();
@@ -150,6 +160,19 @@ namespace app
 			if (m_characterStateMachine)
 			{
 				GetEnemyStateMachine()->SetNavigation(m_pathfinder, m_navGrid);
+			}
+		}
+
+
+		void EnemyBase::SetTargetList(const std::vector<Vector3>& targetList)
+		{
+			// 目的地モードができるまで預かっておく
+			m_targetList = targetList;
+
+			// すでに目的地モードがあれば(Start の後に呼ばれた時)、すぐ渡す
+			if (m_destinationMode)
+			{
+				m_destinationMode->SetTargetList(targetList);
 			}
 		}
 
