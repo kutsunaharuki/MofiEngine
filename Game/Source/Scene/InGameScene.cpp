@@ -116,7 +116,7 @@ namespace app
 		// 敵の一覧に大男を追加する
 		m_enemyList.push_back(std::make_unique<actor::EnemyBase>(actor::EnemyBase::EnemyType::BigMan));
 		// 敵の一覧にねずみ男を追加する
-		//m_enemyList.push_back(std::make_unique<actor::EnemyBase>(actor::EnemyBase::EnemyType::RatMan));
+		m_enemyList.push_back(std::make_unique<actor::EnemyBase>(actor::EnemyBase::EnemyType::RatMan));
 
 		// ステージの構造(階・区画・階段)を読み込む
 		m_stageLayout = std::make_unique<stage::StageLayout>();
