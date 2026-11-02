@@ -7,6 +7,7 @@
 #include "InGameScene.h"
 #include "Source/Sound/SoundManager.h"
 #include "Source/UI/SoundOptionMenu/SoundOptionMenu.h"
+#include "Source/UI/TitleEventMenu/TitleEventMenu.h"
 
 
 namespace app
@@ -21,10 +22,16 @@ namespace app
         constexpr float TITLE_SCENE_HEIGHT = 1080.0f;
         /** サウンドオプションのレイアウトのパス */
         constexpr const char* SOUND_OPTION_LAYOUT_PATH = "Assets/parameter/UI/Sound/SoundOption.json";
+        /** タイトルイベントのレイアウトパス */
+        constexpr const char* TITLE_EVENT_LAYOUT_PATH = "Assets/parameter/UI/TitleEventItem/TitleEventItem.json";
     }
 
 
     TitleScene::TitleScene()
+		: m_titleSceneSpriteRender(nullptr)
+		, m_soundOptionMenu(nullptr)
+        , m_titleEventMenu(nullptr)
+        , m_isRequestInGame(false)
     {}
 
 
@@ -53,6 +60,10 @@ namespace app
         // サウンドオプションのUIを作る(最初は閉じている)
         m_soundOptionLayout.Initialize<ui::SoundOptionMenu>(SOUND_OPTION_LAYOUT_PATH);
         m_soundOptionMenu = m_soundOptionLayout.GetMenu<ui::SoundOptionMenu>();
+        
+        // タイトルイベントのUIを作る(最初は閉じている)
+        m_titleEventLayout.Initialize<ui::TitleEventMenu>(TITLE_EVENT_LAYOUT_PATH);
+        m_titleEventMenu = m_titleEventLayout.GetMenu<ui::TitleEventMenu>();
 
         // タイトルのBGMを鳴らす
         sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
@@ -78,11 +89,23 @@ namespace app
         // サウンドオプションの更新(開いているときだけ、中で入力を受け付ける)
         m_soundOptionLayout.Update();
 
-        // スタートボタンで、サウンドオプションを開く
-        // ※ メニューの更新の後に開くので、開いたフレームの入力でメニューが動くことはない
-        if (m_soundOptionMenu && !m_soundOptionMenu->IsOpen() && g_pad[0]->IsTrigger(enButtonStart))
+        // サウンドオプションを開いている間は、タイトルのメニューは動かさない
+        if (m_soundOptionMenu && m_soundOptionMenu->IsOpen()) return;
+
+        // タイトルイベントメニューの更新
+        m_titleEventMenu->Update();
+
+        // タイトルテキストタイプを宣言
+        ui::TitleEventMenu::TitleTextType decidedType;
+        if (m_titleEventMenu && m_titleEventMenu->ConsumeDecided(decidedType))
         {
-            m_soundOptionMenu->Open();
+            switch (decidedType)
+            {
+                case ui::TitleEventMenu::TitleTextType::Start: m_isRequestInGame = true;  break;
+                case ui::TitleEventMenu::TitleTextType::Sound: m_soundOptionMenu->Open(); break;
+                case ui::TitleEventMenu::TitleTextType::End:   PostQuitMessage(0);        break;
+                default: break;
+            }
         }
     }
     
@@ -95,6 +118,8 @@ namespace app
             m_titleSceneSpriteRender->Draw(rc);
         }
 
+        // タイトルイベントを描画(テキスト群)
+        m_titleEventLayout.Render(rc);
         // 背景の上に重ねる(閉じているときは描画されない)
         m_soundOptionLayout.Render(rc);
     }
@@ -108,13 +133,13 @@ namespace app
             return false;
         }
 
-		if (g_pad[0]->IsTrigger(enButtonA))
-		{
-            sound::SoundManager::GetInstance()->Play(sound::EnSoundType::SE, sound::se::DECIDE);
-			id = InGameScene::ID();
-			waitTime = 1.0f;
-			return true;
-		}
-        return false;
+        // インゲームに移る
+        if (m_isRequestInGame)
+        {
+            id = InGameScene::ID();
+            waitTime = 1.0f;
+            return true;
+        }
+		return false;
     }
 }

@@ -1,0 +1,13 @@
+{
+  "animation":[
+    {
+      "comment":"テキスト選択時の拡大アニメーション",
+      "key":"Select",
+      "startValue":[1,1,1],
+      "endValue":[1.2,1.2,1.2],
+      "duration":0.4,
+      "easing":"EaseInOut",
+      "loop":"PingPong"
+    }
+  ]
+}

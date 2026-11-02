@@ -70,6 +70,9 @@
     <Filter Include="Source\AI\Navigation">
       <UniqueIdentifier>{8e038473-6889-4318-b70e-c6aadce36403}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\UI\TitleEventMenu">
+      <UniqueIdentifier>{ae8e2441-2946-4d35-8eb8-07b3b3cb403c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -231,6 +234,9 @@
     <ClCompile Include="Source\AI\Navigation\PathFollower.cpp">
       <Filter>Source\AI\Navigation</Filter>
     </ClCompile>
+    <ClCompile Include="Source\UI\TitleEventMenu\TitleEventMenu.cpp">
+      <Filter>Source\UI\TitleEventMenu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -314,6 +320,15 @@
     <ClInclude Include="Source\UI\Animation\UIAnimation.h">
       <Filter>Source\UI\Animation</Filter>
     </ClInclude>
+    <ClInclude Include="Source\UI\Animation\UIAnimationTypes.h">
+      <Filter>Source\UI\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\Animation\UIAnimationFactory.h">
+      <Filter>Source\UI\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\Animation\UIAnimationParameter.h">
+      <Filter>Source\UI\Animation</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Camera\FinderController.h">
       <Filter>Source\Camera</Filter>
     </ClInclude>
@@ -379,6 +394,9 @@
     </ClInclude>
     <ClInclude Include="Source\AI\Navigation\NavGrid.h">
       <Filter>Source\AI\Navigation</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\TitleEventMenu\TitleEventMenu.h">
+      <Filter>Source\UI\TitleEventMenu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -13,6 +13,7 @@ namespace app
 	namespace ui
 	{
 		class SoundOptionMenu;
+		class TitleEventMenu;
 	}
 
 
@@ -31,6 +32,9 @@ namespace app
 
 
 	private:
+		/** インゲームへ移るかを保存する用 */
+		bool m_isRequestInGame;
+
 		/** タイトルシーンのスプライトレンダー */
 		std::unique_ptr<SpriteRender> m_titleSceneSpriteRender;
 		/** トランスフォーム */
@@ -38,6 +42,10 @@ namespace app
 		/** サウンドオプションのUI */
 		ui::UILayout m_soundOptionLayout;
 		/** サウンドオプションのメニュー(m_soundOptionLayout が持っている) */
-		ui::SoundOptionMenu* m_soundOptionMenu = nullptr;
+		ui::SoundOptionMenu* m_soundOptionMenu;
+		/** タイトルイベントのUI */
+		ui::UILayout m_titleEventLayout;
+		/** タイトルイベントのメニュー */
+		ui::TitleEventMenu* m_titleEventMenu;
 	};
 }

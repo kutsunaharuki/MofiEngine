@@ -1,0 +1,11 @@
+{
+  "canvas": {
+    "elements": [
+      {
+        "type":"UIDummy",
+        "name":"TitleMenuActor",
+        "position":[0,-150,0]
+      }
+    ]
+  }
+}

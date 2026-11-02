@@ -145,6 +145,7 @@
       <AdditionalIncludeDirectories>../ThirdParty;../ThirdParty/imgui;../ThirdParty/imgui/backends;../ThirdParty/ImGuizmo</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>
       </MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -199,6 +200,7 @@
       <AdditionalIncludeDirectories>../ThirdParty;../ThirdParty/imgui;../ThirdParty/imgui/backends;../ThirdParty/ImGuizmo</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>
       </MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -222,6 +224,7 @@
       <AdditionalIncludeDirectories>../ThirdParty;../ThirdParty/imgui;../ThirdParty/imgui/backends;../ThirdParty/ImGuizmo</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>
       </MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -303,6 +306,7 @@
     <ClCompile Include="Source\Scene\SceneManager.cpp" />
     <ClCompile Include="Source\Scene\TitleScene.cpp" />
     <ClCompile Include="Source\UI\Animation\UIAnimation.cpp" />
+    <ClCompile Include="Source\UI\TitleEventMenu\TitleEventMenu.cpp" />
     <ClCompile Include="Source\UI\UILayout.cpp" />
     <ClCompile Include="Source\UI\UIMenu.cpp" />
     <ClCompile Include="Source\UI\UIParts.cpp" />
@@ -357,6 +361,10 @@
     <ClInclude Include="Source\Scene\TitleScene.h" />
     <ClInclude Include="Source\Stage\HidePoint.h" />
     <ClInclude Include="Source\UI\Animation\UIAnimation.h" />
+    <ClInclude Include="Source\UI\Animation\UIAnimationTypes.h" />
+    <ClInclude Include="Source\UI\Animation\UIAnimationFactory.h" />
+    <ClInclude Include="Source\UI\Animation\UIAnimationParameter.h" />
+    <ClInclude Include="Source\UI\TitleEventMenu\TitleEventMenu.h" />
     <ClInclude Include="Source\UI\UILayout.h" />
     <ClInclude Include="Source\UI\UIMenu.h" />
     <ClInclude Include="Source\UI\UIParts.h" />
