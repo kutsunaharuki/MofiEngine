@@ -79,6 +79,7 @@ static const int MAX_FPS = 60;	// 最大FPS。USE_FPS_LIMITTERが有効なとき
 
 #include "graphics/Sprite.h"
 #include "graphics/Model.h"
+#include "graphics/InstancedModelRender.h"
 #include "graphics/IRender2D.h"
 #include "graphics/SpriteRender.h"
 #include "graphics/FontRender.h"

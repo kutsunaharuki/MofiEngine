@@ -4,10 +4,12 @@
  */
 #include "stdafx.h"
 #include "Stage.h"
+#include "StageRenderer.h"
 #include "Source/Actor/StageObject/StageObject.h"
 #include "Source/Util/JsonConverter.h"
 #include "level3D/TklFile.h"
 #include <fstream>
+#include <map>
 
 
 namespace app
@@ -60,6 +62,7 @@ namespace app
 
 
 		Stage::Stage()
+			: m_stageRenderer(std::make_unique<StageRenderer>())
 		{}
 
 
@@ -78,23 +81,8 @@ namespace app
 
 		void Stage::Render(RenderContext& rc)
 		{
-			/** 2.視錐台の範囲内にあるオブジェクトのみを描画 */
-			// このフレームのカメラの映る範囲(視錐台)
-			Frustum frustum;
-			frustum.Update(g_camera3D->GetViewProjectionMatrix());
-
-			int visibleCount = 0;
-			for (auto& object : m_objectList)
-			{
-				// 映る範囲外なら描画に登録しない(G-Buffer にもファインダーにも描かれない)
-				if (!frustum.IsInside(object->GetBoundingCenter(), object->GetBoundingRadius())) continue;
-
-				object->Render(rc);
-				visibleCount++;
-			}
-
-			// Profiler に描いた数を出す
-			K2_PROFILE_COUNTER("Stage visible", visibleCount);
+			// 視錐台の範囲内にある置物だけを、モデルの種類ごとにまとめて描く(インスタンシング描画)
+			m_stageRenderer->Render(rc, m_objectList);
 		}
 
 
@@ -119,6 +107,22 @@ namespace app
 
 			if (json.contains("objects") && json["objects"].is_array())
 			{
+				// 先に「モデル × 反転の有無」ごとの数を数えて、描画のグループをその大きさで作っておく
+				// ※ しないと、追加するたびにグループが大きく作り直されて、読み込みが遅くなる
+				std::map<std::pair<std::string, bool>, int> groupCountMap;
+				for (const nlohmann::json& item : json["objects"])
+				{
+					const std::string modelPath = util::JsonConverter::ToString(item, "model");
+					const Vector3 scale = util::JsonConverter::ToVector3(item, "scale", Vector3::One);
+					groupCountMap[std::make_pair(modelPath, actor::StageObject::IsMirrored(scale))]++;
+				}
+				for (const auto& pair : groupCountMap)
+				{
+					// モデルが無いと、読み込みで止まってしまうので作らない(AddObject でも追加しない)
+					if (!IsFileExist(pair.first.first)) continue;
+					m_stageRenderer->Reserve(pair.first.first, pair.first.second, pair.second);
+				}
+
 				// 置物の読み込み
 				for (const nlohmann::json& item : json["objects"])
 				{
@@ -256,8 +260,11 @@ namespace app
 				return nullptr;
 			}
 
+			// 「モデル × 反転の有無」のグループに登録して、グループの描画をもらう(Model はグループに1つだけ)
+			InstancedModelRender& instancedRender = m_stageRenderer->Register(modelPath, actor::StageObject::IsMirrored(scale));
+
 			auto object = std::make_unique<actor::StageObject>();
-			object->Initialize(name, modelPath, position, rotationDeg, scale, isCollision);
+			object->Initialize(name, modelPath, position, rotationDeg, scale, isCollision, instancedRender);
 			object->Start();
 
 			actor::StageObject* rawPtr = object.get();
@@ -269,6 +276,11 @@ namespace app
 		void Stage::RemoveObject(const int index)
 		{
 			if (index < 0 || index >= GetObjectCount()) return;
+
+			// グループの登録を外してから消す
+			const actor::StageObject& object = *m_objectList[index];
+			m_stageRenderer->Unregister(object.GetModelPath(), object.IsInMirroredGroup());
+
 			m_objectList.erase(m_objectList.begin() + index);
 		}
 
@@ -278,6 +290,23 @@ namespace app
 			// 置物と隠れ場所の一覧を消す
 			m_objectList.clear();
 			m_hidePointList.clear();
+			// 置物がグループのアドレスを持っているので、置物を消した後に消す
+			m_stageRenderer->Clear();
+		}
+
+
+		void Stage::RefreshObjectGroup(actor::StageObject* object)
+		{
+			if (object == nullptr) return;
+
+			const bool isMirrored = actor::StageObject::IsMirrored(object->GetScale());
+			// 反転の有無が変わっていなければ、何もしない
+			if (isMirrored == object->IsInMirroredGroup()) return;
+
+			// 今のグループから外して、反転の有無が合うグループに入れ直す
+			m_stageRenderer->Unregister(object->GetModelPath(), object->IsInMirroredGroup());
+			InstancedModelRender& instancedRender = m_stageRenderer->Register(object->GetModelPath(), isMirrored);
+			object->SetInstancedRender(instancedRender, isMirrored);
 		}
 
 

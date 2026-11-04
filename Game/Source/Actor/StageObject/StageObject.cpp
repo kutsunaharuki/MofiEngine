@@ -34,6 +34,9 @@ namespace app
 			, m_boundingRadius(0.0f)
 			, m_worldAABBMin(Vector3::Zero)
 			, m_worldAABBMax(Vector3::Zero)
+			, m_worldMatrix(Matrix::Identity)
+			, m_instancedRender(nullptr)
+			, m_isInMirroredGroup(false)
 		{}
 
 
@@ -47,7 +50,8 @@ namespace app
 			const Vector3& position,
 			const Vector3& rotationDeg,
 			const Vector3& scale,
-			const bool isCollision)
+			const bool isCollision,
+			InstancedModelRender& instancedRender)
 		{
 			m_name = name;
 			m_modelPath = modelPath;
@@ -57,12 +61,11 @@ namespace app
 			SetRotationDeg(rotationDeg);
 			SetScale(scale);
 
-			// 反転(スケールがマイナス)していると、ポリゴンの表と裏が入れ替わるので、表側を描かない設定にする
-			// ※ モデルを作る時にしか決められないので、あとで反転の有無が変わったら、読み直す必要がある
-			const D3D12_CULL_MODE cullMode = IsMirrored(scale) ? D3D12_CULL_MODE_FRONT : D3D12_CULL_MODE_BACK;
+			// 自分では Model を作らず、グループ(同じ tkm × 反転の有無)の Model を使う
+			// ※ 前は置物ごとに ModelRender を作っていて、GPU リソースの作成が読み込みの 9割以上を占めていた
+			SetInstancedRender(instancedRender, IsMirrored(scale));
 
-			// 置物はアニメーションしない。影は落とさず受けるだけ(地面と同じ設定)
-			m_modelRender.Init(m_modelPath.c_str(), nullptr, enModelUpAxisZ, 0, false, true, cullMode);
+			const TkmFile& tkmFile = m_instancedRender->GetModel().GetTkmFile();
 
 
 			/** 1. ローカルのボックス(AABBB)を作る */
@@ -73,7 +76,7 @@ namespace app
 			Vector3 vMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
 			// モデルメッシュを1つずつ見る
-			for (const auto& mesh : m_modelRender.GetModel().GetTkmFile().GetMeshParts())
+			for (const auto& mesh : tkmFile.GetMeshParts())
 			{
 				// 頂点バッファの中の頂点を1つずつ見る
 				for (const auto& vertex : mesh.vertexBuffer)
@@ -96,7 +99,7 @@ namespace app
 
 			// ポリゴンの数を数える(インデックス3つで三角形1枚。マテリアルごとにインデックスバッファが分かれている)
 			m_triangleCount = 0;
-			for (const auto& mesh : m_modelRender.GetModel().GetTkmFile().GetMeshParts())
+			for (const auto& mesh : tkmFile.GetMeshParts())
 			{
 				for (const auto& indexBuffer : mesh.indexBuffer16Array)
 				{
@@ -125,7 +128,7 @@ namespace app
 
 		void StageObject::Render(RenderContext& rc)
 		{
-			m_modelRender.Draw(rc);
+			// 描画は StageRenderer がグループごとにまとめて行う(インスタンシング描画)
 		}
 
 
@@ -139,9 +142,17 @@ namespace app
 			// ワールド行列が決まってから作る
 			ApplyTransform();
 
-			Model& model = m_modelRender.GetModel();
+			// グループの Model の tkm を、自分のワールド行列で置いて作る
+			// ※ MeshCollider は頂点をコピーして持つので、あとでグループの Model が作り直されても影響しない
 			m_physicsObject = std::make_unique<PhysicsStaticObject>();
-			m_physicsObject->CreateFromModel(model, model.GetWorldMatrix());
+			m_physicsObject->CreateFromModel(m_instancedRender->GetModel(), m_worldMatrix);
+		}
+
+
+		void StageObject::SetInstancedRender(InstancedModelRender& instancedRender, const bool isMirrored)
+		{
+			m_instancedRender = &instancedRender;
+			m_isInMirroredGroup = isMirrored;
 		}
 
 
@@ -216,14 +227,16 @@ namespace app
 
 		void StageObject::ApplyTransform()
 		{
-			// ワールド値を更新して、モデルに反映する
+			// ワールド値を更新して、ワールド行列を作る
 			m_transform.UpdateTransform();
-			m_modelRender.SetTRS(
+
+			// Model::CalcWorldMatrix は、Z-up のモデルを Y-up に起こす回転も入れてくれる(ModelRender と同じ行列になる)
+			// ※ この行列が、そのままインスタンシング描画の行列リストに入る
+			m_worldMatrix = m_instancedRender->GetModel().CalcWorldMatrix(
 				m_transform.GetWorldPosition(),
 				m_transform.GetWorldRotation(),
 				m_transform.GetWorldScale()
 			);
-			m_modelRender.Update();
 
 			// ワールド行列が変わったので、囲む球を計算し直す
 			UpdateBoundingSphere();
@@ -233,10 +246,10 @@ namespace app
 		void StageObject::UpdateBoundingSphere()
 		{
 			// ボックスの8つの角をワールド座標ににする
-			// ※ GetWorldMatrix には Z-up の回転・スケール・回転・位置が全部入っている
+			// ※ m_worldMatrix には Z-up の回転・スケール・回転・位置が全部入っている
 			Vector3 corners[8];
 			// 8つの角の座標を計算する
-			m_localAABB.CalcVertexPositions(corners, m_modelRender.GetModel().GetWorldMatrix());
+			m_localAABB.CalcVertexPositions(corners, m_worldMatrix);
 
 			// 中心 = 8つの角の平均
 			m_boundingCenter = Vector3::Zero;

@@ -287,6 +287,7 @@
     <ClCompile Include="graphics\MeshParts.cpp" />
     <ClCompile Include="graphics\Model.cpp" />
     <ClCompile Include="graphics\ModelRender.cpp" />
+    <ClCompile Include="graphics\InstancedModelRender.cpp" />
     <ClCompile Include="graphics\NullTextureMaps.cpp" />
     <ClCompile Include="graphics\PhotoCapture.cpp" />
     <ClCompile Include="graphics\PipelineState.cpp" />
@@ -387,6 +388,7 @@
     <ClInclude Include="graphics\MeshParts.h" />
     <ClInclude Include="graphics\Model.h" />
     <ClInclude Include="graphics\ModelRender.h" />
+    <ClInclude Include="graphics\InstancedModelRender.h" />
     <ClInclude Include="graphics\NullTextureMaps.h" />
     <ClInclude Include="graphics\PhotoCapture.h" />
     <ClInclude Include="graphics\PipelineState.h" />

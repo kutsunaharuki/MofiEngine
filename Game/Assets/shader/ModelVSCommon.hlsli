@@ -33,7 +33,7 @@ struct SVSIn
 // �O���[�o���ϐ��B
 ////////////////////////////////////////////////
 StructuredBuffer<float4x4> g_boneMatrix         : register(t3);	    //�{�[���s��B
-StructuredBuffer<float4x4> g_worldMatrixArray   : register(t10);	//���[���h�s��̔z��B�C���X�^���V���O�`��̍ۂɗL���B
+StructuredBuffer<float4x4> g_worldMatrixArray   : register(t14);	//���[���h�s��̔z��B�C���X�^���V���O�`��̍ۂɗL���B
 
 ///////////////////////////////////////
 // �֐��錾

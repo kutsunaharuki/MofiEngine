@@ -27,7 +27,7 @@ namespace app
 			bool Start() override;
 			/** 更新処理 */
 			void Update() override;
-			/** 描画処理 */
+			/** 描画処理(何もしない。StageRenderer がグループごとにまとめて描く) */
 			void Render(RenderContext& rc) override;
 
 			/**
@@ -38,6 +38,7 @@ namespace app
 			 * @param rotationDeg 回転(度数)
 			 * @param scale スケール
 			 * @param isCollision コリジョンを付けるか
+			 * @param instancedRender 入るグループの描画(StageRenderer::Register で受け取る)
 			 */
 			void Initialize(
 				const std::string& name,
@@ -45,8 +46,29 @@ namespace app
 				const Vector3& position,
 				const Vector3& rotationDeg,
 				const Vector3& scale,
-				const bool isCollision
+				const bool isCollision,
+				InstancedModelRender& instancedRender
 			);
+
+
+		public:
+			/**
+			 * @brief 入るグループを変える(エディターで反転の有無が変わった時に Stage が呼ぶ)
+			 * @param instancedRender 新しいグループの描画
+			 * @param isMirrored 新しいグループが反転のグループか
+			 */
+			void SetInstancedRender(InstancedModelRender& instancedRender, const bool isMirrored);
+			/**
+			 * @brief 入っているグループの描画を取得
+			 * @return グループの描画
+			 */
+			InstancedModelRender* GetInstancedRender() const { return m_instancedRender; }
+			/**
+			 * @brief 入っているグループが反転のグループか
+			 * @return 反転のグループなら true
+			 * @details スケールを変えた直後は、今のスケールの反転の有無と違うことがある(違えばグループを移す)
+			 */
+			bool IsInMirroredGroup() const { return m_isInMirroredGroup; }
 
 
 		public:
@@ -167,12 +189,17 @@ namespace app
 			 * @return 箱の大きい方の角(ワールド)
 			 */
 			const Vector3& GetWorldAABBMax() const { return m_worldAABBMax; }
+			/**
+			 * @brief ワールド行列を取得
+			 * @return ワールド行列
+			 */
+			const Matrix& GetWorldMatrix() const { return m_worldMatrix; }
 
 
 		private:
 			/**
-			 * @brief トランスフォームを更新して、モデルに反映する
-			 * @details コリジョンはモデルのワールド行列から作るので、作る前にも呼ぶ
+			 * @brief トランスフォームを更新して、ワールド行列(m_worldMatrix)を作り直す
+			 * @details コリジョンはワールド行列から作るので、作る前にも呼ぶ
 			 */
 			void ApplyTransform();
 			/**
@@ -193,18 +220,25 @@ namespace app
 			Vector3 m_worldAABBMin;
 			/** 囲む箱の大きい方の角(ワールド) */
 			Vector3 m_worldAABBMax;
+			/** ワールド行列(Z-upの補正込み。StageRenderer がインスタンスの行列として使う) */
+			Matrix m_worldMatrix;
+			/**
+			 * 入っているグループの描画(持ち主は StageRenderer)
+			 * ※ Model ではなくこちらを持つ。グループが大きく作り直されると Model は新しくなるが、これのアドレスは変わらないため
+			 *    Model(tkm とワールド行列の計算・コリジョンに使う)は GetModel() でその都度もらう
+			 */
+			InstancedModelRender* m_instancedRender;
+			/** 入っているグループが反転のグループか */
+			bool m_isInMirroredGroup;
 
 
 			/** 名前(一覧の表示と保存用) */
 			std::string m_name;
-			/** モデルのパス(保存用。ModelRender からは取れない) */
+			/** モデルのパス(保存用と、StageRenderer のグループのキー) */
 			std::string m_modelPath;
 			/** 回転(度数) */
 			Vector3 m_rotationDeg;
-			/**
-			 * 当たり判定
-			 * ※ エンジンの MeshCollider は、作り直すと前のデータが残るので、作り直す時は丸ごと作り直す
-			 */
+			/** 静的当たり判定 */
 			std::unique_ptr<PhysicsStaticObject> m_physicsObject;
 			/** コリジョンを付けるか */
 			bool m_isCollision;

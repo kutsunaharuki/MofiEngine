@@ -1,7 +1,6 @@
 ﻿/**
  * @file RenderingEngine.h
  * @brief レンダリングエンジン
- * @details: Step2
  */
 #pragma once
 

@@ -207,6 +207,9 @@
     <ClCompile Include="Source\Stage\StageLayout.cpp">
       <Filter>Source\Stage</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Stage\StageRenderer.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyStateMachine.cpp">
       <Filter>Source\Actor\Character\Enemy</Filter>
     </ClCompile>
@@ -366,6 +369,9 @@
       <Filter>Source\Stage</Filter>
     </ClInclude>
     <ClInclude Include="Source\Stage\StageLayout.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\StageRenderer.h">
       <Filter>Source\Stage</Filter>
     </ClInclude>
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyStateMachine.h">

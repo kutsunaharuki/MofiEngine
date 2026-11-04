@@ -69,7 +69,8 @@ namespace nsK2EngineLow
 		for (auto* model : m_models)
 		{
 			// カメラ視点で描画(renderToGBuffer.fx)
-			model->Draw(rc);
+			// ※ インスタンシング描画のモデルは、インスタンスの数だけまとめて描かれる(普通のモデルは 1)
+			model->Draw(rc, model->GetNumInstance());
 		}
 		// 描き終わるまで待つ → 以後テクスチャとして読める
 		rc.WaitUntilFinishDrawingToRenderTargets(gBufferCount, gBuffers);

@@ -20,6 +20,10 @@ namespace app
 
 	namespace stage
 	{
+		/** 前方宣言 */
+		class StageRenderer;
+
+
 		/**
 		 * @brief ステージ
 		 * @details 置物(StageObject)をまとめて持って、JSON から読み込む・JSON に保存する。
@@ -92,6 +96,13 @@ namespace app
 			void RemoveObject(const int index);
 			/** 置物を全部消す */
 			void Clear();
+			/**
+			 * @brief 置物のスケールの反転の有無が変わっていたら、描画のグループを移す
+			 * @param object 置物
+			 * @details 反転するとカリング(表と裏のどちらを描かないか)が変わるので、別のグループで描く必要がある。
+			 *          エディターでスケールを変えた後に呼ぶ
+			 */
+			void RefreshObjectGroup(actor::StageObject* object);
 
 			/**
 			 * @brief 置物の数を取得
@@ -118,6 +129,11 @@ namespace app
 
 
 		private:
+			/**
+			 * 置物をモデルの種類ごとにまとめて描く(インスタンシング描画)
+			 * ※ 置物がグループのアドレスを持つので、置物より先に作り、置物より後に消す(m_objectList より上に書く)
+			 */
+			std::unique_ptr<StageRenderer> m_stageRenderer;
 			/** 置物の一覧 */
 			std::vector<std::unique_ptr<actor::StageObject>> m_objectList;
 			/** 隠れ場所の一覧 */

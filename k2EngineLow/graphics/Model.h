@@ -219,6 +219,17 @@ namespace nsK2EngineLow {
 		{
 			return m_isInited;
 		}
+		/**
+		 * @brief 描画するインスタンスの数を設定
+		 * @param numInstance インスタンスの数
+		 * @details RenderingEngine が Draw に渡す。インスタンシング描画(InstancedModelRender)が毎フレーム設定する
+		 */
+		void SetNumInstance(const int numInstance) { m_numInstance = numInstance; }
+		/**
+		 * @brief 描画するインスタンスの数を取得
+		 * @return インスタンスの数(普通のモデルは 1)
+		 */
+		int GetNumInstance() const { return m_numInstance; }
 		/// <summary>
 		/// マテリアルを再初期化。
 		/// </summary>
@@ -228,6 +239,7 @@ namespace nsK2EngineLow {
 		/// <param name="reInitData">再初期化データ。</param>
 		void ReInitMaterials(MaterialReInitData& reInitData);
 	private:
+		int m_numInstance = 1;								// 描画するインスタンスの数。
 		bool m_isInited = false;							// 初期化されている？
 		Matrix m_worldMatrix;								// ワールド行列。
 		TkmFile* m_tkmFile;									// tkmファイル。

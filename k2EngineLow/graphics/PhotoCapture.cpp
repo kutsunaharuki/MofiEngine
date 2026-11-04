@@ -238,7 +238,8 @@ namespace nsK2EngineLow
 		{
 			// ファインダー用のカメラ視点でモデルを描画
 			// 第二引数にカメラを指定
-			model->Draw(rc,m_finderCamera);
+			// ※ インスタンシング描画のモデルは、インスタンスの数だけまとめて描かれる(普通のモデルは 1)
+			model->Draw(rc, m_finderCamera, model->GetNumInstance());
 		}
 
 		// 描画が終わるまで待つ

@@ -322,6 +322,7 @@
     <ClCompile Include="Source\Stage\Stage.cpp" />
     <ClCompile Include="Source\Stage\StageEditor.cpp" />
     <ClCompile Include="Source\Stage\StageLayout.cpp" />
+    <ClCompile Include="Source\Stage\StageRenderer.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -385,6 +386,7 @@
     <ClInclude Include="Source\Stage\Stage.h" />
     <ClInclude Include="Source\Stage\StageEditor.h" />
     <ClInclude Include="Source\Stage\StageLayout.h" />
+    <ClInclude Include="Source\Stage\StageRenderer.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system\system.h" />
   </ItemGroup>

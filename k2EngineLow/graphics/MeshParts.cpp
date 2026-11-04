@@ -205,7 +205,7 @@ namespace nsK2EngineLow {
 			sprintf_s(
 				materiayKey,
 				MAX_PATH,
-				"%s, %s, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %s, %s, %s",
+				"%s, %s, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %s, %s, %s, %d",
 				fxFilePath,
 				vsEntryPointFunc,
 				vsSkinEntryPointFunc,
@@ -224,7 +224,10 @@ namespace nsK2EngineLow {
 				cullMode,
 				tkmMat.albedoMapFileName.empty() ? "none" : tkmMat.albedoMapFileName.c_str(),
 				tkmMat.normalMapFileName.empty() ? "none" : tkmMat.normalMapFileName.c_str(),
-				tkmMat.specularMapFileName.empty() ? "none" : tkmMat.specularMapFileName.c_str()
+				tkmMat.specularMapFileName.empty() ? "none" : tkmMat.specularMapFileName.c_str(),
+				// 何番目のマテリアルか。ルートシグネチャに「ディスクリプタヒープの何個目から読むか」として焼き込まれるので、
+				// 番号が違えば別のマテリアルにする(使い回すと、別のマテリアルや範囲外のテクスチャ・行列を読んでしまう)
+				materialNum
 			);
 			auto mat = materialBank.Get(materiayKey);
 			if (mat == nullptr) {

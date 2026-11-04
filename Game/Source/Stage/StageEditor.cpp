@@ -355,19 +355,14 @@ namespace app
 			isEditEnd |= ImGui::IsItemDeactivatedAfterEdit();
 
 			Vector3 scale = object->GetScale();
-			const bool isMirrored = actor::StageObject::IsMirrored(scale);
 			if (ImGui::DragFloat3("Scale", scale.v, 0.01f))
 			{
 				object->SetScale(scale);
+				// 反転の有無が変わったら、表と裏のどちらを描くかが変わるので、描画のグループを移す
+				m_stage->RefreshObjectGroup(object);
 				MarkDirty();
 			}
 			isEditEnd |= ImGui::IsItemDeactivatedAfterEdit();
-
-			// 反転の有無は、モデルを作る時にしか決められない(表と裏のどちらを描くか)ので、変わったら知らせる
-			if (actor::StageObject::IsMirrored(object->GetScale()) != isMirrored)
-			{
-				m_message = "Mirror changed: Save and Reload to fix faces.";
-			}
 			if (actor::StageObject::IsMirrored(object->GetScale()))
 			{
 				ImGui::TextDisabled("Mirrored (negative scale)");
