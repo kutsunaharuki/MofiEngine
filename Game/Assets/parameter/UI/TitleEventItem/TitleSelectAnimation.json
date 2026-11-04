@@ -1,5 +1,5 @@
 {
-  "animation":[
+  "animations":[
     {
       "comment":"テキスト選択時の拡大アニメーション",
       "key":"Select",

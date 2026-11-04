@@ -6,6 +6,7 @@
 #include "EnemyBase.h"
 #include "EnemyStateMachine.h"
 #include "EnemyDestinationMode.h"
+#include "EnemyAlertMode.h"
 
 
 namespace app
@@ -122,8 +123,13 @@ namespace app
 			m_destinationMode = std::make_unique<EnemyDestinationMode>(GetEnemyStateMachine());
 			m_destinationMode->SetTargetList(m_targetList);
 
+			// 警戒モードを作って、預かっていた隠れ場所の一覧を渡す
+			m_alertMode = std::make_unique<EnemyAlertMode>(GetEnemyStateMachine());
+			m_alertMode->SetHidePointList(m_hidePointList);
+
 			return CharacterBase::Start();
 		}
+		
 
 		void EnemyBase::Update()
 		{
@@ -133,10 +139,17 @@ namespace app
 			// ※ GetFocusPosition は const なので、Get()(JSON が変わっていれば読み直す)を呼べない。ここで読んでおく
 			m_focusHeight = parameter.focusHeight;
 
+			const float deltaTime = g_gameTime->GetFrameDeltaTime();
+
+
 			// SetSetting は値をコピーしているだけなので目的地モードをやり直したりはしない
 			m_destinationMode->SetSetting(parameter.destinationMode);
+			// SetSetting は値をコピーしているだけなので警戒モードをやり直さない
+			m_alertMode->SetSetting(parameter.alertMode);
 			// 行き先を決める(頭) → 道順をたどる(運転手) → ステートを選んで動く、の順番
-			m_destinationMode->Update(g_gameTime->GetFrameDeltaTime());
+			// 警戒モードが先。警戒が終わった後に目的地モードがすぐ続きを始められるため
+			m_alertMode->Update(deltaTime);
+			m_destinationMode->Update(deltaTime);
 
 			// ステートマシンが Walk / Idle を選ぶ前に道順から移動方向と移動量を決めておく
 			// ※ 順番を逆にすると、待機中は移動量が 0 のまま → 歩行に切り替わらない
@@ -178,6 +191,27 @@ namespace app
 			{
 				m_destinationMode->SetTargetList(targetList);
 			}
+		}
+
+
+		void EnemyBase::SetHidePointList(const std::vector<stage::HidePoint>& hidePointList)
+		{
+			// 警戒モードが出来るまで保持
+			m_hidePointList = hidePointList;
+
+			// すでに警戒モードがあれば(Start の後に呼ばれた時)、すぐ渡す
+			if (m_alertMode)
+			{
+				m_alertMode->SetHidePointList(hidePointList);
+			}
+		}
+
+
+		void EnemyBase::StartAlert()
+		{
+			if (m_alertMode == nullptr) return;
+
+			m_alertMode->StartAlert();
 		}
 
 

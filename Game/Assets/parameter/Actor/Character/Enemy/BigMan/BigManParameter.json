@@ -15,5 +15,9 @@
   "detourChance":0.5,
   "detourRadiusCell":10,
   "maxDetourPerTarget":2,
-  "retryInterval":1.0
+  "retryInterval":1.0,
+  
+  "alertDuration":20.0,
+  "alertLookAroundTime":3.0,
+  "alertRetryInterval":1.0
 }

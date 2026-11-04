@@ -7,6 +7,7 @@
 #pragma once
 #include "Source/Util/ParameterManager.h"
 #include "Source/Actor/Character/Enemy/EnemyDestinationMode.h"
+#include "Source/Actor/Character/Enemy/EnemyAlertMode.h"
 
 
 namespace app
@@ -30,6 +31,8 @@ namespace app
 			Vector3 initialScale;
 			/** 目的地モードの設定 */
 			DestinationModeSetting destinationMode;
+			/** 警戒モードの設定 */
+			AlertModeSetting alertMode;
 
 
 			EnemyParameter()
@@ -65,6 +68,11 @@ namespace app
 				destinationMode.detourRadiusCell = file.GetInt("detourRadiusCell", destinationMode.detourRadiusCell);
 				destinationMode.maxDetourPerTarget = file.GetInt("maxDetourPerTarget", destinationMode.maxDetourPerTarget);
 				destinationMode.retryInterval = file.GetFloat("retryInterval", destinationMode.retryInterval);
+
+				// 警戒モード
+				alertMode.alertDuration = file.GetFloat("alertDuration", alertMode.alertDuration);
+				alertMode.lookAroundTime = file.GetFloat("alertLookAroundTime", alertMode.lookAroundTime);
+				alertMode.retryInterval = file.GetFloat("alertRetryInterval", alertMode.retryInterval);
 			}
 		};
 	}

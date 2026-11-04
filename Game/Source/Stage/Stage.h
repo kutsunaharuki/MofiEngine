@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "HidePoint.h"
 
 
 namespace app
@@ -109,11 +110,18 @@ namespace app
 			 * @return 置物(範囲外なら nullptr)
 			 */
 			const actor::StageObject* GetStageObject(const int index) const;
+			/**
+			 * @brief 隠れ場所の一覧を取得
+			 * @return 隠れ場所の一覧
+			 */
+			const std::vector<HidePoint>& GetHidePointList() const { return m_hidePointList; }
 
 
 		private:
 			/** 置物の一覧 */
 			std::vector<std::unique_ptr<actor::StageObject>> m_objectList;
+			/** 隠れ場所の一覧 */
+			std::vector<HidePoint> m_hidePointList;
 		};
 	}
 }

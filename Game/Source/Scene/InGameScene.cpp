@@ -21,7 +21,9 @@
 #include "Source/AI/Navigation/NavGrid.h"
 #include "Source/AI/Navigation/Pathfinder.h"
 #include "Source/AI/Navigation/PathFollower.h"
+#include "Source/AI/WeightedRandom.h"
 #include "Source/Actor/Character/Enemy/EnemyDestinationMode.h"
+#include "Source/Actor/Character/Enemy/EnemyAlertMode.h"
 #include <cmath>
 
 
@@ -125,6 +127,8 @@ namespace app
 		// ステージの置物から、盗みに行く美術品を探しておく(階を決めるので、構造を先に渡す)
 		m_enemyController.SetLayout(m_stageLayout.get());
 		m_enemyController.CollectArtTargets(*m_stage);
+		m_enemyController.CollectHidePoints(*m_stage);
+
 
 		// 敵の一覧の敵に経路探索の地図を設定して
 		for (auto& enemy : m_enemyList)
@@ -153,11 +157,6 @@ namespace app
 		// ファインダーの操作(覗く・ピント・ズーム・撮影)を FinderController に任せる
 		m_finderController.Initialize(&m_photoCapture);
 
-		// 大男を作成
-		//m_enemy = std::make_unique<app::actor::EnemyBase>(app::actor::EnemyBase::EnemyType::BigMan);
-		//m_enemy->Start();
-
-
 		// ファインダーコントローラーに敵を登録する
 		for (auto& enemy : m_enemyList)
 		{
@@ -171,7 +170,6 @@ namespace app
 			enemy->Update();
 		}
 
-		// 後々に響きそうなのでゲームカメラを作成しておく。
 		m_gameCamera = std::make_unique<app::camera::GameCamera>();
 		m_gameCamera->Start();
 
@@ -390,6 +388,56 @@ namespace app
 			m_navGrid->Build(*m_stage);
 			m_navDebugMessage = "Rebuilt.";
 		}
+		ImGui::SameLine();
+		
+		// 重み付きくじ引きを 10000 回引いて、重み通りの割合になるか確認
+		if (ImGui::Button("Test hide lottery"))
+		{
+			// std::random_device の {} は random_device を 1つ作る
+			// () は 作ったものを呼ぶ → ランダムな数が 1つ出る
+			// ボタンを押すたびに乱数を作りたくないので static にする
+			static std::mt19937 random(std::random_device{}());
+			// 柱のかげ / 階段のわき / 普通 / ベンチ と同じ重み
+			const std::vector<float> weightList = { 2.0f,1.5f,1.0f,0.5f };
+			const int tryCount = 10000;
+
+			// 回数を数える処理をラムダにする
+			auto makeResult = [&](int excludeIndex)
+				{
+					std::vector<int> countList(weightList.size(), 0);
+
+					for (int i = 0; i < tryCount; ++i)
+					{
+						const int index = ai::PickWeighted(weightList, excludeIndex, random);
+						if (index < 0) continue;
+						++countList[index];
+					}
+
+					std::string text;
+					for (int i = 0; i < static_cast<int>(countList.size()); ++i)
+					{
+						text += " [" + std::to_string(i) + "] " + std::to_string(countList[i]);
+					}
+					return text;
+				};
+
+			// 結果を文字で出力
+			m_navDebugMessage = "Lottery (2.0 / 1.5 / 1.0 / 0.5)\n";
+			m_navDebugMessage += "  exclude -1:" + makeResult(-1) + "\n";
+			m_navDebugMessage += "  exclude  0:" + makeResult(0);
+		}
+		ImGui::SameLine();
+
+		// 確認のために全員を警戒させる
+		if (ImGui::Button("Alert all"))
+		{
+			for (auto& enemy : m_enemyList)
+			{
+				enemy->StartAlert();
+			}
+			m_navDebugMessage = "Alert started";
+		}
+
 
 		if (!m_navDebugMessage.empty())
 		{
@@ -426,11 +474,28 @@ namespace app
 
 			// 目的地モードの今の段階と、向かっている美術品の番号
 			const actor::EnemyDestinationMode* destinationMode = m_enemyList[i]->GetDestinationMode();
+
 			if (destinationMode != nullptr)
 			{
+				// 目的地モードの Phase を表示
 				ImGui::Text("        phase %s  target %d / %d",
 					destinationMode->GetPhaseName(), destinationMode->GetTargetIndex(),
 					static_cast<int>(targetList.size()));
+
+				// 渡された隠れ場所の数(今いる階の分)
+				ImGui::Text("        hide points %d / %d",
+					static_cast<int>(m_enemyList[i]->GetHidePointList().size()),
+					m_enemyController.GetHidePointCount());
+			}
+
+			// 警戒モードの今の段階と、向かっている隠れ場所の番号
+			const actor::EnemyAlertMode* alertMode = m_enemyList[i]->GetAlertMode();
+			// 警戒している時だけ表示
+			if (alertMode != nullptr && m_enemyList[i]->GetEnemyStateMachine()->IsAlert())
+			{
+				// 警戒モードの Phase を表示
+				ImGui::Text("        alert %s point %d remain %.1f",
+					alertMode->GetPhaseName(), alertMode->GetPointIndex(), alertMode->GetRemainTime());
 			}
 		}
 
@@ -551,6 +616,23 @@ namespace app
 			drawList->AddText(ImVec2(targetScreen.x + pixel, targetScreen.y - pixel * 2.0f),
 				IM_COL32(255, 255, 255, 255), std::to_string(i).c_str());
 		}
+
+		// 隠れ場所の目印(水色の丸と重み)
+		for (const stage::HidePoint& hidePoint : m_stage->GetHidePointList())
+		{
+			// 地図の階の分だけ取り出す
+			if (m_enemyController.ToFloorIndex(hidePoint.position.y) != navFloor) continue;
+
+			ImVec2 hideScreen;
+			if (!worldToScreen(hidePoint.position, hideScreen)) continue;
+			drawList->AddCircle(hideScreen, pixel * 1.5f, IM_COL32(80, 220, 255, 255), 0, 2.0f);
+
+			char label[32];
+			// 重みの値を文字で出力
+			sprintf_s(label, "H%.1f", hidePoint.weight);
+			drawList->AddText(ImVec2(hideScreen.x + pixel, hideScreen.y), IM_COL32(80, 220, 255, 255), label);
+		}
+
 
 		ImVec2 boyScreen;
 		if (worldToScreen(m_boy->GetTransform().GetWorldPosition(), boyScreen))

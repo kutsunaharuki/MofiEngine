@@ -96,6 +96,16 @@ namespace app
 		}
 
 
+		int EnemyController::CollectHidePoints(const stage::Stage& stage)
+		{
+			// 階は渡すときに位置の高さから求めるので、ここではそのまま保持
+			m_hidePointList = stage.GetHidePointList();
+			
+			// 登録された敵に渡す
+			ApplyAllTargetList();
+			return static_cast<int>(m_hidePointList.size());
+		}
+
 		void EnemyController::AddTarget(const Vector3& position)
 		{
 			m_targetList.push_back({ position, ToFloorIndex(position.y) });
@@ -119,6 +129,21 @@ namespace app
 				floorTargetList.push_back(target.position);
 			}
 			return floorTargetList;
+		}
+
+
+		std::vector<stage::HidePoint> EnemyController::MakeFloorHidePointList(const int floor) const
+		{
+			// 階ごとに分けるのではなく、渡すときに位置の高さから階を求める
+			std::vector<stage::HidePoint> floorHidePointList;
+
+			for (const stage::HidePoint& hidePoint : m_hidePointList)
+			{
+				if (ToFloorIndex(hidePoint.position.y) != floor) continue;
+				floorHidePointList.push_back(hidePoint);
+			}
+
+			return floorHidePointList;
 		}
 
 
@@ -146,6 +171,7 @@ namespace app
 			// 一覧を渡し直すと、敵は次の美術品を選ぶところからやり直す
 			entry.floor = ToFloorIndex(entry.enemy->GetTransform().GetWorldPosition().y);
 			entry.enemy->SetTargetList(MakeFloorTargetList(entry.floor));
+			entry.enemy->SetHidePointList(MakeFloorHidePointList(entry.floor));
 		}
 
 

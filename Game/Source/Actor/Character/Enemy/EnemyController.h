@@ -5,6 +5,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "Source/Stage/HidePoint.h"
 
 
 namespace app
@@ -84,6 +85,24 @@ namespace app
 			 * @return その階の美術品の位置の一覧
 			 */
 			std::vector<Vector3> MakeFloorTargetList(const int floor) const;
+			/**
+			 * @brief ステージの隠れ場所を集めて一覧を作り直す
+			 * @param stage ステージ
+			 * @return 集めた隠れ場所の数(全部の階)
+			 * @details エディタで隠れ場所を動かした後にも呼ぶ必要がある
+			 */
+			int CollectHidePoints(const stage::Stage& stage);
+			/**
+			 * @brief 指定した階の隠れ場所の一覧を作る
+			 * @param floor 階の番号(1F が 0、2F が 1)
+			 * @return その階の隠れ場所の一覧
+			 */
+			std::vector<stage::HidePoint> MakeFloorHidePointList(const int floor) const;
+			/**
+			 * @brief 隠れ場所の数を取得
+			 * @return 隠れ場所の数(全部の階)
+			 */
+			int GetHidePointCount() const { return static_cast<int>(m_hidePointList.size()); }
 
 			/**
 			 * @brief 高さから階の番号を求める
@@ -139,6 +158,8 @@ namespace app
 			std::vector<EnemyEntry> m_enemyList;
 			/** 美術品の一覧(全部の階) */
 			std::vector<ArtTarget> m_targetList;
+			/** 隠れ場所の一覧(全部の階) */
+			std::vector<stage::HidePoint> m_hidePointList;
 		};
 	}
 }

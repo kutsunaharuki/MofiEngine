@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include "Source/Stage/HidePoint.h"
 #include "Source/Util/ParameterManager.h"
 #include "Object/EnemyParameter.h"
 
@@ -28,6 +29,7 @@ namespace app
 		/** 前方宣言 */
 		class EnemyStateMachine;
 		class EnemyDestinationMode;
+		class EnemyAlertMode;
 
 
 		/**
@@ -108,10 +110,32 @@ namespace app
 			 */
 			void SetTargetList(const std::vector<Vector3>& targetList);
 			/**
+			 * @brief 隠れ場所の一覧を設定
+			 * @param hidePointList 隠れ場所の一覧
+			 * @details 警戒モードができるまで預かっておく。警戒モードができたらすぐ渡す
+			 */
+			void SetHidePointList(const std::vector<stage::HidePoint>& hidePointList);
+			/**
+			 * @brief 隠れ場所の一覧を取得
+			 * @return 隠れ場所の一覧
+			 */
+			const std::vector<stage::HidePoint>& GetHidePointList() const { return m_hidePointList; }
+
+			/**
 			 * @brief 目的地モードを取得(デバッグ表示用)
 			 * @return 目的地モード(Start 前は nullptr)
 			 */
 			const EnemyDestinationMode* GetDestinationMode() const { return m_destinationMode.get(); }
+			/**
+			 * @brief 警戒モードを取得(デバッグ表示用)
+			 * @return 警戒モード(Start 前は nullptr)
+			 */
+			const EnemyAlertMode* GetAlertMode() const { return m_alertMode.get(); }
+			/**
+			 * @brief 警戒を開始
+			 * @details Start 前に呼ばれた時は何もしない
+			 */
+			void StartAlert();
 
 
 		private:
@@ -133,8 +157,16 @@ namespace app
 			 *    派生クラスのメンバーは基底クラスより先に消えるので大丈夫
 			 */
 			std::unique_ptr<EnemyDestinationMode> m_destinationMode;
+			/**
+			 * 警戒モード(隠れていそうな位置や以前隠れていた場所などを見て回る頭)
+			 * ※ 目的地モードと同様にステートマシンより先に消える必要がある
+			 */
+			std::unique_ptr<EnemyAlertMode> m_alertMode;
+			
 			/** 美術品の位置の一覧(目的地モードができるまで預かる) */
 			std::vector<Vector3> m_targetList;
+			/** 隠れ場所の一覧(警戒モードができるまで預かる) */
+			std::vector<stage::HidePoint> m_hidePointList;
 		};
 	}
 }

@@ -188,7 +188,14 @@ namespace app
 		core::IState* EnemyStateMachine::GetChangeState()
 		{
 			// 上になるほど優先度が高い
-			if (m_isAlert) return FindState(EnemyAlertState::ID());
+			if (m_isAlert)
+			{
+				// 警戒中でも隠れ場所へ向かっている間は歩く
+				if (m_moveAmount > MOVE_AMOUNT_THRESHOLD) return FindState(EnemyWalkState::ID());
+				// 着いたら立ち止まって辺りを見回す
+				return FindState(EnemyAlertState::ID());
+			}
+
 			// 警戒の次に優先する(盗んでいる間は歩かない)
 			if (m_isStealing) return FindState(EnemyStealState::ID());
 			if (m_moveAmount > MOVE_AMOUNT_THRESHOLD) return FindState(EnemyWalkState::ID());

@@ -237,6 +237,9 @@
     <ClCompile Include="Source\UI\TitleEventMenu\TitleEventMenu.cpp">
       <Filter>Source\UI\TitleEventMenu</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Enemy\EnemyAlertMode.cpp">
+      <Filter>Source\Actor\Character\Enemy</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -397,6 +400,12 @@
     </ClInclude>
     <ClInclude Include="Source\UI\TitleEventMenu\TitleEventMenu.h">
       <Filter>Source\UI\TitleEventMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\AI\WeightedRandom.h">
+      <Filter>Source\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Enemy\EnemyAlertMode.h">
+      <Filter>Source\Actor\Character\Enemy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

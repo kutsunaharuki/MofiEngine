@@ -44,9 +44,9 @@ namespace app
 		{
 			// 敵のパラメーターを取得(大男とねずみ男で違う値)
 			const EnemyParameter& parameter = m_stateMachine.GetParameter();
-
-			// 入力された向きへ、JSON の速さで歩く
-			m_stateMachine.Move(parameter.moveSpeed);
+			// 警戒中は警戒の速さ、普段は歩く速さ
+			const float speed = m_stateMachine.IsAlert() ? parameter.alertSpeed : parameter.moveSpeed;
+			m_stateMachine.Move(speed);
 		}
 		
 		
@@ -68,7 +68,7 @@ namespace app
 		
 		void EnemyAlertState::Update()
 		{
-			// 警戒中はその場で止まる
+			// 警戒中は足を止める
 			m_stateMachine.StopMove();
 		}
 		

@@ -105,18 +105,32 @@ namespace app
 
 			Clear();
 
-			if (!json.contains("objects") || !json["objects"].is_array()) return true;
-
-			for (const nlohmann::json& item : json["objects"])
+			if (json.contains("hidePoints") && json["hidePoints"].is_array())
 			{
-				AddObject(
-					util::JsonConverter::ToString(item, "name"),
-					util::JsonConverter::ToString(item, "model"),
-					util::JsonConverter::ToVector3(item, "position", Vector3::Zero),
-					util::JsonConverter::ToVector3(item, "rotation", Vector3::Zero),
-					util::JsonConverter::ToVector3(item, "scale", Vector3::One),
-					util::JsonConverter::ToBool(item, "collision", true)
-				);
+				// 隠れ場所の読み込み
+				for (const nlohmann::json& item : json["hidePoints"])
+				{
+					HidePoint hidePoint;
+					hidePoint.position = util::JsonConverter::ToVector3(item, "position", Vector3::Zero);
+					hidePoint.weight = util::JsonConverter::ToFloat(item, "weight", 1.0f);
+					m_hidePointList.push_back(hidePoint);
+				}
+			}
+
+			if (json.contains("objects") && json["objects"].is_array())
+			{
+				// 置物の読み込み
+				for (const nlohmann::json& item : json["objects"])
+				{
+					AddObject(
+						util::JsonConverter::ToString(item, "name"),
+						util::JsonConverter::ToString(item, "model"),
+						util::JsonConverter::ToVector3(item, "position", Vector3::Zero),
+						util::JsonConverter::ToVector3(item, "rotation", Vector3::Zero),
+						util::JsonConverter::ToVector3(item, "scale", Vector3::One),
+						util::JsonConverter::ToBool(item, "collision", true)
+					);
+				}
 			}
 			return true;
 		}
@@ -124,7 +138,19 @@ namespace app
 
 		bool Stage::Save(const std::string& filePath) const
 		{
+			nlohmann::json hidePoints = nlohmann::json::array();
+			// 隠れ場所の保存
+			for (const auto& hidePoint : m_hidePointList)
+			{
+				nlohmann::json item;
+				item["position"] = ToJsonArray(hidePoint.position);
+				item["weight"] = hidePoint.weight;
+				hidePoints.push_back(item);
+			}
+
+
 			nlohmann::json objects = nlohmann::json::array();
+			// 置物の保存
 			for (const auto& object : m_objectList)
 			{
 				nlohmann::json item;
@@ -138,6 +164,7 @@ namespace app
 			}
 
 			nlohmann::json json;
+			json["hidePoints"] = hidePoints;
 			json["objects"] = objects;
 
 			CreateParentDirectory(filePath);
@@ -248,7 +275,9 @@ namespace app
 
 		void Stage::Clear()
 		{
+			// 置物と隠れ場所の一覧を消す
 			m_objectList.clear();
+			m_hidePointList.clear();
 		}
 
 
