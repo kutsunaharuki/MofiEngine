@@ -318,6 +318,10 @@
     <ClCompile Include="Source\Sound\SoundManager.cpp" />
     <ClCompile Include="Source\Util\ParameterManager.cpp" />
     <ClCompile Include="Source\Util\ProfilerWindow.cpp" />
+    <ClCompile Include="Source\DebugTool\NavigationDebugWindow.cpp" />
+    <ClCompile Include="Source\Mission\MissionJudge.cpp" />
+    <ClCompile Include="Source\Manager\MissionManager.cpp" />
+    <ClCompile Include="Source\UI\MissionMenu\MissionMenu.cpp" />
     <ClCompile Include="Source\Actor\StageObject\StageObject.cpp" />
     <ClCompile Include="Source\Stage\Stage.cpp" />
     <ClCompile Include="Source\Stage\StageEditor.cpp" />
@@ -381,6 +385,11 @@
     <ClInclude Include="Source\Sound\SoundType.h" />
     <ClInclude Include="Source\Util\ParameterManager.h" />
     <ClInclude Include="Source\Util\ProfilerWindow.h" />
+    <ClInclude Include="Source\DebugTool\NavigationDebugWindow.h" />
+    <ClInclude Include="Source\Mission\MissionData.h" />
+    <ClInclude Include="Source\Mission\MissionJudge.h" />
+    <ClInclude Include="Source\Manager\MissionManager.h" />
+    <ClInclude Include="Source\UI\MissionMenu\MissionMenu.h" />
     <ClInclude Include="..\ThirdParty\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Source\Actor\StageObject\StageObject.h" />
     <ClInclude Include="Source\Stage\Stage.h" />

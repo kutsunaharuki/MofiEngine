@@ -62,8 +62,13 @@ namespace app
 			/**
 			 * @brief 盗んでいるかを設定
 			 * @param isStealing 盗んでいるなら true(盗むステートになる)
+			 * @details 盗んでいない → 盗んでいる に変わった時だけ、盗んだ回数を増やす(ミッションで同じ盗みを二重に数えないため)
 			 */
-			inline void SetStealing(const bool isStealing) { m_isStealing = isStealing; }
+			inline void SetStealing(const bool isStealing)
+			{
+				if (isStealing && !m_isStealing) ++m_stealCount;
+				m_isStealing = isStealing;
+			}
 			/**
 			 * @brief 盗んでいるか
 			 * @return 盗んでいるなら true
@@ -149,6 +154,11 @@ namespace app
 			 * @return 地図(設定されていなければ nullptr)
 			 */
 			const ai::NavGrid* GetNavGrid() const { return m_navGrid; }
+			/**
+			 * @brief 盗み始めた回数を取得
+			 * @return 盗み始めた回数(盗むたびに 1 増える。今の盗みが何回目かの番号になる)
+			 */
+			int GetStealCount() const { return m_stealCount; }
 
 
 		protected:
@@ -172,6 +182,8 @@ namespace app
 			bool m_isStealing;
 			/** 回転 */
 			Quaternion m_rotation;
+			/** 盗み始めた回数 */
+			int m_stealCount;
 
 
 			/** 道順を求める */

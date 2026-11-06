@@ -7,11 +7,11 @@
 #include "InGameScene.h"
 #include "ResultScene.h"
 #include "Source/Camera/GameCamera.h"
-#include "imgui.h"
 #include "Source/Actor/Character/Enemy/EnemyBase.h"
 #include "Source/Actor/Character/Enemy/EnemyStateMachine.h"
 #include "Source/Actor/Character/Boy/Boy.h"
 #include "Source/UI/SoundOptionMenu/SoundOptionMenu.h"
+#include "Source/UI/MissionMenu/MissionMenu.h"
 #include "Source/Sound/SoundManager.h"
 #include "Source/Stage/Stage.h"
 #include "Source/Actor/StageObject/StageObject.h"
@@ -20,11 +20,6 @@
 #include "Source/Util/ParameterManager.h"
 #include "Source/AI/Navigation/NavGrid.h"
 #include "Source/AI/Navigation/Pathfinder.h"
-#include "Source/AI/Navigation/PathFollower.h"
-#include "Source/AI/WeightedRandom.h"
-#include "Source/Actor/Character/Enemy/EnemyDestinationMode.h"
-#include "Source/Actor/Character/Enemy/EnemyAlertMode.h"
-#include <cmath>
 
 
 namespace app
@@ -45,6 +40,10 @@ namespace app
 		const Vector3 CHILD_POSITION = { 10.0f,0.0f,0.0f };
 		/** サウンドオプションのレイアウトのパス */
 		constexpr const char* SOUND_OPTION_LAYOUT_PATH = "Assets/parameter/UI/Sound/SoundOption.json";
+		/** ミッションのレイアウトのパス */
+		constexpr const char* MISSION_LAYOUT_PATH = "Assets/parameter/UI/Mission/Mission.json";
+		/** ミッションの一覧のパス */
+		constexpr const char* MISSION_LIST_PATH = "Assets/parameter/Mission/MissionList.json";
 		/** ステージの配置(エディタで保存する JSON) */
 		constexpr const char* STAGE_FILE_PATH = "Assets/stage/Museum.json";
 		/** ステージの最初の配置(3ds Max で作った tkl。JSON が無い時に使う) */
@@ -53,11 +52,6 @@ namespace app
 		constexpr const char* STAGE_MODEL_DIRECTORY = "Assets/modelData/Stage/";
 		/** ステージの構造(階・区画・階段) */
 		constexpr const char* STAGE_LAYOUT_PATH = "Assets/stage/MuseumLayout.json";
-
-		/** 経路探索のミニマップで、1マスのを何ピクセルで描くか */
-		constexpr float NAV_DEBUG_PIXEL_PER_CELL = 6.0f;
-		/** マスにカーソルを当てた時に塞いでいる置物を何個まで出すか */
-		constexpr int NAV_DEBUG_BLOCKER_MAX = 10;
 	}
 
 
@@ -70,6 +64,7 @@ namespace app
 		, m_gameCamera(nullptr)
 		, m_isLastShotInFocus(false)
 		, m_soundOptionMenu(nullptr)
+		, m_missionMenu(nullptr)
 	{}
 	
 	
@@ -97,6 +92,15 @@ namespace app
 		// サウンドオプションのUIを作る(最初は閉じている)
 		m_soundOptionLayout.Initialize<ui::SoundOptionMenu>(SOUND_OPTION_LAYOUT_PATH);
 		m_soundOptionMenu = m_soundOptionLayout.GetMenu<ui::SoundOptionMenu>();
+
+		// ミッションを読み込んでから、ミッションの UI に渡す(渡した時に行が作られる)
+		m_missionManager.Initialize(MISSION_LIST_PATH);
+		m_missionLayout.Initialize<ui::MissionMenu>(MISSION_LAYOUT_PATH);
+		m_missionMenu = m_missionLayout.GetMenu<ui::MissionMenu>();
+		if (m_missionMenu)
+		{
+			m_missionMenu->SetMissionManager(&m_missionManager);
+		}
 
 		// タイトルのBGMを鳴らす
 		sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
@@ -177,6 +181,16 @@ namespace app
 		m_gameCamera->SetTarget(&m_boy->GetTransform());
 		m_boy->SetGameCamera(m_gameCamera.get());
 		m_gameCamera->Update();
+
+		// 経路探索のデバッグ表示に、見せるものを渡す(全部作り終わってから渡す)
+		debug::NavigationDebugWindow::Target navigationDebugTarget;
+		navigationDebugTarget.boy = m_boy.get();
+		navigationDebugTarget.enemyList = &m_enemyList;
+		navigationDebugTarget.navGrid = m_navGrid.get();
+		navigationDebugTarget.stage = m_stage.get();
+		navigationDebugTarget.stageLayout = m_stageLayout.get();
+		navigationDebugTarget.enemyController = &m_enemyController;
+		m_navigationDebugWindow.Initialize(navigationDebugTarget);
 		return true;
 	}
 	
@@ -196,11 +210,15 @@ namespace app
 			m_stageEditor->Update();
 		}
 
-		// デバック表示
-		DrawNavigationDebug();
+		// 経路探索のデバッグ表示(Debug の時だけ)
+		// 内部でデバッグ時にのみ ImGui を表示する用にしているため
+		// InGame 内で Debug と区切らなくてもよい
+		m_navigationDebugWindow.Draw();
 
 		// サウンドオプションの更新(開いているときだけ、中で入力を受け付ける)
 		m_soundOptionLayout.Update();
+		// ミッションの UI の更新(入力は使わないので、サウンドオプションを開いていても呼ぶ)
+		m_missionLayout.Update();
 
 		// スタートボタンで、サウンドオプションを開く
 		// ※ メニューの更新の後に開くので、開いたフレームの入力でメニューが動くことはない
@@ -235,10 +253,6 @@ namespace app
 		finderCamera.SetPosition(g_camera3D->GetPosition());
 		finderCamera.SetTarget(g_camera3D->GetTarget());
 		finderCamera.Update();
-
-		// 確認用:右へ歩かせる
-		//m_enemy->GetEnemyStateMachine()->SetMoveDirection(Vector3(1.0f, 0.0f, 0.0f));
-		//m_enemy->GetEnemyStateMachine()->SetMoveAmount(1.0f);
 
 		// 敵がいる階が変わっていたら、その階の美術品の一覧を渡し直す(敵の更新より先に呼ぶ)
 		m_enemyController.Update();
@@ -277,6 +291,7 @@ namespace app
 		if (isShot)
 		{
 			m_isLastShotInFocus = isInFocus;
+			JudgeMissionShot(focusSubject, isInFocus);
 		}
 	}
 	
@@ -297,6 +312,12 @@ namespace app
 
 		// ファインダーの UI(構えていない時は、何も描画されない)
 		m_finderController.Render(rc);
+
+		// ミッションの UI(ファインダーを覗いている間は、写真の邪魔になるので出さない)
+		if (!m_photoCapture.IsFinderActive())
+		{
+			m_missionLayout.Render(rc);
+		}
 
 		// サウンドオプションは毎フレーム描画を呼ぶ(閉じているときは、メニューの中で何も描画されない)
 		// ※ IsTrigger の中で呼ぶと、ボタンを押した1フレームしか描画されない
@@ -319,8 +340,18 @@ namespace app
 			return false;
 		}
 
+		// ゴール：全てのミッションを達成したら、すぐにリザルトへ
+		if (m_missionManager.IsAllAchieved())
+		{
+			id = app::ResultScene::ID();
+			waitTime = 1.0f;
+			return true;
+		}
+
 		if (g_pad[0]->IsTrigger(enButtonA))
 		{
+			// インゲームを抜けるので、達成していないミッションは失敗にする
+			m_missionManager.Finish();
 			id = app::ResultScene::ID();
 			waitTime = 1.0f;
 			return true;
@@ -329,376 +360,31 @@ namespace app
 	}
 
 
-	void InGameScene::DrawNavigationDebug()
+	void InGameScene::JudgeMissionShot(const camera::IPhotoSubject* focusSubject, const bool isInFocus)
 	{
-#ifdef APP_ENABLE_PARAMETER_HOTRELOAD
+		mission::ShotInfo shot;
+		shot.isInFocus = isInFocus;
 
-		if (m_navGrid == nullptr) return;
-
-		ImGui::Begin("Navigation");
-
-		/** 1. 操作ボタン */
-		if (ImGui::Button("Move enemies to Boy"))
-		{
-			// 敵を主人公の今の位置へ向かわせる
-			const Vector3& boyPosition = m_boy->GetTransform().GetWorldPosition();
-			m_navDebugMessage.clear();
-			for (int i = 0; i < static_cast<int>(m_enemyList.size()); ++i)
-			{
-				const bool isFound = m_enemyList[i]->GetEnemyStateMachine()->MoveTo(boyPosition);
-				m_navDebugMessage += "Enemy" + std::to_string(i) + (isFound ? ": path found " : ": NO PATH");
-			}
-		}
-
-		ImGui::SameLine();
-		if (ImGui::Button("Stop"))
-		{
-			for (auto& enemy : m_enemyList)
-			{
-				enemy->GetEnemyStateMachine()->StopPathFollow();
-			}
-
-			m_navDebugMessage = "Stopped.";
-		}
-		ImGui::SameLine();
-		// ステージから美術品を探し直す(エディタで置物を動かした後に押す)
-		if (ImGui::Button("Collect art"))
-		{
-			const int count = m_enemyController.CollectArtTargets(*m_stage);
-			m_navDebugMessage = "Art targets: " + std::to_string(count);
-		}
-		ImGui::SameLine();
-		// 主人公の今の位置に美術品の目印を置く / 全部消す
-		if (ImGui::Button("Add target at Boy"))
-		{
-			m_enemyController.AddTarget(m_boy->GetTransform().GetWorldPosition());
-			m_navDebugMessage = "Targets: " + std::to_string(m_enemyController.GetTargetCount());
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Clear targets"))
-		{
-			m_enemyController.ClearTargets();
-			m_navDebugMessage = "Targets cleared.";
-		}
-		ImGui::SameLine();
-
-		// エディタで置物を動かした後に押す(地図が古いままだと、敵が棚に突っ込む)
-		if (ImGui::Button("Rebuild NavGrid"))
-		{
-			m_navGrid->Build(*m_stage);
-			m_navDebugMessage = "Rebuilt.";
-		}
-		ImGui::SameLine();
-		
-		// 重み付きくじ引きを 10000 回引いて、重み通りの割合になるか確認
-		if (ImGui::Button("Test hide lottery"))
-		{
-			// std::random_device の {} は random_device を 1つ作る
-			// () は 作ったものを呼ぶ → ランダムな数が 1つ出る
-			// ボタンを押すたびに乱数を作りたくないので static にする
-			static std::mt19937 random(std::random_device{}());
-			// 柱のかげ / 階段のわき / 普通 / ベンチ と同じ重み
-			const std::vector<float> weightList = { 2.0f,1.5f,1.0f,0.5f };
-			const int tryCount = 10000;
-
-			// 回数を数える処理をラムダにする
-			auto makeResult = [&](int excludeIndex)
-				{
-					std::vector<int> countList(weightList.size(), 0);
-
-					for (int i = 0; i < tryCount; ++i)
-					{
-						const int index = ai::PickWeighted(weightList, excludeIndex, random);
-						if (index < 0) continue;
-						++countList[index];
-					}
-
-					std::string text;
-					for (int i = 0; i < static_cast<int>(countList.size()); ++i)
-					{
-						text += " [" + std::to_string(i) + "] " + std::to_string(countList[i]);
-					}
-					return text;
-				};
-
-			// 結果を文字で出力
-			m_navDebugMessage = "Lottery (2.0 / 1.5 / 1.0 / 0.5)\n";
-			m_navDebugMessage += "  exclude -1:" + makeResult(-1) + "\n";
-			m_navDebugMessage += "  exclude  0:" + makeResult(0);
-		}
-		ImGui::SameLine();
-
-		// 確認のために全員を警戒させる
-		if (ImGui::Button("Alert all"))
-		{
-			for (auto& enemy : m_enemyList)
-			{
-				enemy->StartAlert();
-			}
-			m_navDebugMessage = "Alert started";
-		}
-
-
-		if (!m_navDebugMessage.empty())
-		{
-			ImGui::TextUnformatted(m_navDebugMessage.c_str());
-		}
-
-		if (!m_navGrid->IsBuilt())
-		{
-			ImGui::TextDisabled("NavGrid is not built.");
-			ImGui::End();
-			return;
-		}
-
-		const int width = m_navGrid->GetWidth();
-		const int height = m_navGrid->GetHeight();
-		ImGui::Text("Cells: %d x %d", width, height);
-
-		// 地図の階の美術品だけを出す(ほかの階の美術品は、敵も向かわない)
-		const int navFloor = m_enemyController.ToFloorIndex(m_navGrid->GetSetting().floorHeight);
-		const std::vector<Vector3> targetList = m_enemyController.MakeFloorTargetList(navFloor);
-		ImGui::Text("Art targets  floor %d: %d  (all floors: %d)",
-			navFloor, static_cast<int>(targetList.size()), m_enemyController.GetTargetCount());
-
-		// 敵ごとの状態(道順の点の数・今何番目か・着いたか)
-		for (int i = 0; i < static_cast<int>(m_enemyList.size()); ++i)
-		{
-			const ai::PathFollower& follower = m_enemyList[i]->GetEnemyStateMachine()->GetPathFollower();
-			const Vector3& position = m_enemyList[i]->GetTransform().GetWorldPosition();
-			ImGui::Text("Enemy%d  pos(%.0f, %.0f, %.0f)  path %d  index %d  arrived %s  stuck %s",
-				i, position.x, position.y, position.z,
-				static_cast<int>(follower.GetPath().size()), follower.GetIndex(),
-				follower.IsArrived() ? "yes" : "no",
-				follower.IsStuck() ? "yes" : "no");
-
-			// 目的地モードの今の段階と、向かっている美術品の番号
-			const actor::EnemyDestinationMode* destinationMode = m_enemyList[i]->GetDestinationMode();
-
-			if (destinationMode != nullptr)
-			{
-				// 目的地モードの Phase を表示
-				ImGui::Text("        phase %s  target %d / %d",
-					destinationMode->GetPhaseName(), destinationMode->GetTargetIndex(),
-					static_cast<int>(targetList.size()));
-
-				// 渡された隠れ場所の数(今いる階の分)
-				ImGui::Text("        hide points %d / %d",
-					static_cast<int>(m_enemyList[i]->GetHidePointList().size()),
-					m_enemyController.GetHidePointCount());
-			}
-
-			// 警戒モードの今の段階と、向かっている隠れ場所の番号
-			const actor::EnemyAlertMode* alertMode = m_enemyList[i]->GetAlertMode();
-			// 警戒している時だけ表示
-			if (alertMode != nullptr && m_enemyList[i]->GetEnemyStateMachine()->IsAlert())
-			{
-				// 警戒モードの Phase を表示
-				ImGui::Text("        alert %s point %d remain %.1f",
-					alertMode->GetPhaseName(), alertMode->GetPointIndex(), alertMode->GetRemainTime());
-			}
-		}
-
-		const Vector3& boyWorld = m_boy->GetTransform().GetWorldPosition();
-		ImGui::Text("Boy  pos(%.0f, %.0f, %.0f)", boyWorld.x, boyWorld.y, boyWorld.z);
-
-		// 主人公がいる階と区画(ステージの構造の JSON が合っているかの確認用)
-		const int boyFloor = m_stageLayout->FindFloorIndex(boyWorld.y);
-		const stage::StageArea* boyArea = m_stageLayout->FindArea(boyWorld);
-		ImGui::Text("Boy  floor %s  area %s",
-			boyFloor >= 0 ? m_stageLayout->GetFloor(boyFloor).name.c_str() : "-",
-			boyArea != nullptr ? boyArea->name.c_str() : "-");
-
-		// 地図を作った時の高さの帯(この範囲に入る置物が塞ぐ)。主人公の y(床の高さ)とずれていないか確認する
-		const ai::NavGridSetting& debugSetting = m_navGrid->GetSetting();
-		ImGui::Text("Block band  y[%.0f ~ %.0f]  (floorHeight %.0f)",
-			debugSetting.floorHeight + debugSetting.stepHeight,
-			debugSetting.floorHeight + debugSetting.agentHeight,
-			debugSetting.floorHeight);
-
-
-		/** 2. 地図(赤 = 通れない、灰 = 通れる) */
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		const ImVec2 origin = ImGui::GetCursorScreenPos();
-		const float pixel = NAV_DEBUG_PIXEL_PER_CELL;
-
-		// マス番号から、画面上のマスの左上の位置を求める
-		// ※ 画面は下に行くほど Y が増えるので、奥(z)を上にするため反転する
-		auto toScreen = [&](const int x, const int z)
-			{
-				return ImVec2(origin.x + x * pixel, origin.y + (height - 1 - z) * pixel);
-			};
-
-		for (int z = 0; z < height; ++z)
-		{
-			for (int x = 0; x < width; ++x)
-			{
-				const ImVec2 topLeft = toScreen(x, z);
-				const ImU32 color = m_navGrid->IsBlocked(x, z)
-					? IM_COL32(200, 60, 60, 255)
-					: IM_COL32(60, 60, 60, 255);
-				drawList->AddRectFilled(topLeft, ImVec2(topLeft.x + pixel, topLeft.y + pixel), color);
-			}
-		}
-
-		// 座標から、画面上のマスの中心の位置を求める(地図の外なら false)
-		auto worldToScreen = [&](const Vector3& position, ImVec2& outScreen)
-			{
-				int x = 0;
-				int z = 0;
-				if (!m_navGrid->WorldToCell(position, x, z)) return false;
-				const ImVec2 topLeft = toScreen(x, z);
-				outScreen = ImVec2(topLeft.x + pixel * 0.5f, topLeft.y + pixel * 0.5f);
-				return true;
-			};
-
-
-		/** 3. 敵の道順(黄色の線)と、敵(水色)・主人公(緑)の位置 */
+		// 被写体が敵なら、盗んでいるかと、何回目の盗みかを入れる
+		// ※ 被写体は const なので、敵の一覧から同じ敵を探して、ステートマシンを見る
 		for (auto& enemy : m_enemyList)
 		{
-			const ai::PathFollower& follower = enemy->GetEnemyStateMachine()->GetPathFollower();
-			const std::vector<Vector3>& path = follower.GetPath();
+			if (enemy.get() != focusSubject) continue;
 
-			// 敵の今の位置から、今目指している点までと、その先の点同士を線でつなぐ
-			ImVec2 previous;
-			bool hasPrevious = worldToScreen(enemy->GetTransform().GetWorldPosition(), previous);
-			for (int i = follower.GetIndex(); i < static_cast<int>(path.size()); ++i)
+			shot.subject = enemy.get();
+			const actor::EnemyStateMachine* stateMachine = enemy->GetEnemyStateMachine();
+			if (stateMachine)
 			{
-				ImVec2 current;
-				if (!worldToScreen(path[i], current)) continue;
-				if (hasPrevious)
-				{
-					drawList->AddLine(previous, current, IM_COL32(255, 220, 0, 255), 2.0f);
-				}
-				previous = current;
-				hasPrevious = true;
+				shot.isStealing = stateMachine->IsStealing();
+				shot.stealCount = stateMachine->GetStealCount();
 			}
-
-			ImVec2 enemyScreen;
-			if (worldToScreen(enemy->GetTransform().GetWorldPosition(), enemyScreen))
-			{
-				drawList->AddCircleFilled(enemyScreen, pixel, IM_COL32(80, 200, 255, 255));
-			}
+			break;
 		}
 
-		// 主人公がいる階の区画の枠(オレンジ)
-		// ※ 区画は地図の外にはみ出すことがあるので、マス番号を通さずに座標から直接求める
-		if (boyFloor >= 0)
+		// 枚数が増えた時だけ、UI の文と色を変える
+		if (m_missionManager.OnShot(shot) && m_missionMenu)
 		{
-			const float cellSize = m_navGrid->GetCellSize();
-			const Vector3 gridOrigin = m_navGrid->CellToWorld(0, 0) - Vector3(cellSize * 0.5f, 0.0f, cellSize * 0.5f);
-			auto worldToScreenFree = [&](const float worldX, const float worldZ)
-				{
-					return ImVec2(
-						origin.x + (worldX - gridOrigin.x) / cellSize * pixel,
-						origin.y + (height - (worldZ - gridOrigin.z) / cellSize) * pixel);
-				};
-
-			for (const stage::StageArea& area : m_stageLayout->GetFloor(boyFloor).areaList)
-			{
-				// 奥(z)を上にしているので、max.z が上の辺になる
-				const ImVec2 topLeft = worldToScreenFree(area.min.x, area.max.z);
-				const ImVec2 bottomRight = worldToScreenFree(area.max.x, area.min.z);
-				drawList->AddRect(topLeft, bottomRight, IM_COL32(255, 160, 40, 255), 0.0f, 0, 2.0f);
-				drawList->AddText(ImVec2(topLeft.x + 2.0f, topLeft.y + 2.0f), IM_COL32(255, 160, 40, 255), area.name.c_str());
-			}
+			m_missionMenu->UpdateMissionTexts();
 		}
-
-		// 美術品の目印(紫の四角と番号)
-		for (int i = 0; i < static_cast<int>(targetList.size()); ++i)
-		{
-			ImVec2 targetScreen;
-			if (!worldToScreen(targetList[i], targetScreen)) continue;
-			drawList->AddRectFilled(
-				ImVec2(targetScreen.x - pixel, targetScreen.y - pixel),
-				ImVec2(targetScreen.x + pixel, targetScreen.y + pixel),
-				IM_COL32(200, 100, 255, 255));
-			drawList->AddText(ImVec2(targetScreen.x + pixel, targetScreen.y - pixel * 2.0f),
-				IM_COL32(255, 255, 255, 255), std::to_string(i).c_str());
-		}
-
-		// 隠れ場所の目印(水色の丸と重み)
-		for (const stage::HidePoint& hidePoint : m_stage->GetHidePointList())
-		{
-			// 地図の階の分だけ取り出す
-			if (m_enemyController.ToFloorIndex(hidePoint.position.y) != navFloor) continue;
-
-			ImVec2 hideScreen;
-			if (!worldToScreen(hidePoint.position, hideScreen)) continue;
-			drawList->AddCircle(hideScreen, pixel * 1.5f, IM_COL32(80, 220, 255, 255), 0, 2.0f);
-
-			char label[32];
-			// 重みの値を文字で出力
-			sprintf_s(label, "H%.1f", hidePoint.weight);
-			drawList->AddText(ImVec2(hideScreen.x + pixel, hideScreen.y), IM_COL32(80, 220, 255, 255), label);
-		}
-
-
-		ImVec2 boyScreen;
-		if (worldToScreen(m_boy->GetTransform().GetWorldPosition(), boyScreen))
-		{
-			drawList->AddCircleFilled(boyScreen, pixel, IM_COL32(80, 255, 120, 255));
-		}
-
-		// 描いた分だけ場所を空ける(ウィンドウの大きさとスクロールに使われる)
-		const ImVec2 mapSize(width* pixel, height* pixel);
-		ImGui::Dummy(mapSize);
-
-		/** 4. マスにカーソルを当てると、そのマスを塞いでいる置物を出す */
-		// ※ NavGrid::Build と同じ条件(高さの帯 + 敵の半径ぶん太らせた箱)で探す
-		if (ImGui::IsItemHovered())
-		{
-			const ImVec2 mouse = ImGui::GetIO().MousePos;
-			const int cellX = static_cast<int>(std::floor((mouse.x - origin.x) / pixel));
-			const int cellZ = height - 1 - static_cast<int>(std::floor((mouse.y - origin.y) / pixel));
-
-			if (m_navGrid->IsInside(cellX, cellZ))
-			{
-				const ai::NavGridSetting& setting = m_navGrid->GetSetting();
-				const Vector3 center = m_navGrid->CellToWorld(cellX, cellZ);
-				const float half = setting.cellSize * 0.5f;
-				const float bandMin = setting.floorHeight + setting.stepHeight;
-				const float bandMax = setting.floorHeight + setting.agentHeight;
-
-				ImGui::BeginTooltip();
-				ImGui::Text("Cell (%d, %d)  world (%.0f, %.0f)  %s",
-					cellX, cellZ, center.x, center.z,
-					m_navGrid->IsBlocked(cellX, cellZ) ? "BLOCKED" : "open");
-
-				int blockerCount = 0;
-				for (int i = 0; i < m_stage->GetObjectCount(); ++i)
-				{
-					const actor::StageObject* object = m_stage->GetStageObject(i);
-					if (object == nullptr || !object->IsCollision()) continue;
-
-					const Vector3& boxMin = object->GetWorldAABBMin();
-					const Vector3& boxMax = object->GetWorldAABBMax();
-
-					// 体の高さに重なっていなければ、塞いでいない
-					if (boxMax.y <= bandMin || boxMin.y >= bandMax) continue;
-
-					// 太らせた箱と、マスが重なっているか
-					const bool isOverlapX = (center.x + half >= boxMin.x - setting.agentRadius) && (center.x - half <= boxMax.x + setting.agentRadius);
-					const bool isOverlapZ = (center.z + half >= boxMin.z - setting.agentRadius) && (center.z - half <= boxMax.z + setting.agentRadius);
-					if (!isOverlapX || !isOverlapZ) continue;
-
-					// 名前、高さの範囲、箱の大きさ(大きすぎる物は、部屋ごと塞いでいる犯人の可能性が高い)
-					if (blockerCount < NAV_DEBUG_BLOCKER_MAX)
-					{
-						ImGui::Text("%d: %s  y[%.0f ~ %.0f]  size %.0f x %.0f",
-							i, object->GetName().c_str(), boxMin.y, boxMax.y,
-							boxMax.x - boxMin.x, boxMax.z - boxMin.z);
-					}
-					++blockerCount;
-				}
-				if (blockerCount > NAV_DEBUG_BLOCKER_MAX)
-				{
-					ImGui::Text("... and %d more", blockerCount - NAV_DEBUG_BLOCKER_MAX);
-				}
-				ImGui::EndTooltip();
-			}
-		}
-		ImGui::End();
-#endif
 	}
 }

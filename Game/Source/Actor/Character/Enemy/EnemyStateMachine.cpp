@@ -34,6 +34,7 @@ namespace app
 			, m_moveDirection(Vector3::Zero)
 			, m_isAlert(false)
 			, m_isStealing(false)
+			, m_stealCount(0)
 			, m_rotation(Quaternion::Identity)
 			, m_pathfinder(nullptr)
 			, m_navGrid(nullptr)

@@ -1,0 +1,38 @@
+{
+  "canvas": {
+    "elements": [
+      {
+        "comment":"ミッションの背景(灰色)。左上を基準にする",
+        "type":"UIIcon",
+        "name":"MissionBackGround",
+        "asset":"Assets/spriteData/UI/Common/White.DDS",
+        "width":760,
+        "height":150,
+        "position":[-940,520,0],
+        "color":[0.3,0.3,0.3,0.7],
+        "pivot":[0,1]
+      },
+      {
+        "comment":"ミッションのタイトル(この下にミッションの行を MissionMenu が作る)",
+        "type":"UIText",
+        "name":"MissionTitle",
+        "text":"## 悪党の「決定的瞬間」を撮れ",
+        "position":[-920,490,0],
+        "scale":[0.8,0.8,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5]
+      },
+      {
+        "comment":"タイトルの下線(長さと位置は MissionMenu がタイトルに合わせる。width は 1 のままにする)",
+        "type":"UIIcon",
+        "name":"MissionTitleLine",
+        "asset":"Assets/spriteData/UI/Common/White.DDS",
+        "width":1,
+        "height":3,
+        "position":[-920,470,0],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5]
+      }
+    ]
+  }
+}

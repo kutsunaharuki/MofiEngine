@@ -1,0 +1,16 @@
+{
+  "missions":[
+    {
+      "comment":"ミッションの内容(大男)",
+      "text":"大男が絵画を盗む決定的瞬間を{count}枚撮れ",
+      "target":"BigMan",
+      "count":3
+    },
+    {
+      "comment":"ミッションの内容(ねずみ男)",
+      "text":"ねずみ男が絵画を盗む決定的瞬間を{count}枚撮れ",
+      "target":"RatMan",
+      "count":2
+    }
+  ]
+}

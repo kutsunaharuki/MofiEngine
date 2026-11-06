@@ -8,6 +8,8 @@
 #include "Source/UI/UILayout.h"
 #include "Source/Camera/FinderController.h"
 #include "Source/Actor/Character/Enemy/EnemyController.h"
+#include "Source/Manager/MissionManager.h"
+#include "Source/DebugTool/NavigationDebugWindow.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -20,40 +22,61 @@ namespace app
 
 	namespace ai
 	{
+		/** 経路探索の地図 */
 		class NavGrid;
+		/** 経路探索の道順 */
 		class Pathfinder;
 	}
 
 	namespace ui
 	{
+		/** UI の大元 */
 		class UILayout;
+		/** サウンド設定 */
 		class SoundOptionMenu;
+		/** ミッションの表示 */
+		class MissionMenu;
 	}
 
 	namespace camera
 	{
+		/** プレイヤーに追従するカメラ */
 		class GameCamera;
+		/** ファインダー入力 */
 		class FinderController;
+		/** 写真の被写体 */
+		class IPhotoSubject;
 	}
 
 	namespace core
 	{
+		/** 親子付けのトランスフォームノード */
 		class TransformNode;
 	}
 
 	namespace actor
 	{
+		/** プレイヤー(少年) */
 		class Boy;
+		/** 敵の基盤 */
 		class EnemyBase;
 	}
 
 	namespace stage
 	{
+		/** ステージ */
 		class Stage;
+		/** ステージエディタ(ポリゴン数とリスト化) */
 		class StageEditor;
+		/** ステージレイアウト */
 		class StageLayout;
 	}
 
+	namespace mission
+	{
+		/** ミッション管理 */
+		class MissionManager;
+	}
 
 
 	/**
@@ -83,11 +106,11 @@ namespace app
 
 	private:
 		/**
-		 * @brief 経路探索のデバッグ表示
-		 * @details NavGridのミニマップ(赤:通れない)と敵の道順を描く。
-		 *          ボタンで敵を主人公の位置へ向かわせたり、地図を作り直したりできる。
+		 * @brief 撮影した写真を、ミッションに数えてもらう
+		 * @param focusSubject オートフォーカスが選んだ被写体(いなければ nullptr)
+		 * @param isInFocus ピントが合っているか
 		 */
-		void DrawNavigationDebug();
+		void JudgeMissionShot(const camera::IPhotoSubject* focusSubject, const bool isInFocus);
 
 
 	private:
@@ -106,8 +129,8 @@ namespace app
 
 		/** 敵の一覧 */
 		std::vector<std::unique_ptr<actor::EnemyBase>> m_enemyList;
-		/** 経路探索のデバッグ表示に出す、最後の操作の結果 */
-		std::string m_navDebugMessage;
+		/** 経路探索のデバッグ表示 */
+		debug::NavigationDebugWindow m_navigationDebugWindow;
 
 		/** 経路探索の地図 */
 		std::unique_ptr<app::ai::NavGrid> m_navGrid;
@@ -139,9 +162,15 @@ namespace app
 		ui::UILayout m_soundOptionLayout;
 		/** サウンドオプションメニュー */
 		ui::SoundOptionMenu* m_soundOptionMenu;
+		/** ミッションのUIレイアウト */
+		ui::UILayout m_missionLayout;
+		/** ミッションメニュー */
+		ui::MissionMenu* m_missionMenu;
 
 		/** 敵の入力(ステージから美術品を探して、盗みに行く一覧を敵に渡す) */
 		actor::EnemyController m_enemyController;
 
+		/** ミッションの管理(シーンと同じ寿命。リトライで作り直される) */
+		mission::MissionManager m_missionManager;
 	};
 }
