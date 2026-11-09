@@ -140,6 +140,11 @@ namespace app
 			 */
 			void StartMoveToTarget();
 			/**
+			 * @brief 警戒が解けた時に、警戒の前の美術品へ向かい直す
+			 * @details 盗んでいる途中で警戒した時は、向かい直して最初から盗み直す
+			 */
+			void ResumeAfterAlert();
+			/**
 			 * @brief 寄り道を始める
 			 * @return 寄り道を始められたら true
 			 * @details 始められなければ、美術品へ向かうのを続ける
@@ -171,6 +176,8 @@ namespace app
 			float m_detourTimer;
 			/** 今の美術品へ向かう間に寄り道した回数 */
 			int m_detourCount;
+			/** 前のフレームまで警戒中だったか(警戒が解けた瞬間を知るため) */
+			bool m_wasAlert;
 
 			/** 乱数(美術品の選び方と、寄り道) */
 			std::mt19937 m_random;

@@ -89,6 +89,7 @@ namespace app
 			, m_focusHeight(0.0f)
 			, m_pathfinder(nullptr)
 			, m_navGrid(nullptr)
+			, m_player(nullptr)
 		{}
 
 
@@ -146,6 +147,12 @@ namespace app
 			m_destinationMode->SetSetting(parameter.destinationMode);
 			// SetSetting は値をコピーしているだけなので警戒モードをやり直さない
 			m_alertMode->SetSetting(parameter.alertMode);
+			
+			// 主人公が見えたら警戒モードに入る
+			// 警戒モードの更新よりも先に呼ぶ
+			UpdateVision(parameter.vision, deltaTime);
+			
+			
 			// 行き先を決める(頭) → 道順をたどる(運転手) → ステートを選んで動く、の順番
 			// 警戒モードが先。警戒が終わった後に目的地モードがすぐ続きを始められるため
 			m_alertMode->Update(deltaTime);
@@ -212,6 +219,41 @@ namespace app
 			if (m_alertMode == nullptr) return;
 
 			m_alertMode->StartAlert();
+		}
+
+
+		void EnemyBase::EndAlert()
+		{
+			if (m_alertMode == nullptr) return;
+
+			m_alertMode->EndAlert();
+		}
+
+
+		void EnemyBase::UpdateVision(const ai::VisionSetting& setting, const float deltaTime)
+		{
+			// 主人公が nullptr なら処理しない
+			if (m_player == nullptr) return;
+
+			m_vision.SetSetting(setting);
+
+			// 目の位置
+			Vector3 eyePosition = m_transform.GetWorldPosition();
+			eyePosition.y += setting.eyeHeight;
+
+			// 前の向き(回転は Y 軸だけで、回転 0 の時 Z+ が正面)
+			Vector3 forward = Vector3::Front;
+			m_transform.GetWorldRotation().Apply(forward);
+
+			// 主人公のどこを見るか
+			Vector3 targetPosition = m_player->GetTransform().GetWorldPosition();
+			targetPosition.y += setting.targetHeight;
+
+			if (m_vision.Update(deltaTime, eyePosition, forward, targetPosition,
+				GetCollisionObject(),m_player->GetCollisionObject()))
+			{
+				StartAlert();
+			}
 		}
 
 

@@ -12,6 +12,7 @@
 #include "Source/Stage/HidePoint.h"
 #include "Source/Util/ParameterManager.h"
 #include "Object/EnemyParameter.h"
+#include "Source/AI/Vision.h"
 
 
 namespace app
@@ -136,6 +137,30 @@ namespace app
 			 * @details Start 前に呼ばれた時は何もしない
 			 */
 			void StartAlert();
+			/**
+			 * @brief 警戒をやめる
+			 * @details 警戒していない時・Start 前に呼ばれた時は何もしない
+			 */
+			void EndAlert();
+			/**
+			 * @brief 見る相手(主人公)を設定
+			 * @param player 主人公
+			 */
+			void SetPlayer(const CharacterBase* player) { m_player = player; }
+			/**
+			 * @brief 視線(デバッグ表示用)
+			 * @return ビジョン
+			 */
+			const ai::Vision& GetVision() const { return m_vision; }
+
+
+		private:
+			/**
+			 * @brief 視線の更新
+			 * @param setting ビジョンの構造体
+			 * @param deltaTime 計測時間(秒)
+			 */
+			void UpdateVision(const ai::VisionSetting& setting, const float deltaTime);
 
 
 		private:
@@ -150,6 +175,11 @@ namespace app
 			const ai::Pathfinder* m_pathfinder;
 			/** 地図 */
 			const ai::NavGrid* m_navGrid;
+
+			/** 視線 */
+			ai::Vision m_vision;
+			/** 見る相手(主人公) */
+			const CharacterBase* m_player;
 
 			/**
 			 * 目的地モード(美術品を盗みに行く頭)

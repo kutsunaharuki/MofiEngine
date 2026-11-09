@@ -32,6 +32,7 @@ namespace app
 			, m_phaseTimer(0.0f)
 			, m_detourTimer(0.0f)
 			, m_detourCount(0)
+			, m_wasAlert(false)
 			, m_random(std::random_device{}())
 		{}
 
@@ -43,7 +44,19 @@ namespace app
 		void EnemyDestinationMode::Update(const float deltaTime)
 		{
 			// 警戒中は何もしない(警戒モードに任せる)
-			if (m_stateMachine->IsAlert()) return;
+			if (m_stateMachine->IsAlert())
+			{
+				m_wasAlert = true;
+				return;
+			}
+
+			// 警戒が解けた最初のフレームだけ、警戒の前の美術品へ向かい直す
+			// ※ 警戒モードが道順を上書きしているので、そのままだと「道が無い」と思って別の美術品を選んでしまう
+			if (m_wasAlert)
+			{
+				m_wasAlert = false;
+				ResumeAfterAlert();
+			}
 
 			m_phaseTimer += deltaTime;
 
@@ -213,6 +226,25 @@ namespace app
 			// 道が見つからなくても MoveToTarget にする(Update で少し待ってから次を試す)
 			m_stateMachine->MoveTo(m_targetList[m_targetIndex]);
 			ChangePhase(Phase::MoveToTarget);
+		}
+
+
+		void EnemyDestinationMode::ResumeAfterAlert()
+		{
+			// 警戒で盗むのをやめているので、念のため戻しておく
+			m_stateMachine->SetStealing(false);
+
+			// 美術品が決まっていなければ、選ぶところから
+			if (m_targetIndex == NO_TARGET)
+			{
+				ChangePhase(Phase::NoTarget);
+				return;
+			}
+
+			// 向かっている途中・寄り道中・盗んでいる途中のどれでも、同じ美術品へ向かい直す
+			// ※ 盗んでいる途中だった時は、着いたら最初から盗み直す(盗む時間も 0 から)
+			m_detourTimer = 0.0f;
+			StartMoveToTarget();
 		}
 
 

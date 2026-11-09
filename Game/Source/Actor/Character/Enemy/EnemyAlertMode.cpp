@@ -117,6 +117,9 @@ namespace app
 		
 		void EnemyAlertMode::EndAlert()
 		{
+			// 警戒していない時に呼ばれたら何もしない(目的地モードの道順を止めてしまうため)
+			if (!m_stateMachine->IsAlert()) return;
+
 			m_stateMachine->StopPathFollow();
 			m_stateMachine->SetAlert(false);
 

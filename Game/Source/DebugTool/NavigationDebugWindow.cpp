@@ -18,6 +18,7 @@
 #include "Source/AI/Navigation/NavGrid.h"
 #include "Source/AI/Navigation/PathFollower.h"
 #include "Source/AI/WeightedRandom.h"
+#include "Source/AI/Vision.h"
 #include <cmath>
 
 
@@ -163,6 +164,16 @@ namespace app
 				}
 				m_message = "Alert started";
 			}
+			ImGui::SameLine();
+			// 警戒の時間を待たずに解く(警戒の前の美術品へ戻るかの確認用)
+			if (ImGui::Button("Calm all"))
+			{
+				for (auto& enemy : enemyList)
+				{
+					enemy->EndAlert();
+				}
+				m_message = "Alert ended";
+			}
 
 
 			if (!m_message.empty())
@@ -223,6 +234,12 @@ namespace app
 					ImGui::Text("        alert %s point %d remain %.1f",
 						alertMode->GetPhaseName(), alertMode->GetPointIndex(), alertMode->GetRemainTime());
 				}
+
+				// ビジョンを取得
+				const ai::Vision& vision = enemyList[i]->GetVision();
+				// 見えていたら判定は See 見えていないなら ---
+				ImGui::Text("        vision %s  %.2f", vision.IsSeeing() ? "SEE" : "---", vision.GetSeeTimer());
+
 			}
 
 			const Vector3& boyWorld = m_target.boy->GetTransform().GetWorldPosition();
