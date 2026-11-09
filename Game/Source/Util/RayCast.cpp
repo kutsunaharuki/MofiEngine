@@ -17,7 +17,11 @@ namespace app
              */
             struct ClosestRayCallback : public btCollisionWorld::ClosestRayResultCallback
             {
+                /** 当たらないようにするオブジェクト */
                 const btCollisionObject* ignoreObject = nullptr;
+                /** キャラクターには当たらないか */
+                bool isIgnoreCharacter = false;
+
 
                 ClosestRayCallback(const btVector3& from, const btVector3& to)
                     : btCollisionWorld::ClosestRayResultCallback(from, to)
@@ -26,8 +30,12 @@ namespace app
 
                 bool needsCollision(btBroadphaseProxy* proxy) const override
                 {
+                    const btCollisionObject* object = static_cast<const btCollisionObject*>(proxy->m_clientObject);
                     // 自分の体には当たらない
-                    if (proxy->m_clientObject == ignoreObject) return false;
+                    if (object == ignoreObject) return false;
+                    // キャラクターの体には当たらない
+                    if (isIgnoreCharacter && object->getUserIndex() == EnCollisionAttr::enCollisionAttr_Character) return false;
+                    
                     return btCollisionWorld::ClosestRayResultCallback::needsCollision(proxy);
                 }
             };
@@ -35,13 +43,19 @@ namespace app
 
 
 
-        RayHit RayCastClosest(const Vector3& start, const Vector3& end, const btCollisionObject* ignoreObject)
+        RayHit RayCastClosest(
+            const Vector3& start, 
+            const Vector3& end, 
+            const btCollisionObject* ignoreObject,
+            const RayFilter filter
+        )
         {
             const btVector3 from(start.x, start.y, start.z);
             const btVector3 to(end.x, end.y, end.z);
 
             ClosestRayCallback callback(from, to);
             callback.ignoreObject = ignoreObject;
+            callback.isIgnoreCharacter = (filter == RayFilter::IgnoreCharacter);
             PhysicsWorld::GetInstance()->GetDynamicWorld()->rayTest(from, to, callback);
 
 

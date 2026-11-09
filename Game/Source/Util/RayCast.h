@@ -31,12 +31,30 @@ namespace app
 
 
 		/**
+		 * @brief レイが何に当たるかのフィルター
+		 */
+		enum class RayFilter
+		{
+			/** 全てに当たる */
+			All,
+			/** キャラクターには当たらない */
+			IgnoreCharacter
+		};
+
+
+		/**
 	 	 * @brief 一番近くで当たったものを返すレイ
 		 * @param start 撃ち始め
 		 * @param end 撃ち終わり
 		 * @param ignoreObject 当たらないようにする物(撃つ人の体など)
+		 * @param filter レイが何に当たるか
 		 */
-		RayHit RayCastClosest(const Vector3& start, const Vector3& end, const btCollisionObject* ignoreObject = nullptr);
+		RayHit RayCastClosest(
+			const Vector3& start,
+			const Vector3& end, 
+			const btCollisionObject* ignoreObject = nullptr,
+			const RayFilter filter = RayFilter::All
+		);
 	}
 }
 

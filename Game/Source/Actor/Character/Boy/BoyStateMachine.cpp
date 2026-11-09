@@ -6,6 +6,7 @@
 #include "BoyStateMachine.h"
 #include "BoyState.h"
 #include "Source/Camera/GameCamera.h"
+#include "Source/Util/RayCast.h"
 #include <cmath>
 #include <cfloat>
 
@@ -45,28 +46,23 @@ namespace app
 			// ファインダー状態かを見る
 			const bool isFinderActive = m_boy->IsFinderActive();
 
-			// ファインダーを覗いている時
-			if (isFinderActive)
+			// 移動入力があれば歩く(隠れるステートは StopMove するので、歩いている間は隠れない)
+			if (HasMoveInput())
 			{
-				// ファインダーをのぞきながら移動入力があれば、スティックの向きの撮影歩行ステート
-				if (HasMoveInput()) return FindPhotoWalkState();
-
-				// 止まっている時に、近くに隠れられる物があれば隠れる
-				const EnHideType hideType = CheckHideType();
-				if (hideType == EnHideType::Low) return FindState(BoyLowHideState::ID());
-				if (hideType == EnHideType::High) return FindState(BoyHighHideState::ID());
-
-				// ファインダーを覗きっぱなしなら撮影待機ステート
-				return FindState(BoyPhotoIdleState::ID());
+				// ファインダーをのぞきながらなら、スティックの向きの撮影歩行ステート
+				if (isFinderActive) return FindPhotoWalkState();
+				return FindState(BoyWalkState::ID());
 			}
 
+			// 止まっている時に、近くに隠れられる物があれば隠れる(ファインダーを覗いていなくても隠れる)
+			const EnHideType hideType = CheckHideType();
+			if (hideType == EnHideType::Low) return FindState(BoyLowHideState::ID());
+			if (hideType == EnHideType::High) return FindState(BoyHighHideState::ID());
 
-			// ファインダーを覗いていない時
-			// 移動入力があるなら歩行ステートにする
-			if (HasMoveInput()) return FindState(BoyWalkState::ID());
+			// ファインダーを覗きっぱなしなら撮影待機ステート
+			if (isFinderActive) return FindState(BoyPhotoIdleState::ID());
 
-
-			// 5. 何もしていなければ待機
+			// 何もしていなければ待機
 			return FindState(BoyIdleState::ID());
 		}
 
@@ -193,9 +189,10 @@ namespace app
 				Vector3 lowEnd = lowStart;
 				lowEnd.Add(toEnd);
 
-				// TODO: 現在のレイキャストは、当たってほしくないコリジョンにも当たるため改造の余地がある。
-				Vector3 lowHitPosition;
-				if (!PhysicsWorld::GetInstance()->RayTest(lowStart, lowEnd, lowHitPosition)) continue;
+				// キャラクター(敵・一般客・主人公)は隠れる物にしない
+				const util::RayHit lowHit = util::RayCastClosest(lowStart, lowEnd, nullptr, util::RayFilter::IgnoreCharacter);
+				if (!lowHit.isHit) continue;
+				const Vector3& lowHitPosition = lowHit.position;
 
 				// 一番近い物に隠れる
 				Vector3 toHit = lowHitPosition;
@@ -209,8 +206,9 @@ namespace app
 				Vector3 highEnd = highStart;
 				highEnd.Add(toEnd);
 
-				Vector3 highHitPosition;
-				const bool isHighHit = PhysicsWorld::GetInstance()->RayTest(highStart, highEnd, highHitPosition);
+
+				// 一番近くで何が当たったかを判定
+				const bool isHighHit = util::RayCastClosest(highStart, highEnd, nullptr, util::RayFilter::IgnoreCharacter).isHit;
 
 				nearestDistanceSq = distanceSq;
 				m_hideObjectPosition = lowHitPosition;
