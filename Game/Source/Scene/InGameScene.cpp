@@ -89,6 +89,9 @@ namespace app
 	
 	bool InGameScene::Start()
 	{
+		// 読み込み時間を区間ごとに計る(結果は Load Time ウィンドウと出力ウィンドウに出る)
+		m_loadTimeWindow.Begin("InGameScene::Start");
+
 		// サウンドオプションのUIを作る(最初は閉じている)
 		m_soundOptionLayout.Initialize<ui::SoundOptionMenu>(SOUND_OPTION_LAYOUT_PATH);
 		m_soundOptionMenu = m_soundOptionLayout.GetMenu<ui::SoundOptionMenu>();
@@ -104,6 +107,7 @@ namespace app
 
 		// タイトルのBGMを鳴らす
 		sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
+		m_loadTimeWindow.Mark("UI / Mission / BGM");
 
 		// ステージの置物を作る。エディタで保存した JSON が無ければ、3ds Max の tkl から作る
 		m_stage = std::make_unique<stage::Stage>();
@@ -111,6 +115,7 @@ namespace app
 		{
 			m_stage->ImportTkl(STAGE_TKL_PATH, STAGE_MODEL_DIRECTORY);
 		}
+		m_loadTimeWindow.Mark("Stage Load");
 
 		// 経路探索の地図を作る
 		m_navGrid = std::make_unique<ai::NavGrid>();
@@ -118,6 +123,7 @@ namespace app
 
 		// 経路探索の地図ができてから作る
 		m_pathfinder = std::make_unique<ai::Pathfinder>(*m_navGrid);
+		m_loadTimeWindow.Mark("NavGrid Build");
 
 		// 敵の一覧に大男を追加する
 		m_enemyList.push_back(std::make_unique<actor::EnemyBase>(actor::EnemyBase::EnemyType::BigMan));
@@ -132,6 +138,7 @@ namespace app
 		m_enemyController.SetLayout(m_stageLayout.get());
 		m_enemyController.CollectArtTargets(*m_stage);
 		m_enemyController.CollectHidePoints(*m_stage);
+		m_loadTimeWindow.Mark("StageLayout / Targets");
 
 
 		// 敵の一覧の敵に経路探索の地図を設定して
@@ -142,16 +149,19 @@ namespace app
 			m_enemyController.RegisterEnemy(enemy.get());
 			enemy->Start();
 		}
+		m_loadTimeWindow.Mark("Enemy Start");
 
 
 #ifdef APP_ENABLE_PARAMETER_HOTRELOAD
 		// ステージエディタは Debug の時だけ
 		m_stageEditor = std::make_unique<stage::StageEditor>(m_stage.get(), STAGE_FILE_PATH, STAGE_TKL_PATH, STAGE_MODEL_DIRECTORY);
+		m_loadTimeWindow.Mark("StageEditor");
 #endif
 
 		// 主人公を作る
 		m_boy = std::make_unique<app::actor::Boy>();
 		m_boy->Start();
+		m_loadTimeWindow.Mark("Boy Start");
 
 		// 大男とねずみ男に見る相手を設定する
 		for (auto& enemy : m_enemyList)
@@ -172,6 +182,7 @@ namespace app
 		{
 			m_finderController.RegisterSubject(enemy.get());
 		}
+		m_loadTimeWindow.Mark("PhotoCapture / Finder");
 		
 		// 行き先は目的地モードが自動で決める
 		for (auto& enemy : m_enemyList)
@@ -198,6 +209,9 @@ namespace app
 		navigationDebugTarget.stageLayout = m_stageLayout.get();
 		navigationDebugTarget.enemyController = &m_enemyController;
 		m_navigationDebugWindow.Initialize(navigationDebugTarget);
+		m_loadTimeWindow.Mark("First Update / Camera");
+
+		m_loadTimeWindow.End();
 		return true;
 	}
 	
@@ -221,6 +235,8 @@ namespace app
 		// 内部でデバッグ時にのみ ImGui を表示する用にしているため
 		// InGame 内で Debug と区切らなくてもよい
 		m_navigationDebugWindow.Draw();
+		// 読み込み時間の表示(Debug / Preview の時だけ)
+		m_loadTimeWindow.Draw();
 
 		// サウンドオプションの更新(開いているときだけ、中で入力を受け付ける)
 		m_soundOptionLayout.Update();

@@ -10,6 +10,7 @@
 #include "Source/Actor/Character/Enemy/EnemyController.h"
 #include "Source/Manager/MissionManager.h"
 #include "Source/DebugTool/NavigationDebugWindow.h"
+#include "Source/DebugTool/LoadTimeWindow.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -131,6 +132,8 @@ namespace app
 		std::vector<std::unique_ptr<actor::EnemyBase>> m_enemyList;
 		/** 経路探索のデバッグ表示 */
 		debug::NavigationDebugWindow m_navigationDebugWindow;
+		/** 読み込み時間の計測と表示 */
+		debug::LoadTimeWindow m_loadTimeWindow;
 
 		/** 経路探索の地図 */
 		std::unique_ptr<app::ai::NavGrid> m_navGrid;

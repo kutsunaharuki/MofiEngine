@@ -273,6 +273,9 @@
     <ClCompile Include="Source\Util\RayCast.cpp">
       <Filter>Source\Util</Filter>
     </ClCompile>
+    <ClCompile Include="Source\DebugTool\LoadTimeWindow.cpp">
+      <Filter>Source\DebugTool</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -463,6 +466,9 @@
     </ClInclude>
     <ClInclude Include="Source\Util\RayCast.h">
       <Filter>Source\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DebugTool\LoadTimeWindow.h">
+      <Filter>Source\DebugTool</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
