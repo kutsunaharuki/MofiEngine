@@ -107,6 +107,15 @@ namespace app
 				m_transform.SetLocalPosition(position);
 				m_moveSpeed = Vector3(0.0f, 0.0f, 0.0f);
 			}
+			/**
+			 * @brief 当たり判定の体(レイで「誰に当たったか」を比較する用)
+			 * @return 
+			 */
+			const btCollisionObject* GetCollisionObject() const
+			{
+				// エンジンの GetRigidBody に const 版が無いので外す(読むだけ)
+				return const_cast<CharacterController&>(m_characterController).GetRigidBody()->GetBody();
+			}
 
 
 		protected:

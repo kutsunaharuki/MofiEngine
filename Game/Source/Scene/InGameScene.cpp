@@ -153,6 +153,12 @@ namespace app
 		m_boy = std::make_unique<app::actor::Boy>();
 		m_boy->Start();
 
+		// 大男とねずみ男に見る相手を設定する
+		for (auto& enemy : m_enemyList)
+		{
+			enemy->SetPlayer(m_boy.get());
+		}
+
 		// 写真撮影クラスの初期化
 		m_photoCapture.Init();
 
@@ -174,6 +180,7 @@ namespace app
 			enemy->Update();
 		}
 
+		// 主人公に追従するカメラを作成
 		m_gameCamera = std::make_unique<app::camera::GameCamera>();
 		m_gameCamera->Start();
 

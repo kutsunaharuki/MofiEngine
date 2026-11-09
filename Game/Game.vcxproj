@@ -295,6 +295,7 @@
     <ClCompile Include="Source\AI\Navigation\NavGrid.cpp" />
     <ClCompile Include="Source\AI\Navigation\Pathfinder.cpp" />
     <ClCompile Include="Source\AI\Navigation\PathFollower.cpp" />
+    <ClCompile Include="Source\AI\Vision.cpp" />
     <ClCompile Include="Source\Camera\FinderController.cpp" />
     <ClCompile Include="Source\Camera\GameCamera.cpp" />
     <ClCompile Include="Source\Camera\Object\FinderParameter.cpp" />
@@ -327,6 +328,7 @@
     <ClCompile Include="Source\Stage\StageEditor.cpp" />
     <ClCompile Include="Source\Stage\StageLayout.cpp" />
     <ClCompile Include="Source\Stage\StageRenderer.cpp" />
+    <ClCompile Include="Source\Util\RayCast.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -355,6 +357,7 @@
     <ClInclude Include="Source\AI\Navigation\NavGrid.h" />
     <ClInclude Include="Source\AI\Navigation\Pathfinder.h" />
     <ClInclude Include="Source\AI\Navigation\PathFollower.h" />
+    <ClInclude Include="Source\AI\Vision.h" />
     <ClInclude Include="Source\AI\WeightedRandom.h" />
     <ClInclude Include="Source\Camera\FinderController.h" />
     <ClInclude Include="Source\Camera\GameCamera.h" />
@@ -396,6 +399,7 @@
     <ClInclude Include="Source\Stage\StageEditor.h" />
     <ClInclude Include="Source\Stage\StageLayout.h" />
     <ClInclude Include="Source\Stage\StageRenderer.h" />
+    <ClInclude Include="Source\Util\RayCast.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system\system.h" />
   </ItemGroup>

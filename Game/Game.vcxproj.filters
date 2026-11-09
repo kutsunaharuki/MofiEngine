@@ -267,6 +267,12 @@
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyAlertMode.cpp">
       <Filter>Source\Actor\Character\Enemy</Filter>
     </ClCompile>
+    <ClCompile Include="Source\AI\Vision.cpp">
+      <Filter>Source\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Util\RayCast.cpp">
+      <Filter>Source\Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -451,6 +457,12 @@
     </ClInclude>
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyAlertMode.h">
       <Filter>Source\Actor\Character\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\AI\Vision.h">
+      <Filter>Source\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Util\RayCast.h">
+      <Filter>Source\Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

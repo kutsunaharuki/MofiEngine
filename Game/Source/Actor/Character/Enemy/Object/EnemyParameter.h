@@ -8,6 +8,7 @@
 #include "Source/Util/ParameterManager.h"
 #include "Source/Actor/Character/Enemy/EnemyDestinationMode.h"
 #include "Source/Actor/Character/Enemy/EnemyAlertMode.h"
+#include "Source/AI/Vision.h"
 
 
 namespace app
@@ -33,6 +34,8 @@ namespace app
 			DestinationModeSetting destinationMode;
 			/** 警戒モードの設定 */
 			AlertModeSetting alertMode;
+			/** ビジョン */
+			ai::VisionSetting vision;
 
 
 			EnemyParameter()
@@ -41,6 +44,9 @@ namespace app
 				, focusHeight(80.0f)
 				, initialPosition(Vector3::Zero)
 				, initialScale(Vector3::One)
+				, destinationMode(DestinationModeSetting())
+				, alertMode(AlertModeSetting())
+				, vision(ai::VisionSetting())
 			{}
 
 
@@ -73,6 +79,14 @@ namespace app
 				alertMode.alertDuration = file.GetFloat("alertDuration", alertMode.alertDuration);
 				alertMode.lookAroundTime = file.GetFloat("alertLookAroundTime", alertMode.lookAroundTime);
 				alertMode.retryInterval = file.GetFloat("alertRetryInterval", alertMode.retryInterval);
+
+
+				// 敵ビジョン(視線)
+				vision.viewDistance = file.GetFloat("visionViewDistance", vision.viewDistance);
+				vision.viewAngle = file.GetFloat("visionViewAngle", vision.viewAngle);
+				vision.eyeHeight = file.GetFloat("visionEyeHeight", vision.eyeHeight);
+				vision.targetHeight = file.GetFloat("visionTargetHeight", vision.targetHeight);
+				vision.noticeTime = file.GetFloat("visionNoticeTime", vision.noticeTime);
 			}
 		};
 	}

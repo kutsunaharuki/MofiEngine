@@ -6,7 +6,6 @@
   "initialPosition":[0,0,0],
   "initialScale":[0.6,0.6,0.6],
 
-
   "wanderAmplitudeDeg":30,
   "wanderFrequency":0.5,
   "stealTime":5.0,
@@ -19,5 +18,11 @@
   
   "alertDuration":20.0,
   "alertLookAroundTime":3.0,
-  "alertRetryInterval":1.0
+  "alertRetryInterval":1.0,
+
+  "visionViewDistance":1000.0,
+  "visionViewAngle":90.0,
+  "visionEyeHeight":120.0,
+  "visionTargetHeight":70.0,
+  "visionNoticeTime":0.8
 }

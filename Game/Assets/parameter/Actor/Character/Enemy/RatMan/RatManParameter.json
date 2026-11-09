@@ -18,5 +18,11 @@
 
   "alertDuration":15.0,
   "alertLookAroundTime":3.0,
-  "alertRetryInterval":1.0
+  "alertRetryInterval":1.0,
+
+  "visionViewDistance":600.0,
+  "visionViewAngle":90.0,
+  "visionEyeHeight":120.0,
+  "visionTargetHeight":70.0,
+  "visionNoticeTime":0.4
 }
