@@ -99,6 +99,11 @@ namespace app
 			 * @param subject 被写体の情報を解除
 			 */
 			void UnregisterSubject(const IPhotoSubject* subject);
+			/**
+			 * @brief 撮影者の当たり判定を設定
+			 * @param object 撮影者の当たり判定(レイが自身に当たらないようにする)
+			 */
+			void SetPhotographerCollisionObject(const btCollisionObject* object) { m_photographerCollisionObject = object; }
 
 
 		private:
@@ -140,6 +145,9 @@ namespace app
 		private:
 			/** 操作する写真撮影クラス */
 			PhotoCapture* m_photoCapture;
+			/** 撮影者の当たり判定 */
+			const btCollisionObject* m_photographerCollisionObject;
+
 			/** ファインダーの UI のレイアウト */
 			ui::UILayout m_finderLayout;
 			/** ファインダーの UI(m_finderLayout が持っている) */

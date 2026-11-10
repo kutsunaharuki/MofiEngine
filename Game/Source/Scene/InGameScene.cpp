@@ -174,8 +174,11 @@ namespace app
 
 		// RenderingEngineにPhotoCaptureを登録
 		RenderingEngine::GetInstance().SetPhotoCapture(&m_photoCapture);
+		
 		// ファインダーの操作(覗く・ピント・ズーム・撮影)を FinderController に任せる
 		m_finderController.Initialize(&m_photoCapture);
+		// ピントのレイが主人公に当たらないように設定
+		m_finderController.SetPhotographerCollisionObject(m_boy->GetCollisionObject());
 		// 明かり(影は階ごとに作るので、ステージの構造を渡す)
 		m_lightController.Initialize(m_stageLayout.get());
 

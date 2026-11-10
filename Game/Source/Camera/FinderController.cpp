@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "FinderController.h"
 #include "Source/UI/FinderMenu/FinderMenu.h"
+#include "Source/Util/RayCast.h"
 #include <algorithm>
 #include <cmath>
 
@@ -47,6 +48,7 @@ namespace app
 
 		FinderController::FinderController()
 			: m_photoCapture(nullptr)
+			, m_photographerCollisionObject(nullptr)
 			, m_finderMenu(nullptr)
 			, m_focusSubject(nullptr)
 			, m_isSubjectInRange(false)
@@ -207,6 +209,10 @@ namespace app
 			// 真ん中のグリッドの大きさの半分(この中に顔がある被写体だけが候補)
 			const Vector2 gridHalfSize = m_finderMenu ? m_finderMenu->GetGridHalfSize() : Vector2(0.0f, 0.0f);
 
+			// ズームした分だけ、ピントを合わせられる距離を延ばす
+			// ※ ZoomRatio は ズームなし = 1 寄るほど小さくなる(画角の比)
+			const float maxDistance = parameter.autoFocusMaxDistance / m_photoCapture->GetFinderZoomRatio();
+
 			bool isFound = false;
 
 			// 被写体のリストを全部見て計算する
@@ -218,7 +224,7 @@ namespace app
 				// 被写体までの距離
 				const float distance = (facePosition - eye).Length();
 				// 遠すぎる被写体と、カメラと同じ位置にいる被写体は選ばない
-				if (distance > parameter.autoFocusMaxDistance || distance < 0.001f) continue;
+				if (distance > maxDistance || distance < 0.001f) continue;
 
 				// 顔を画面の位置に変える(カメラの後ろにいる被写体は選ばない)
 				Vector2 screenPosition;
@@ -232,6 +238,10 @@ namespace app
 
 				// 今までで一番真ん中に近ければ覚えておく
 				if (isFound && screenDistance >= out.screenDistance) continue;
+
+				// 間に物があれば選ばない(柱・壁・他のキャラクターの陰にいる被写体は撮れない)
+				const util::RayHit hit = util::RayCastClosest(eye, facePosition, m_photographerCollisionObject);
+				if (hit.isHit && hit.hitObject != subject->GetSubjectCollisionObject()) continue;
 
 				// 顔のまわりの丸の半径 = 顔の半径(3D)を画面に写した大きさ
 				// ※ 顔の位置と、そこから顔の半径だけ上の位置を画面に写して、その差を半径にする。遠い・ズームで自動で変わる

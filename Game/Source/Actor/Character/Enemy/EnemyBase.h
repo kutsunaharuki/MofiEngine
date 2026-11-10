@@ -83,6 +83,11 @@ namespace app
 			 * @return 被写体のピントを合わせる位置(定義した場所で体の中心や顔のあたりの位置が変わる)
 			 */
 			Vector3 GetFocusPosition() const override;
+			/**
+			 * @brief 敵の当たり判定を取得(レイが敵のキャラクターコントローラーに当たったかを比べる)
+			 * @return キャラクターコントローラーの当たり判定
+			 */
+			const btCollisionObject* GetSubjectCollisionObject() const override { return GetCollisionObject(); }
 
 			/**
 			 * @brief 敵のステートマシンを取得

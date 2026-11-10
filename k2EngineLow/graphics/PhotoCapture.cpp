@@ -54,7 +54,7 @@ namespace nsK2EngineLow
 		/** ピント距離の最小値(近い側) */
 		constexpr float FOCUS_DISTANCE_MIN = 50.0f;
 		/** ピント距離の最大値(遠い側。ファインダーカメラの遠平面まで) */
-		constexpr float FOCUS_DISTANCE_MAX = 1000.0f;
+		constexpr float FOCUS_DISTANCE_MAX = 7000.0f;
 		/** ピントを動かす速度(1フレームにこの早さ) */
 		constexpr float FOCUS_SPEED = 400.0f;
 		/** ピント距離から距離制限でボケ量が最大になる */
@@ -264,6 +264,8 @@ namespace nsK2EngineLow
 		m_finderDoFCB.focusDistance = m_focusDistance;
 		// 許容値をDOFの定数バッファに設定
 		m_finderDoFCB.focusRange = m_focusBlurRange;
+		// くっきり見える範囲をDOFの定数バッファに設定
+		m_finderDoFCB.sharpRange = m_focusTolerance;
 
 		// 書き込める状態になるまで待つ
 		rc.WaitUntilToPossibleSetRenderTarget(m_finderResultRT);

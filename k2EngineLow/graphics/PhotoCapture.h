@@ -12,12 +12,14 @@ namespace nsK2EngineLow
 	{
 		float focusDistance; // ピントが合う距離
 		float focusRange;    // ピントの合う幅
-		Vector2 pad0;        // パディング(空き)
+		float sharpRange;    // くっきり見える幅
+		float pad0;			 // パディング(16バイトに揃える)
 
 
 		FinderDoFCB()
 			: focusDistance(1.0f)
 			, focusRange(100.0f)
+			, sharpRange(0.0f)
 		{}
 	};
 

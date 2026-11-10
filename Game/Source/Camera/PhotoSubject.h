@@ -19,6 +19,8 @@ namespace app
 			virtual ~IPhotoSubject() = default;
 			/** ピントを合わせる位置(体の中心または顔のあたり) */
 			virtual Vector3 GetFocusPosition() const = 0;
+			/** 当たり判定(レイが被写体に当たったかを比べる) */
+			virtual const btCollisionObject* GetSubjectCollisionObject() const = 0;
 		};
 	}
 }
