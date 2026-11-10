@@ -176,8 +176,8 @@ namespace app
 		RenderingEngine::GetInstance().SetPhotoCapture(&m_photoCapture);
 		// ファインダーの操作(覗く・ピント・ズーム・撮影)を FinderController に任せる
 		m_finderController.Initialize(&m_photoCapture);
-		// 明かり(影はファインダーが選んだ被写体のまわりにも作るので、FinderController の後)
-		m_lightController.Initialize(&m_photoCapture, &m_finderController, m_boy.get());
+		// 明かり(影は階ごとに作るので、ステージの構造を渡す)
+		m_lightController.Initialize(m_stageLayout.get());
 
 		// ファインダーコントローラーに敵を登録する
 		for (auto& enemy : m_enemyList)
@@ -298,7 +298,7 @@ namespace app
 			m_finderController.LateUpdate();
 		}
 
-		// 明かりと影(影はファインダーが選んだ被写体のまわりに作るので、LateUpdate の後)
+		// 明かりの色と向き
 		m_lightController.Update();
 
 		// オートフォーカスが選んだ被写体(いなければ nullptr)
@@ -368,18 +368,11 @@ namespace app
 			return false;
 		}
 
+
+		// TODO : ゲームオーバーの条件を作る
 		// ゴール：全てのミッションを達成したら、すぐにリザルトへ
 		if (m_missionManager.IsAllAchieved())
 		{
-			id = app::ResultScene::ID();
-			waitTime = 1.0f;
-			return true;
-		}
-
-		if (g_pad[0]->IsTrigger(enButtonA))
-		{
-			// インゲームを抜けるので、達成していないミッションは失敗にする
-			m_missionManager.Finish();
 			id = app::ResultScene::ID();
 			waitTime = 1.0f;
 			return true;

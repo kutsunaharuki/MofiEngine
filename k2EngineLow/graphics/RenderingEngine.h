@@ -101,11 +101,21 @@ namespace nsK2EngineLow
 		void InitializeLight();
 		
 		/**
-		 * @brief 影を作る範囲の中心を決める
-		 * @param center 影を作る範囲の中心
-		 * @details 今のディレクションライトの向きでライトカメラを置き直す
+		 * @brief 影を作る範囲(箱)を決める
+		 * @param index 範囲の番号(0 ~ GetShadowAreaCount() - 1。この番号のシャドウマップを使う)
+		 * @param areaMin 箱の小さい方の角
+		 * @param areaMax 箱の大きい方の角
+		 * @details 箱の真上から真下を向いて、箱がちょうど写るようにライトカメラを置く。
+		 *          深度も箱の高さだけなので、箱の外(上や下の範囲)には影を落とさない。
+		 *          影は真下に落ちる(室内の天井の明かりを想定。ライトの向きの傾きは、明るさだけに使う)
 		 */
-		void SetShadowCenter(const Vector3& center);
+		void SetShadowArea(const int index, const Vector3& areaMin, const Vector3& areaMax);
+		/**
+		 * @brief 影を作る範囲の数を取得
+		 * @return 影を作る範囲の数
+		 */
+		int GetShadowAreaCount() const { return USE_SHADOW_COUNT; }
+
 
 
 		/**
@@ -191,6 +201,12 @@ namespace nsK2EngineLow
 		 * @details: シングルトンパターンを採用しているため、外部からのインスタンス化を禁止するためにprivateにしている
 		 */
 		RenderingEngine();
+		/**
+		 * @brief モデルがどの影の範囲にいるかを探す
+		 * @param model 影を落とすモデル
+		 * @return 範囲の番号(どこにも入っていなければ 0)
+		 */
+		int FindShadowAreaIndex(const Model& model) const;
 
 		/**
 		 * @brief G-Buffer とディファードライティングの初期化
@@ -254,12 +270,14 @@ namespace nsK2EngineLow
 		
 		/** 最大影数 */
 		static const int MAX_SHADOW = 4;
-		/** ディレクションライトの影に使うシャドウマップの番号 */
-		static const int DIRECTION_SHADOW_INDEX = 0;
-		/** 今使っているシャドウマップの数 */
-		static const int USE_SHADOW_COUNT = 1;
+		/** 影を作る範囲の数(= ディレクションライトの影に使うシャドウマップの数。0 番から使う) */
+		static const int USE_SHADOW_COUNT = 2;
 
 
+		/** 影を作る範囲の箱の小さい方の角 */
+		Vector3 m_shadowAreaMin[MAX_SHADOW];
+		/** 影を作る範囲の箱の大きい方の角 */
+		Vector3 m_shadowAreaMax[MAX_SHADOW];
 		/** ライトカメラ */
 		Camera m_lightCamera[MAX_SHADOW];
 		/** シャドウマップ */

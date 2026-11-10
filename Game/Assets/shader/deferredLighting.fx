@@ -184,6 +184,12 @@ float CalcShadow(Texture2D<float> shadowMap, float4x4 lvp, float3 worldPos, floa
 
     // ライトから見た深度と、傾きに応じたバイアス(影のギザギザ(シャドウアクネ)を防ぐ)
     float zInLVP = posInLVP.z / posInLVP.w;
+    // ライトカメラの深度の範囲(影の範囲の箱の高さ)の外は、影なし(上や下の階の影が混ざらないように)
+    if (zInLVP < 0.0f || zInLVP > 1.0f)
+    {
+        return 0.0f;
+    }
+
     float3 L = normalize(directionLight.direction);
     float bias = max(shadowParam.shadowBias * (1.0f - dot(normal, -L)), shadowParam.shadowBiasMin);
     float compareZ = zInLVP - bias;
@@ -245,7 +251,10 @@ float4 PSMain(PSInput In) : SV_Target0
     }
 
     // ディレクションライトの影(0枚目だけ)
-    float directionShadow = CalcShadow(g_shadowMap0,mLVP[0],worldPos,normal);
+    // ※ 0 枚目と 1 枚目は、それぞれ別の範囲(箱)しか写していないので、足しても同じ所に重ならない
+    float directionShadow = CalcShadow(g_shadowMap0, mLVP[0], worldPos, normal);
+    directionShadow += CalcShadow(g_shadowMap1, mLVP[1], worldPos, normal);
+    directionShadow = saturate(directionShadow);
 
     // 最終的な色(model.fx と同じ)
     float3 nonAmbientLig = diffuseLig + specularLig;

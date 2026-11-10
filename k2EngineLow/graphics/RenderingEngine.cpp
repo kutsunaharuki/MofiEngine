@@ -11,12 +11,16 @@ namespace nsK2EngineLow
 	{
 		/** ライトカメラの原点からの距離 */
 		constexpr float LIGHT_CAMERA_VECTOR = -1000.0f;
-		/** シャドウマップの解像度(Create した時の解像度に合わせる) */
-		constexpr float SHADOW_MAP_SIZE = 1024.0f;
-		/** ライトカメラを中心からどれだけ離すか */
-		constexpr float LIGHT_CAMERA_DISTANCE = 400.0f;
-		/** ライトカメラの遠平面(中心の下の床まで届けばよい) */
+		/** シャドウマップの横の解像度(影の範囲(建物の階など)は横長になりやすいので、横を大きくする) */
+		constexpr int SHADOW_MAP_WIDTH = 4096;
+		/** シャドウマップの縦の解像度 */
+		constexpr int SHADOW_MAP_HEIGHT = 1024;
+		/** ライトカメラの遠平面(SetShadowArea を呼ぶまでの仮の値) */
 		constexpr float LIGHT_CAMERA_FAR = 800.0f;
+		/** ライトカメラを、影の範囲の箱の上面からどれだけ上に置くか */
+		constexpr float LIGHT_CAMERA_MARGIN = 10.0f;
+		/** 深度の範囲の余白(箱の上面・底面がちょうど近平面・遠平面に乗らないように) */
+		constexpr float LIGHT_DEPTH_MARGIN = 1.0f;
 	}
 
 
@@ -33,7 +37,7 @@ namespace nsK2EngineLow
 		// パス1: シャドウマップパス
 		//=====================================================
 		K2_PROFILE_BEGIN("Shadow");
-		// シャドウマップの数だけ描くのではなく影を描く枚数を1枚だけにする
+		// 使う影の範囲の数だけ描く(残りのシャドウマップは、あとでスポットライトに使う)
 		for (int i = 0; i < USE_SHADOW_COUNT; i++)
 		{
 			// 書き込める状態になるまで待つ
@@ -45,6 +49,10 @@ namespace nsK2EngineLow
 			
 			for (auto* caster : m_shadowCasters)
 			{
+				// 自分がいる範囲のシャドウマップにだけ描く
+				// ※ Model の行列の定数バッファは 1 つしかない。同じフレームに 2 つのカメラで描くと、
+				//    後から描いた方のカメラの行列で上書きされ、どちらのシャドウマップも同じカメラで描かれてしまう
+				if (FindShadowAreaIndex(*caster) != i) continue;
 				caster->Draw(rc, m_lightCamera[i]);
 			}
 		}
@@ -227,7 +235,7 @@ namespace nsK2EngineLow
 		{
 			// シャドウマップのレンダリングターゲットを作成
 			m_shadowMap[i].Create(
-				1024, 1024,                       // 解像度
+				SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT, // 解像度(横長)
 				1, 1,							  // ミップマップ数、配列数(1でよい)
 				DXGI_FORMAT_R32_FLOAT,			  // DXGI_FORMAT_R8G8B8A8_UNORMから変わった(float 1チャンネル)
 				DXGI_FORMAT_D32_FLOAT,			  // 深度バッファのフォーマット
@@ -322,7 +330,8 @@ namespace nsK2EngineLow
 			// キャラのいるあたりを見る
 			m_lightCamera[i].SetTarget(Vector3::Zero);
 			// 真下を向くときはY以外の値を上げる(Yだと視線と平行になり行列が壊れるから)
-			m_lightCamera[i].SetUp({ 1.0f,0.0f,0.0f });
+			// ※ Z を上にすると、シャドウマップの横 = ワールドの X になる(横長のシャドウマップに合わせる)
+			m_lightCamera[i].SetUp({ 0.0f,0.0f,1.0f });
 			// 平行投影
 			m_lightCamera[i].SetUpdateProjMatrixFunc(Camera::enUpdateProjMatrixFunc_Ortho);
 			// 影の深度の範囲(初期値の 1～5000 は広いため、深度が粗い)
@@ -340,25 +349,62 @@ namespace nsK2EngineLow
 	}
 
 
-	void RenderingEngine::SetShadowCenter(const Vector3& center)
+	void RenderingEngine::SetShadowArea(const int index, const Vector3& areaMin, const Vector3& areaMax)
 	{
-		// シャドウマップ 1ピクセルの大きさにそろえる
-		const float texelSize = SHADOW_WIDTH / SHADOW_MAP_SIZE;
-		Vector3 snapped = center;
+		if (index < 0 || index >= USE_SHADOW_COUNT) return;
 
-		snapped.x = std::floor(center.x / texelSize) * texelSize;
-		snapped.z = std::floor(center.z / texelSize) * texelSize;
+		// どのモデルをどの範囲に描くかを決めるために覚えておく
+		m_shadowAreaMin[index] = areaMin;
+		m_shadowAreaMax[index] = areaMax;
 
-		// 今のライトの向きの逆側に離した所から中心を見る
-		Vector3 position = SceneLight::GetInstance().GetLightCB().directionLight.direction;
-		position.Scale(-LIGHT_CAMERA_DISTANCE);
-		position.Add(snapped);
+		// 箱の真ん中と大きさ
+		Vector3 center = areaMin;
+		center.Add(areaMax);
+		center.Scale(0.5f);
+		Vector3 size = areaMax;
+		size.Subtract(areaMin);
 
+		// 箱の真上から、真下を向いて写す
+		// ※ ライトの向きに合わせて傾けると、深度(カメラからの距離)が高さと一致しなくなり、
+		//    深度で範囲を区切っても、上の範囲の影が下の範囲(の端のほう)に漏れる。
+		//    真下に向ければ「深度 = 高さ」になるので、範囲の上下がぴったり区切れる
+		Vector3 position = center;
+		position.y = areaMax.y + LIGHT_CAMERA_MARGIN;
 
-		Camera& lightCamera = m_lightCamera[DIRECTION_SHADOW_INDEX];
+		Camera& lightCamera = m_lightCamera[index];
 		lightCamera.SetPosition(position);
-		lightCamera.SetTarget(snapped);
+		lightCamera.SetTarget(center);
+		// 横 = X、縦 = Z(InitializeLight で上の向きを Z にしている)
+		lightCamera.SetWidth(size.x);
+		lightCamera.SetHeight(size.z);
+		// 深度は箱の高さだけにする(範囲の外は、シェーダーで影なしにする → 他の範囲の影が混ざらない)
+		lightCamera.SetNear(LIGHT_CAMERA_MARGIN - LIGHT_DEPTH_MARGIN);
+		lightCamera.SetFar(LIGHT_CAMERA_MARGIN + size.y + LIGHT_DEPTH_MARGIN);
 		lightCamera.Update();
-		SceneLight::GetInstance().SetLightProjMatrix(DIRECTION_SHADOW_INDEX, lightCamera.GetViewProjectionMatrix());
+		SceneLight::GetInstance().SetLightProjMatrix(index, lightCamera.GetViewProjectionMatrix());
+	}
+
+
+	int RenderingEngine::FindShadowAreaIndex(const Model& model) const
+	{
+		// モデルの位置(ワールド行列の平行移動。キャラクターなら足元)
+		const Matrix& world = model.GetWorldMatrix();
+		const float x = world.m[3][0];
+		const float y = world.m[3][1];
+		const float z = world.m[3][2];
+
+		for (int i = 0; i < USE_SHADOW_COUNT; i++)
+		{
+			const Vector3& areaMin = m_shadowAreaMin[i];
+			const Vector3& areaMax = m_shadowAreaMax[i];
+			if (x >= areaMin.x && x <= areaMax.x
+				&& y >= areaMin.y && y <= areaMax.y
+				&& z >= areaMin.z && z <= areaMax.z)
+			{
+				return i;
+			}
+		}
+		// どの範囲にも入っていなければ 0 番(SetShadowArea を呼んでいないシーンも、今まで通り 0 番に描く)
+		return 0;
 	}
 }

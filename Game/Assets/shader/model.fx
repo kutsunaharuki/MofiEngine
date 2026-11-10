@@ -117,6 +117,7 @@ Texture2D<float4> specularMap : register(t2);   // テクスチャ2
 
 // シャドウマップ
 Texture2D<float4> g_shadowMap : register(t10);  // ModelRenderが t10に繋いだシャドウマップ
+Texture2D<float4> g_shadowMap1 : register(t11); // 2枚目のシャドウマップ(t10 ~ t13 に順に繋がっている)
 
 sampler Sampler : register(s0);                 // サンプラー
 
@@ -210,6 +211,11 @@ float CalcShadow(float4 posInLVP, float3 normal, float3 lightDir, float shadowBi
     }
 
     float zInLVP = posInLVP.z / posInLVP.w;
+    // ライトカメラの深度の範囲(影の範囲の箱の高さ)の外は、影なし(上や下の階の影が混ざらないように)
+    if(zInLVP < 0.0f || zInLVP > 1.0f)
+    {
+        return 0.0f;
+    }
 
     float3 L = normalize(lightDir);
     float bias = max(shadowBias * (1.0f - dot(normal, -L)), shadowBiasMin);
@@ -295,9 +301,12 @@ float4 PSMain(SPSIn In) : SV_Target0
         ptDiffuse += CalcSpotLight(ptLight[i], normal, In.worldPos);
     }
 
-    // ディレクションライトの影(0枚目だけ)
-    float4 posInLVP = mul(mLVP[0], float4(In.worldPos, 1.0f));
-    float shadowSum = CalcShadow(posInLVP, normal, directionLight.direction, shadowParam.shadowBias, shadowParam.shadowBiasMin, g_shadowMap, g_shadowMapSampler);
+    // ディレクションライトの影(0 枚目と 1 枚目。それぞれ別の範囲(箱)しか写していないので、足しても重ならない)
+    float4 posInLVP0 = mul(mLVP[0], float4(In.worldPos, 1.0f));
+    float4 posInLVP1 = mul(mLVP[1], float4(In.worldPos, 1.0f));
+    float shadowSum = CalcShadow(posInLVP0, normal, directionLight.direction, shadowParam.shadowBias, shadowParam.shadowBiasMin, g_shadowMap, g_shadowMapSampler);
+    shadowSum += CalcShadow(posInLVP1, normal, directionLight.direction, shadowParam.shadowBias, shadowParam.shadowBiasMin, g_shadowMap1, g_shadowMapSampler);
+    shadowSum = saturate(shadowSum);
     
     // アルベドカラー
     float4 albedoColor = albedoTexture.Sample(Sampler, In.uv);
