@@ -82,6 +82,24 @@ namespace nsK2EngineLow {
 			return &m_rigidBody;
 		}
 		/*!
+		* @brief	上れる段差の高さを設定。
+		*@details	壁を調べるとき、カプセルをこの高さだけ持ち上げる。
+		*			実際に上れる段差は、これに半径の約 0.4 倍(床とみなす傾き 54 度まで)を足した高さ。
+		*			Init で高さの 0.1 倍になるので、Init の後に呼ぶ。
+		*@param[in]	stepHeight	上れる段差の高さ。
+		*/
+		void SetStepHeight(float stepHeight)
+		{
+			m_stepHeight = stepHeight;
+		}
+		/*!
+		* @brief	上れる段差の高さを取得。
+		*/
+		float GetStepHeight() const
+		{
+			return m_stepHeight;
+		}
+		/*!
 		* @brief	剛体を物理エンジンから削除。。
 		*/
 		void RemoveRigidBoby();
@@ -93,6 +111,7 @@ namespace nsK2EngineLow {
 		CCapsuleCollider	m_collider;						//!<コライダー。
 		float				m_radius = 0.0f;				//!<カプセルコライダーの半径。
 		float				m_height = 0.0f;				//!<カプセルコライダーの高さ。
+		float				m_stepHeight = 0.0f;			//!<上れる段差の高さ(壁を調べるときにカプセルを持ち上げる量)。
 		RigidBody			m_rigidBody;					//剛体。
 	};
 }

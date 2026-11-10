@@ -113,6 +113,8 @@ namespace nsK2EngineLow {
 		//コリジョン作成。
 		m_radius = radius;
 		m_height = height;
+		//上れる段差の高さ。SetStepHeight で変えられる(初期値は今までと同じ、高さの 0.1 倍)。
+		m_stepHeight = m_height * 0.1f;
 		m_collider.Init(radius, height);
 
 		//剛体を初期化。
@@ -162,7 +164,7 @@ namespace nsK2EngineLow {
 				}
 				//カプセルコライダーの中心座標 + 高さ*0.1の座標をposTmpに求める。
 				Vector3 posTmp = m_position;
-				posTmp.y += m_height * 0.5f + m_radius + m_height * 0.1f;
+				posTmp.y += m_height * 0.5f + m_radius + m_stepHeight;
 				//レイを作成。
 				btTransform start, end;
 				start.setIdentity();
