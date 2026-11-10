@@ -244,18 +244,12 @@ float4 PSMain(PSInput In) : SV_Target0
         ptDiffuse += CalcSpotLight(ptLight[i], normal, worldPos);
     }
 
-    // 影(4枚のシャドウマップ)
-    // ※ 足すと 1 を超えて、(1 - 影) がマイナスになり真っ黒になるので、1 までに収める
-    float shadowSum = 0.0f;
-    shadowSum += CalcShadow(g_shadowMap0, mLVP[0], worldPos, normal);
-    shadowSum += CalcShadow(g_shadowMap1, mLVP[1], worldPos, normal);
-    shadowSum += CalcShadow(g_shadowMap2, mLVP[2], worldPos, normal);
-    shadowSum += CalcShadow(g_shadowMap3, mLVP[3], worldPos, normal);
-    shadowSum = saturate(shadowSum);
+    // ディレクションライトの影(0枚目だけ)
+    float directionShadow = CalcShadow(g_shadowMap0,mLVP[0],worldPos,normal);
 
     // 最終的な色(model.fx と同じ)
     float3 nonAmbientLig = diffuseLig + specularLig;
-    float3 finalColor = albedoColor.xyz * (ambientLight.ambient + nonAmbientLig * (1.0f - shadowSum)) + ptDiffuse;
+    float3 finalColor = albedoColor.xyz * (ambientLight.ambient + nonAmbientLig * (1.0f - directionShadow)) + ptDiffuse;
 
     // α には、カメラからの距離を入れる(DoF がピントの計算に使う。model.fx と同じ)
     return float4(finalColor, length(worldPos - light.eyePos));

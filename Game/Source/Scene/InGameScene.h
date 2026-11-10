@@ -11,6 +11,7 @@
 #include "Source/Manager/MissionManager.h"
 #include "Source/DebugTool/NavigationDebugWindow.h"
 #include "Source/DebugTool/LoadTimeWindow.h"
+#include "Source/Stage/Object/LightParameter.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -159,6 +160,9 @@ namespace app
 		
 		/** ファインダーコントローラー */
 		camera::FinderController m_finderController;
+		
+		/** 明かりの調整パラメーター */
+		util::Parameter<stage::LightParameter> m_lightParameter;
 
 		// UI関連
 		/** SoundOptionのUIレイアウト */

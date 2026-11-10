@@ -11,6 +11,12 @@ namespace nsK2EngineLow
 	{
 		/** ライトカメラの原点からの距離 */
 		constexpr float LIGHT_CAMERA_VECTOR = -1000.0f;
+		/** シャドウマップの解像度(Create した時の解像度に合わせる) */
+		constexpr float SHADOW_MAP_SIZE = 1024.0f;
+		/** ライトカメラを中心からどれだけ離すか */
+		constexpr float LIGHT_CAMERA_DISTANCE = 400.0f;
+		/** ライトカメラの遠平面(中心の下の床まで届けばよい) */
+		constexpr float LIGHT_CAMERA_FAR = 800.0f;
 	}
 
 
@@ -27,7 +33,8 @@ namespace nsK2EngineLow
 		// パス1: シャドウマップパス
 		//=====================================================
 		K2_PROFILE_BEGIN("Shadow");
-		for (int i = 0; i < MAX_SHADOW; i++)
+		// シャドウマップの数だけ描くのではなく影を描く枚数を1枚だけにする
+		for (int i = 0; i < USE_SHADOW_COUNT; i++)
 		{
 			// 書き込める状態になるまで待つ
 			rc.WaitUntilToPossibleSetRenderTarget(m_shadowMap[i]);
@@ -45,7 +52,7 @@ namespace nsK2EngineLow
 		// シャドウキャスターリストをマイフレーム空にする
 		m_shadowCasters.clear();
 
-		for (int i = 0; i < MAX_SHADOW; i++)
+		for (int i = 0; i < USE_SHADOW_COUNT; i++)
 		{
 			// 描き終わるまで待つ → 以後テクスチャとして読める
 			rc.WaitUntilFinishDrawingToRenderTarget(m_shadowMap[i]);
@@ -318,6 +325,9 @@ namespace nsK2EngineLow
 			m_lightCamera[i].SetUp({ 1.0f,0.0f,0.0f });
 			// 平行投影
 			m_lightCamera[i].SetUpdateProjMatrixFunc(Camera::enUpdateProjMatrixFunc_Ortho);
+			// 影の深度の範囲(初期値の 1～5000 は広いため、深度が粗い)
+			m_lightCamera[i].SetNear(1.0f);
+			m_lightCamera[i].SetFar(LIGHT_CAMERA_FAR);
 			// 影を写す範囲の幅
 			m_lightCamera[i].SetWidth(SHADOW_WIDTH);
 			// 影を写す範囲の高さ(この範囲外には影はできない)
@@ -327,5 +337,28 @@ namespace nsK2EngineLow
 
 			scLight.SetLightProjMatrix(i, m_lightCamera[i].GetViewProjectionMatrix());
 		}
+	}
+
+
+	void RenderingEngine::SetShadowCenter(const Vector3& center)
+	{
+		// シャドウマップ 1ピクセルの大きさにそろえる
+		const float texelSize = SHADOW_WIDTH / SHADOW_MAP_SIZE;
+		Vector3 snapped = center;
+
+		snapped.x = std::floor(center.x / texelSize) * texelSize;
+		snapped.z = std::floor(center.z / texelSize) * texelSize;
+
+		// 今のライトの向きの逆側に離した所から中心を見る
+		Vector3 position = SceneLight::GetInstance().GetLightCB().directionLight.direction;
+		position.Scale(-LIGHT_CAMERA_DISTANCE);
+		position.Add(snapped);
+
+
+		Camera& lightCamera = m_lightCamera[DIRECTION_SHADOW_INDEX];
+		lightCamera.SetPosition(position);
+		lightCamera.SetTarget(snapped);
+		lightCamera.Update();
+		SceneLight::GetInstance().SetLightProjMatrix(DIRECTION_SHADOW_INDEX, lightCamera.GetViewProjectionMatrix());
 	}
 }

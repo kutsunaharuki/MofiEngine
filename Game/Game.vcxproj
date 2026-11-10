@@ -373,6 +373,7 @@
     <ClInclude Include="Source\Scene\SceneManager.h" />
     <ClInclude Include="Source\Scene\TitleScene.h" />
     <ClInclude Include="Source\Stage\HidePoint.h" />
+    <ClInclude Include="Source\Stage\Object\LightParameter.h" />
     <ClInclude Include="Source\UI\Animation\UIAnimation.h" />
     <ClInclude Include="Source\UI\Animation\UIAnimationTypes.h" />
     <ClInclude Include="Source\UI\Animation\UIAnimationFactory.h" />

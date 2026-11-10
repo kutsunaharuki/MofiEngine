@@ -295,19 +295,9 @@ float4 PSMain(SPSIn In) : SV_Target0
         ptDiffuse += CalcSpotLight(ptLight[i], normal, In.worldPos);
     }
 
-    // 最大数
-    const int MAX_SHADOW = 4;
-    // 合計値
-    float shadowSum = 0.0f;
-    for(int k = 0; k < MAX_SHADOW; k++)
-    {
-        // ライトビュープロジェクション行列
-        float4 posInLVP = mul(mLVP[k], float4(In.worldPos, 1.0f));
-        // 影の強さ
-        float shadow = CalcShadow(posInLVP, normal, directionLight.direction, shadowParam.shadowBias, shadowParam.shadowBiasMin, g_shadowMap, g_shadowMapSampler);
-
-        shadowSum += shadow;
-    }
+    // ディレクションライトの影(0枚目だけ)
+    float4 posInLVP = mul(mLVP[0], float4(In.worldPos, 1.0f));
+    float shadowSum = CalcShadow(posInLVP, normal, directionLight.direction, shadowParam.shadowBias, shadowParam.shadowBiasMin, g_shadowMap, g_shadowMapSampler);
     
     // アルベドカラー
     float4 albedoColor = albedoTexture.Sample(Sampler, In.uv);

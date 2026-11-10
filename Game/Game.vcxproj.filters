@@ -85,6 +85,9 @@
     <Filter Include="Source\UI\TitleEventMenu">
       <UniqueIdentifier>{ae8e2441-2946-4d35-8eb8-07b3b3cb403c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Stage\Object">
+      <UniqueIdentifier>{08caa5f7-2594-4bd2-8234-26d8d31ebb4e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -469,6 +472,9 @@
     </ClInclude>
     <ClInclude Include="Source\DebugTool\LoadTimeWindow.h">
       <Filter>Source\DebugTool</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Object\LightParameter.h">
+      <Filter>Source\Stage\Object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

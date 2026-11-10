@@ -99,6 +99,14 @@ namespace nsK2EngineLow
 		 * @brief ライトカメラの初期化
 		 */
 		void InitializeLight();
+		
+		/**
+		 * @brief 影を作る範囲の中心を決める
+		 * @param center 影を作る範囲の中心
+		 * @details 今のディレクションライトの向きでライトカメラを置き直す
+		 */
+		void SetShadowCenter(const Vector3& center);
+
 
 		/**
 		 * @brief 最大影数を取得
@@ -242,8 +250,16 @@ namespace nsK2EngineLow
 		Sprite m_copyToFrameBufferSprite;
 		/** スプライトの初期化データ */
 		SpriteInitData m_spriteInitData;
+		
+		
 		/** 最大影数 */
 		static const int MAX_SHADOW = 4;
+		/** ディレクションライトの影に使うシャドウマップの番号 */
+		static const int DIRECTION_SHADOW_INDEX = 0;
+		/** 今使っているシャドウマップの数 */
+		static const int USE_SHADOW_COUNT = 1;
+
+
 		/** ライトカメラ */
 		Camera m_lightCamera[MAX_SHADOW];
 		/** シャドウマップ */

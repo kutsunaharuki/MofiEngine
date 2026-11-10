@@ -17,9 +17,9 @@ namespace nsK2EngineLow
 		constexpr int FINDER_SPRITE_W = 1920;
 		/** ファインダーのスプライトの縦幅 */
 		constexpr int FINDER_SPRITE_H = 1080;
-		/** ファインダーのカメラの遠平面までの距離 */
-		constexpr float FINDER_CAMERA_FAR = 1000.0f;
-		/** ファインダーのカメラの近平面までの距離 */
+		/** ファインダーのカメラの遠平面(短いと美術館の奥がすぐ切り捨てられる) */
+		constexpr float FINDER_CAMERA_FAR = 10000.0f;
+		/** ファインダーのカメラの近平面 */
 		constexpr float FINDER_CAMERA_NEAR = 1.0f;
 		/** ファインダー用のカメラのデフォルト位置 */
 		const Vector3 FINDER_CAMERA_DEFAULT_POSITION = { 0.0f,0.0f,120.0f };
