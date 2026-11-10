@@ -17,6 +17,12 @@ namespace app
 			constexpr float CHARACTER_CONTROLLER_RADIUS = 25.0f;
 			/** キャラクターコントローラーの高さ */
 			constexpr float CHARACTER_CONTROLLER_HEIGHT = 75.0f;
+			/**
+			 * キャラクターコントローラーで上れる段差の高さ
+			 * ※ 実際に上れるのは、これ + 約 10(半径 25 の約 0.4 倍)≒ 30 まで。
+			 *    美術館の階段は 1 段 19.5 なので、初期値(高さの 0.1 倍 = 7.5、上れるのは約 17.8 まで)では上れない
+			 */
+			constexpr float CHARACTER_CONTROLLER_STEP_HEIGHT = 20.0f;
 		}
 
 
@@ -62,6 +68,8 @@ namespace app
 				CHARACTER_CONTROLLER_HEIGHT,
 				m_transform.GetLocalPosition()
 			);
+			// 階段を上れるように、上れる段差の高さを上げる(Init の後に呼ぶ。Init で初期値に戻るため)
+			m_characterController.SetStepHeight(CHARACTER_CONTROLLER_STEP_HEIGHT);
 			return true;
 		}
 
