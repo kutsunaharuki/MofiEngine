@@ -20,6 +20,6 @@ float4 PSMain(PSInput In) : SV_Target0
     float3 boke = bokeTexture.Sample(Sampler, In.uv).xyz;
 
     // くっきりの幅の中は 0、そこから離れるほど 1
-    float rate = saturate(abs((sharp.w - focusDistance) - sharpRange) / focusRange);
+    float rate = saturate((abs(sharp.w - focusDistance) - sharpRange) / focusRange);
     return float4(lerp(sharp.xyz, boke, rate), 1.0f);
 }
