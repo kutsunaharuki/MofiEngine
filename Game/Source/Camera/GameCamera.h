@@ -57,6 +57,11 @@ namespace app
 			 * @param isFirstPerson 1人称視点ならtrue, falseで3人称
 			 */
 			void SetFirstPeerson(bool isFirstPerson);
+			/**
+			 * @brief ズームの比率を設定する(ズームしているほど、ファインダーをゆっくり回す)
+			 * @param zoomRatio 今の画角 ÷ いちばん広い画角(ズームなしで 1、寄るほど小さい)
+			 */
+			void SetZoomRatio(const float zoomRatio) { m_zoomRatio = zoomRatio; }
 
 			/**
 			 * @brie 水平方向(XZ平面)の前方向を取得
@@ -110,6 +115,8 @@ namespace app
 			Vector3 m_prevEyePos;
 			/** 1人称視点かどうか */
 			bool m_isFirstPerson;
+			/** ズームの比率(ズームなしで 1、寄るほど小さい) */
+			float m_zoomRatio;
 		};
 	}
 }

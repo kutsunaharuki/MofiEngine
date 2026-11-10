@@ -274,6 +274,7 @@ namespace app
 
 		// ファインダーを覗いている間だけ、1人称にする
 		m_gameCamera->SetFirstPeerson(m_photoCapture.IsFinderActive());
+		m_gameCamera->SetZoomRatio(m_photoCapture.GetFinderZoomRatio());
 		m_gameCamera->Update();
 
 		// ファインダー視点のカメラをゲームカメラの位置と向きに合わせる

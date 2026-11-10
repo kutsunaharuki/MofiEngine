@@ -44,6 +44,7 @@ namespace app
 			, m_yawDeg(0.0f)
 			, m_pitchDeg(0.0f)
 			, m_isFirstPerson(false)
+			, m_zoomRatio(1.0f)
 		{}
 
 
@@ -137,8 +138,9 @@ namespace app
 			if (fabs(x) < EPSILON && fabs(y) < EPSILON) return;
 
 			// ファインダーを覗いているときは、狙いやすいようにゆっくり回す
+			// さらにズームしているほど遅くする(見えている範囲が狭い分だけ遅くして、景色が流れる速さをそろえる)
 			const GameCameraParameter& parameter = m_parameter.Get();
-			const float rotateSpeed = m_isFirstPerson ? parameter.finderRotateSpeed : parameter.rotateSpeed;
+			const float rotateSpeed = m_isFirstPerson ? parameter.finderRotateSpeed * m_zoomRatio : parameter.rotateSpeed;
 
 			// フレームレートが変わっても、同じ速さで回るようにする(速さは 1 秒に回る角度)
 			const float deltaTime = g_gameTime->GetFrameDeltaTime();
