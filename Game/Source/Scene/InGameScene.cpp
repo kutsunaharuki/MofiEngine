@@ -52,8 +52,6 @@ namespace app
 		constexpr const char* STAGE_MODEL_DIRECTORY = "Assets/modelData/Stage/";
 		/** ステージの構造(階・区画・階段) */
 		constexpr const char* STAGE_LAYOUT_PATH = "Assets/stage/MuseumLayout.json";
-		/** 明かりのパラメーターパス */
-		constexpr const char* LIGHT_PARAMETER_PATH = "Assets/parameter/Light/Light.json";
 	}
 
 
@@ -91,9 +89,6 @@ namespace app
 	
 	bool InGameScene::Start()
 	{
-		// 明かりの設定を読む
-		m_lightParameter.Initialize(LIGHT_PARAMETER_PATH);
-
 		// 読み込み時間を区間ごとに計る(結果は Load Time ウィンドウと出力ウィンドウに出る)
 		m_loadTimeWindow.Begin("InGameScene::Start");
 
@@ -181,6 +176,8 @@ namespace app
 		RenderingEngine::GetInstance().SetPhotoCapture(&m_photoCapture);
 		// ファインダーの操作(覗く・ピント・ズーム・撮影)を FinderController に任せる
 		m_finderController.Initialize(&m_photoCapture);
+		// 明かり(影はファインダーが選んだ被写体のまわりにも作るので、FinderController の後)
+		m_lightController.Initialize(&m_photoCapture, &m_finderController, m_boy.get());
 
 		// ファインダーコントローラーに敵を登録する
 		for (auto& enemy : m_enemyList)
@@ -223,14 +220,6 @@ namespace app
 	
 	void InGameScene::Update()
 	{
-		// 明かりの色と向き(JSON を書き換えると、ホットリロードで値がすぐ反映する)
-		const stage::LightParameter& light = m_lightParameter.Get();
-		SceneLight& sceneLight = SceneLight::GetInstance();
-		sceneLight.SetColor(light.directionColor);
-		sceneLight.SetAmbient(light.ambient);
-		sceneLight.SetDirection(light.directionDir);
-
-
 		// ステージの更新と、エディタ(Debug の時だけ)
 		// ※ サウンドオプションを開いている間も編集できるように、一番先に呼ぶ
 		{
@@ -278,8 +267,6 @@ namespace app
 		{
 			K2_PROFILE_CPU("Boy Update");
 			m_boy->Update();
-			// 影は主人公の周りだけ作る
-			RenderingEngine::GetInstance().SetShadowCenter(m_boy->GetTransform().GetWorldPosition());
 		}
 
 		// ファインダーを覗いている間だけ、1人称にする
@@ -310,6 +297,9 @@ namespace app
 			K2_PROFILE_CPU("Finder LateUpdate");
 			m_finderController.LateUpdate();
 		}
+
+		// 明かりと影(影はファインダーが選んだ被写体のまわりに作るので、LateUpdate の後)
+		m_lightController.Update();
 
 		// オートフォーカスが選んだ被写体(いなければ nullptr)
 		const camera::IPhotoSubject* focusSubject = m_finderController.GetFocusSubject();
