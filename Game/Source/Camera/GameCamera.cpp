@@ -140,10 +140,12 @@ namespace app
 			const GameCameraParameter& parameter = m_parameter.Get();
 			const float rotateSpeed = m_isFirstPerson ? parameter.finderRotateSpeed : parameter.rotateSpeed;
 
+			// フレームレートが変わっても、同じ速さで回るようにする(速さは 1 秒に回る角度)
+			const float deltaTime = g_gameTime->GetFrameDeltaTime();
 			// 左右
-			m_yawDeg += rotateSpeed * x;
+			m_yawDeg += rotateSpeed * x * deltaTime;
 			// 上下
-			m_pitchDeg += rotateSpeed * y;
+			m_pitchDeg += rotateSpeed * y * deltaTime;
 
 			// 上下は真上・真下を向かないようにクランプする(float型clamp)
 			// ※ 3人称のときは、カメラが地面に潜らないように、3人称の範囲に収める

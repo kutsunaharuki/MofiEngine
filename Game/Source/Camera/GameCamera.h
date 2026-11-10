@@ -17,10 +17,10 @@ namespace app
 		 */
 		struct GameCameraParameter
 		{
-			/** 3人称のときの、回る速さ(1フレームに回る角度。度) */
-			float rotateSpeed = 1.7f;
-			/** ファインダーを覗いているときの、回る速さ(1フレームに回る角度。度) */
-			float finderRotateSpeed = 0.8f;
+			/** 3人称のときの、回る速さ(1秒に回る角度。度) */
+			float rotateSpeed = 102.0f;
+			/** ファインダーを覗いているときの、回る速さ(1秒に回る角度。度) */
+			float finderRotateSpeed = 48.0f;
 			/** 3人称のときの、目の位置からカメラまでの距離 */
 			float thirdPersonDistance = 250.0f;
 			/** 目の高さ(足元からの高さ) */

@@ -1,6 +1,6 @@
 {
-  "rotateSpeed": 1.7,
-  "finderRotateSpeed": 0.8,
+  "rotateSpeed": 102.0,
+  "finderRotateSpeed": 24.0,
   "thirdPersonDistance": 250.0,
   "eyeHeight": 120.0
 }
