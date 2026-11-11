@@ -319,15 +319,12 @@ namespace nsK2EngineLow
 	}
 
 
-	void PhotoCapture::ToggleFinderActive()
+	void PhotoCapture::SetFinderActive(const bool isActive)
 	{
-		m_isFinderActive = !m_isFinderActive;
-
-		// 覗くたびにピントを近い側へ外した状態から始める
-		if (m_isFinderActive)
-		{
-			m_focusDistance = FOCUS_DISTANCE_MIN;
-		}
+		// 状態が変わらないなら何もしない
+		if (m_isFinderActive == isActive) return;
+		m_isFinderActive = isActive;
+		if (m_isFinderActive) m_focusDistance = FOCUS_DISTANCE_MIN;
 	}
 
 

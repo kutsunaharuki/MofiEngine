@@ -60,11 +60,11 @@ namespace nsK2EngineLow
 		 * @details m_finderRT の内容を画面に描画する
 		 */
 		void RenderOnscreen(RenderContext& rc);
-
 		/**
-		 * @brief ファインダー状態を切り替える
+		 * @brief 覗く / やめる を設定
+		 * @param isActive true:覗く、false:やめる
 		 */
-		void ToggleFinderActive();
+		void SetFinderActive(const bool isActive);
 		/**
 		 * @brief ファインダー状態かどうか
 		 * @return ファインダー状態なら true

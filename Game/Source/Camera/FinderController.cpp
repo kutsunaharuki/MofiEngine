@@ -80,11 +80,12 @@ namespace app
 			m_coolTimer -= g_gameTime->GetFrameDeltaTime();
 			if (m_coolTimer < 0.0f) m_coolTimer = 0.0f;
 
-			// 覗く / やめる
-			if (g_pad[0]->IsTrigger(enButtonY))
+			// LB2 を押すたびに 覗く / やめる を切り替える
+			if (g_pad[0]->IsTrigger(enButtonLB2))
 			{
-				m_photoCapture->ToggleFinderActive();
+				m_photoCapture->SetFinderActive(!m_photoCapture->IsFinderActive());
 			}
+
 			if (!m_photoCapture->IsFinderActive())
 			{
 				// 覗いていないときは、ピントを合わせている被写体はいない
@@ -241,6 +242,7 @@ namespace app
 
 				// 間に物があれば選ばない(柱・壁・他のキャラクターの陰にいる被写体は撮れない)
 				const util::RayHit hit = util::RayCastClosest(eye, facePosition, m_photographerCollisionObject);
+
 				if (hit.isHit && hit.hitObject != subject->GetSubjectCollisionObject()) continue;
 
 				// 顔のまわりの丸の半径 = 顔の半径(3D)を画面に写した大きさ
@@ -248,12 +250,14 @@ namespace app
 				float circleRadius = parameter.subjectCircleMinRadius;
 				Vector2 faceTopScreenPosition;
 				const Vector3 faceTop(facePosition.x, facePosition.y + parameter.subjectFaceRadius, facePosition.z);
+				
 				if (CalcScreenPosition(camera, faceTop, faceTopScreenPosition))
 				{
 					const float dx = faceTopScreenPosition.x - screenPosition.x;
 					const float dy = faceTopScreenPosition.y - screenPosition.y;
 					circleRadius = std::sqrt(dx * dx + dy * dy);
 				}
+				
 				circleRadius = TClamp<float>::Clamp(circleRadius, parameter.subjectCircleMinRadius, parameter.subjectCircleMaxRadius);
 
 				out.subject = subject;

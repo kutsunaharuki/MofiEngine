@@ -10,6 +10,9 @@ namespace nsK2EngineLow {
 	std::array<GamePad*, GamePad::CONNECT_PAD_MAX> g_pad;
 
 	namespace {
+		/** トリガーを「離した」と判定する押し込み量 */
+		const int TRIGGER_RELEASE_THRESHOLD = 10;
+
 		/*!
 		*@brief	仮想ボタンとXBoxコントローラのボタンとの関連付けを表す構造体。
 		*/
@@ -83,6 +86,9 @@ namespace nsK2EngineLow {
 	void GamePad::UpdateCore(XINPUT_STATE xInputState)
 	{
 		for (const VirtualPadToXPad& vPadToXPad : vPadToXPadTable) {
+			
+			if (vPadToXPad.xButton == 0) continue;
+
 			if (xInputState.Gamepad.wButtons & vPadToXPad.xButton) {
 				m_trigger[vPadToXPad.vButton] = 1 ^ m_press[vPadToXPad.vButton];
 				m_press[vPadToXPad.vButton] = 1;
@@ -92,24 +98,32 @@ namespace nsK2EngineLow {
 				m_press[vPadToXPad.vButton] = 0;
 			}
 		}
-		//左トリガー。
-		if (xInputState.Gamepad.bLeftTrigger != 0) {
-			m_trigger[enButtonLB2] = 1 ^ m_press[enButtonLB2];
-			m_press[enButtonLB2] = 1;
-		}
-		else {
-			m_trigger[enButtonLB2] = 0;
-			m_press[enButtonLB2] = 0;
-		}
-		//右トリガー
-		if (xInputState.Gamepad.bRightTrigger != 0) {
-			m_trigger[enButtonRB2] = 1 ^ m_press[enButtonRB2];
-			m_press[enButtonRB2] = 1;
-		}
-		else {
-			m_trigger[enButtonRB2] = 0;
-			m_press[enButtonRB2] = 0;
-		}
+
+		// LB2 / RB2 はアナログなので 0 付近で値がブレる
+		// 押すときは 30 を超えたら、離すときは 10 を下回ったら、境目をずらして、
+		// 1回押しただけで何回も押したことにならないようにする
+		auto updateAnalogTrigger = [&](EnButton button, BYTE value)
+			{
+				const BYTE threshold = m_press[button] ? TRIGGER_RELEASE_THRESHOLD : XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
+
+				if (value > threshold)
+				{
+					m_trigger[button] = 1 ^ m_press[button];
+					m_press[button] = 1;
+				}
+				else
+				{
+					m_trigger[button] = 0;
+					m_press[button] = 0;
+				}
+			};
+
+		// 左トリガー
+		updateAnalogTrigger(enButtonLB2, xInputState.Gamepad.bLeftTrigger);
+		// 右トリガー
+		updateAnalogTrigger(enButtonRB2, xInputState.Gamepad.bRightTrigger);
+
+
 		if ((xInputState.Gamepad.sThumbLX < INPUT_DEADZONE &&
 			xInputState.Gamepad.sThumbLX > -INPUT_DEADZONE) &&
 			(xInputState.Gamepad.sThumbLY < INPUT_DEADZONE &&
