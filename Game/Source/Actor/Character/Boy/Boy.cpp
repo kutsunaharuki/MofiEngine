@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "Boy.h"
 #include "BoyStateMachine.h"
+#include "BoyState.h"
 
 
 namespace app
@@ -18,6 +19,7 @@ namespace app
 			{
 					{"Assets/animData/Boy/Idle.tka",             true} // ファインダーを覗いていない時の待機
 				,	{"Assets/animData/Boy/Walk.tka" ,            true} // ファインダーを覗いていない時の歩行
+				,	{"Assets/animData/Boy/Run.tka",              true} // ファインダーを覗いていない時の走行
 				,	{"Assets/animData/Boy/PhotoIdle.tka",        true} // ファインダーを覗いている時の待機
 				,	{"Assets/animData/Boy/PhotoWalkForward.tka", true} // ファインダーを覗いている時の前歩き
 				,	{"Assets/animData/Boy/PhotoWalkBack.tka",    true} // ファインダーを覗いている時の後ろ歩き
@@ -49,6 +51,7 @@ namespace app
 		Boy::Boy()
 			: m_gameCamera(nullptr)
 			, m_isFinderActive(false)
+			, m_noticeScale(1.0f)
 		{}
 
 
@@ -97,6 +100,9 @@ namespace app
 
 			// ステートマシン → キャラクターコントローラー(床に当たったら止まる)→ モデルの順に更新する
 			CharacterBase::Update();
+			
+			// 走っていると目立つ(悪党が遠くから・早く気付く)
+			m_noticeScale = IsState(BoyRunState::ID()) ? parameter.runNoticeScale : 1.0f;
 		}
 
 

@@ -55,6 +55,7 @@ namespace app
 			 * @param targetPos キャラクターのどこかの位置
 			 * @param selfObject 自分の体(レイが当たらないように)
 			 * @param targetObject 相手の体(レイが最初に当たれば見えているということになる)
+			 * @param noticeScale 見つかりやすくなる倍率
 			 * @return 気づいたフレームだけ true
 			 */
 			bool Update(
@@ -63,7 +64,8 @@ namespace app
 				const Vector3& forward, 
 				const Vector3& targetPos,
 				const btCollisionObject* selfObject,
-				const btCollisionObject* targetObject
+				const btCollisionObject* targetObject,
+				const float noticeScale
 			);
 
 
@@ -75,13 +77,15 @@ namespace app
 			 * @param targetPos キャラクターのどこかの位置
 			 * @param selfObject 自分の体(レイに当たってはいけない)
 			 * @param targetObject 相手の体(レイに当たれば見えている)
+			 * @param noticeScale 見つかりやすくなる倍率
 			 */
 			bool CanSee(
 				const Vector3& eyePos,
 				const Vector3& forward, 
 				const Vector3& targetPos,
 				const btCollisionObject* selfObject,
-				const btCollisionObject* targetObject
+				const btCollisionObject* targetObject,
+				const float noticeScale
 			) const;
 
 

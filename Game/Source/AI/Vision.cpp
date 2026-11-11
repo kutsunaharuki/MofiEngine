@@ -28,10 +28,11 @@ namespace app
             const Vector3& forward, 
             const Vector3& targetPos,
             const btCollisionObject* selfObject,
-            const btCollisionObject* targetObject
+            const btCollisionObject* targetObject,
+            const float noticeScale
         )
         {
-            m_isSeeing = CanSee(eyePos, forward, targetPos,selfObject,targetObject);
+            m_isSeeing = CanSee(eyePos, forward, targetPos, selfObject, targetObject, noticeScale);
 
             // 見えていない間は 0 に戻す(ちらっと見えただけでは気づかない)
             if (!m_isSeeing)
@@ -42,7 +43,7 @@ namespace app
 
             // 気づく時間を超えた最初のフレームだけ true
             const bool wasNoticed = m_seeTimer >= m_setting.noticeTime;
-            m_seeTimer += deltaTime;
+            m_seeTimer += deltaTime * noticeScale;
             return !wasNoticed && m_seeTimer >= m_setting.noticeTime;
         }
 
@@ -52,15 +53,16 @@ namespace app
             const Vector3& forward,
             const Vector3& targetPos,
             const btCollisionObject* selfObject,
-            const btCollisionObject* targetObject
+            const btCollisionObject* targetObject,
+            const float noticeScale
         ) const
         {
             Vector3 toTarget = targetPos - eyePos;
             const float distance = toTarget.Length();
 
             /** 距離 */
-            // 距離が遠すぎると見えない扱いに
-            if (distance <= 0.0f || distance > m_setting.viewDistance) return false;
+            // 目立つほど遠くまで見える
+            if (distance <= 0.0f || distance > m_setting.viewDistance * noticeScale) return false;
 
             /** 角度 */
             // 前の向きと内積が cos(視野の半分) より小さければ、視野の外

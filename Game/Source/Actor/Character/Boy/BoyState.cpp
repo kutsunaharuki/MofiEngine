@@ -61,6 +61,30 @@ namespace app
 
 
 		/*************************************/
+		// カメラを構えていないときの走行ステート
+		/*************************************/
+
+
+		void BoyRunState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::Run);
+		}
+
+
+		void BoyRunState::Update()
+		{
+			const BoyParameter& parameter = m_stateMachine.GetParameter();
+			m_stateMachine.Move(parameter.runSpeed);
+		}
+
+
+		void BoyRunState::Exit()
+		{}
+
+
+
+
+		/*************************************/
 		// カメラを構えている時の待機ステート
 		/*************************************/
 
@@ -232,5 +256,5 @@ namespace app
 
 		void BoyHighHideState::Exit()
 		{}
-	}
+    }
 }

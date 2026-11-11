@@ -19,6 +19,8 @@ namespace app
 		{
 			/** これより小さいスティックの入力は、入力なしとみなす */
 			constexpr float MOVE_INPUT_THRESHOLD = 0.01f;
+			/** 撮影歩きの向きを切り替えるのは、もう一方の軸がこの倍率より大きくなった時 */
+			constexpr float PHOTO_WALK_SWITCH_RATIO = 1.3f;
 		}
 
 
@@ -27,10 +29,12 @@ namespace app
 			, m_boy(owner)
 			, m_rotation(Quaternion::Identity)
 			, m_hideObjectPosition(Vector3::Zero)
+			, m_isRunning(false)
 		{
 			// ステートの追加
 			AddState<BoyIdleState>(*this);
 			AddState<BoyWalkState>(*this);
+			AddState<BoyRunState>(*this);
 			AddState<BoyPhotoIdleState>(*this);
 			AddState<BoyPhotoWalkForwardState>(*this);
 			AddState<BoyPhotoWalkBackState>(*this);
@@ -45,12 +49,16 @@ namespace app
 		{
 			// ファインダー状態かを見る
 			const bool isFinderActive = m_boy->IsFinderActive();
+			// ステートを選ぶ前に走るかどうかを決める
+			UpdateRunToggle(isFinderActive);
 
 			// 移動入力があれば歩く(隠れるステートは StopMove するので、歩いている間は隠れない)
 			if (HasMoveInput())
 			{
-				// ファインダーをのぞきながらなら、スティックの向きの撮影歩行ステート
+				// ファインダーをのぞきながら歩くなら、スティックの向きの撮影歩行ステート
 				if (isFinderActive) return FindPhotoWalkState();
+				// 移動入力 + 走れるなら 走るステート
+				if (m_isRunning) return FindState(BoyRunState::ID());
 				return FindState(BoyWalkState::ID());
 			}
 
@@ -117,7 +125,8 @@ namespace app
 		void BoyStateMachine::SlowMove()
 		{
 			// 撮影中は横や後ろにも歩くので、移動する方向は向かずにカメラの方を向く
-			Move(GetParameter().photoWalkSpeed, false);
+			// 少し倒せばゆっくり、全部倒せば photoWalkSpeed(狙いながら少しだけ動けるように)
+			Move(GetParameter().photoWalkSpeed * CalcMoveInputStrength(), false);
 			FaceCameraForward();
 		}
 
@@ -146,8 +155,20 @@ namespace app
 			const float stickX = g_pad[0]->GetLStickXF();
 			const float stickY = g_pad[0]->GetLStickYF();
 
+			const float absX = std::fabs(stickX);
+			const float absY = std::fabs(stickY);
+
+			// 今、縦(前後)と横(左右)のどちらで歩いているか
+			const bool isWalkingVertical = IsEqualState(BoyPhotoWalkForwardState::ID()) || IsEqualState(BoyPhotoWalkBackState::ID());
+			const bool isWalkingHorizontal = IsEqualState(BoyPhotoWalkLeftState::ID()) || IsEqualState(BoyPhotoWalkRightState::ID());
+
 			// 縦と横で、大きく倒している方を優先する
-			if (std::fabs(stickY) >= std::fabs(stickX))
+			// ただし今の向きは、もう一方がはっきり大きくなるまで続ける(斜めでガタガタ入れ替わらないように)
+			bool isVertical = absY >= absX;
+			if (isWalkingVertical) isVertical = absX < absY * PHOTO_WALK_SWITCH_RATIO;
+			if (isWalkingHorizontal) isVertical = absY >= absX * PHOTO_WALK_SWITCH_RATIO;
+
+			if (isVertical)
 			{
 				if (stickY >= 0.0f) return FindState(BoyPhotoWalkForwardState::ID());
 				return FindState(BoyPhotoWalkBackState::ID());
@@ -216,6 +237,34 @@ namespace app
 			}
 
 			return result;
+		}
+
+
+		void BoyStateMachine::UpdateRunToggle(const bool isFinderActive)
+		{
+			// 止まった時・ファインダーをのぞいた時は、走るのをやめる
+			if (!HasMoveInput() || isFinderActive)
+			{
+				m_isRunning = false;
+				return;
+			}
+
+			// 押し込むたびに 走ると歩くを切り替える
+			if (g_pad[0]->IsTrigger(enButtonLB3))
+			{
+				m_isRunning = !m_isRunning;
+			}
+		}
+
+
+		float BoyStateMachine::CalcMoveInputStrength() const
+		{
+			const float stickX = g_pad[0]->GetLStickXF();
+			const float stickY = g_pad[0]->GetLStickYF();
+
+			// 斜めに倒すと 1 を少し超えることがあるので、1 までにする
+			const float strength = std::sqrt(stickX * stickX + stickY * stickY);
+			return TClamp<float>::Clamp(strength, 0.0f, 1.0f);
 		}
 
 

@@ -250,7 +250,7 @@ namespace app
 			targetPosition.y += setting.targetHeight;
 
 			if (m_vision.Update(deltaTime, eyePosition, forward, targetPosition,
-				GetCollisionObject(),m_player->GetCollisionObject()))
+				GetCollisionObject(), m_player->GetCollisionObject(), m_player->GetNoticeScale()))
 			{
 				StartAlert();
 			}

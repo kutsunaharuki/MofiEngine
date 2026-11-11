@@ -26,6 +26,7 @@ namespace app
 		{
 			Idle,                  // ファインダーを覗いていない時の待機
 			Walk,				   // ファインダーを覗いていない時の歩行
+			Run,                   // ファインダーを覗いていない時の走行
 			PhotoIdle,		       // ファインダーを覗いている時の待機
 			PhotoWalkForward,	   // ファインダーを覗いている時の前歩き
 			PhotoWalkBack,		   // ファインダーを覗いている時の後ろ歩き
@@ -93,6 +94,11 @@ namespace app
 			 * @details DebugScene で、今のステートを表示するのに使う
 			 */
 			bool IsState(const uint32_t stateId) const;
+			/**
+			 * @brief 目立ちやすさの倍率
+			 * @return 走っていれば runNoticeScale、それ以外は 1
+			 */
+			float GetNoticeScale() const override { return m_noticeScale; }
 
 
 		private:
@@ -102,6 +108,8 @@ namespace app
 			const camera::GameCamera* m_gameCamera;
 			/** ファインダーを覗いているか */
 			bool m_isFinderActive;
+			/** 目立ちやすさの倍率 */
+			float m_noticeScale;
 		};
 	}
 }

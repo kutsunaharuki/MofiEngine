@@ -116,6 +116,13 @@ namespace app
 				// エンジンの GetRigidBody に const 版が無いので外す(読むだけ)
 				return const_cast<CharacterController&>(m_characterController).GetRigidBody()->GetBody();
 			}
+			/**
+			 * @brief 目立ちやすさの倍率
+			 * @return 普段は 1.0
+			 * @details 目立つ行動をしていたら、1,0 より値が大きくなるようにする
+			 * 何をして目立つかは継承先で決める
+			 */
+			virtual float GetNoticeScale() const { return 1.0f; }
 
 
 		protected:

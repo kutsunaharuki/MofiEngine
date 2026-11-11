@@ -279,7 +279,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\Actor\Actor.cpp" />
     <ClCompile Include="Source\Actor\ActorStateMachine.cpp" />
-    <ClCompile Include="Source\Actor\Character\Boy\Object\BoyParameter.cpp" />
     <ClCompile Include="Source\Actor\Character\CharacterBase.cpp" />
     <ClCompile Include="Source\Actor\Character\CharacterStateMachine.cpp" />
     <ClCompile Include="Source\Actor\Character\Boy\Boy.cpp" />

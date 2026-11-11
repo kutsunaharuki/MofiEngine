@@ -216,9 +216,6 @@
     <ClCompile Include="Source\Camera\Object\FinderParameter.cpp">
       <Filter>Source\Camera\Object</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Actor\Character\Boy\Object\BoyParameter.cpp">
-      <Filter>Source\Actor\Character\Boy\Object</Filter>
-    </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGuizmo\ImGuizmo.cpp">
       <Filter>Source\Imgui</Filter>
     </ClCompile>

@@ -118,6 +118,16 @@ namespace app
 			 *          当たった位置は m_hideObjectPosition に入れる
 			 */
 			EnHideType CheckHideType();
+			/**
+			 * @brief 走るかどうかを切り替える(L スティックの押し込み)
+			 * @param isFinderActive ファインダーを覗いているか
+			 */
+			void UpdateRunToggle(const bool isFinderActive);
+			/**
+			 * @brief スティックをどれだけ倒したか
+			 * @return 0(倒していない)〜 1(全部倒した)
+			 */
+			float CalcMoveInputStrength() const;
 
 
 		private:
@@ -127,6 +137,8 @@ namespace app
 			Quaternion m_rotation;
 			/** 隠れている物の位置(レイが当たった位置) */
 			Vector3 m_hideObjectPosition;
+			/** 走っているか */
+			bool m_isRunning;
 		};
 	}
 }

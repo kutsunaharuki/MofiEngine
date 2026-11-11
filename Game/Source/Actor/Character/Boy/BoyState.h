@@ -83,6 +83,27 @@ namespace app
 
 
 		/**
+		 * @brief カメラを構えていない走るステート
+		 */
+		class BoyRunState : public BoyStateBase
+		{
+			appState(BoyRunState);
+
+		public:
+			explicit BoyRunState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+		};
+
+
+
+
+		/****************************************************/
+
+
+		/**
 		 * @brief カメラを構えながらの待機ステート
 		 */
 		class BoyPhotoIdleState : public BoyStateBase
