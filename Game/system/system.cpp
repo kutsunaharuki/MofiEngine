@@ -188,6 +188,25 @@ void InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, in
 	ImGui_ImplDX12_Init(&initInfo);
 }
 
+UINT64 RegisterImGuiTexture(ID3D12Resource* resource, DXGI_FORMAT format)
+{
+	// imgui のヒープから窓口を 1 つ借りる
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = {};
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = {};
+	g_imguiSrvHeapAllocator.Alloc(&cpuHandle, &gpuHandle);
+
+	// テクスチャとして読む窓口(SRV)を作る
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Texture2D.MipLevels = 1;
+	g_graphicsEngine->GetD3DDevice()->CreateShaderResourceView(resource, &srvDesc, cpuHandle);
+
+	// imgui の DX12 バックエンドは、ImTextureID を GPU 側の窓口の場所として使う
+	return static_cast<UINT64>(gpuHandle.ptr);
+}
+
 // Destroy the low-level engine.
 void FinalizeGame()
 {

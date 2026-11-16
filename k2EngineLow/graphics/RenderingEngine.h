@@ -177,6 +177,54 @@ namespace nsK2EngineLow
 		}
 
 
+		/** サブビュー(本編とは別のカメラで、別の描き先に描く画面)の最大数 */
+		static const int MAX_SUB_VIEW = 4;
+
+		/**
+		 * @brief サブビューを使う(描き先が無ければ作る)
+		 * @param index サブビューの番号(0 ~ MAX_SUB_VIEW - 1)
+		 * @param width 描き先の横の解像度
+		 * @param height 描き先の縦の解像度
+		 * @details 描き先は最初の 1 回だけ作る(2 回目からは使う印を付けるだけで、解像度は変わらない)。
+		 *          カメラ(GetSubViewCamera)は、使う側が毎フレーム決める
+		 */
+		void EnableSubView(const int index, const int width, const int height);
+		/**
+		 * @brief サブビューを使うのをやめる(描かなくなる。描き先は残す)
+		 * @param index サブビューの番号
+		 */
+		void DisableSubView(const int index);
+		/**
+		 * @brief サブビューを使っているか
+		 * @param index サブビューの番号
+		 * @return 使っていれば true
+		 */
+		bool IsSubViewEnabled(const int index) const;
+		/**
+		 * @brief どれか 1 つでもサブビューを使っているか
+		 * @return 使っていれば true(使っていなければ、サブビュー用のモデルを登録しなくてよい)
+		 */
+		bool IsAnySubViewEnabled() const;
+		/**
+		 * @brief サブビューのカメラを取得
+		 * @param index サブビューの番号
+		 * @return カメラ
+		 */
+		Camera& GetSubViewCamera(const int index) { return m_subViewCamera[index]; }
+		/**
+		 * @brief サブビューの描き先を取得
+		 * @param index サブビューの番号
+		 * @return 描き先(EnableSubView を呼ぶまでは作られていない)
+		 */
+		RenderTarget& GetSubViewRenderTarget(const int index) { return m_subViewRT[index]; }
+		/**
+		 * @brief サブビューに描くモデルを登録する(毎フレーム)
+		 * @param index サブビューの番号
+		 * @param model モデル(サブビューごとに別の Model を渡す。行列の定数バッファが 1 つしかないため)
+		 */
+		void AddSubViewModel(const int index, Model& model) { m_subViewModels[index].push_back(&model); }
+
+
 		/**
 		 * @brief ブルームのデータ
 		 */
@@ -213,6 +261,22 @@ namespace nsK2EngineLow
 		 * @details シャドウマップを作った後に呼ぶ(ライティングのスプライトがシャドウマップを使うため)
 		 */
 		void InitDeferredRendering();
+		/**
+		 * @brief 使っているサブビューを、それぞれのカメラで描く
+		 * @param rc レンダリングコンテキスト
+		 */
+		void RenderSubViews(RenderContext& rc);
+
+		/** サブビューのカメラ */
+		Camera m_subViewCamera[MAX_SUB_VIEW];
+		/** サブビューの描き先 */
+		RenderTarget m_subViewRT[MAX_SUB_VIEW];
+		/** サブビューの描き先を作ったか */
+		bool m_isSubViewCreated[MAX_SUB_VIEW];
+		/** サブビューを使っているか */
+		bool m_isSubViewEnabled[MAX_SUB_VIEW];
+		/** サブビューに描くモデルのリスト(毎フレーム登録) */
+		std::vector<Model*> m_subViewModels[MAX_SUB_VIEW];
 
 		/** フォトキャプチャーのポインタ */
 		PhotoCapture* m_photoCapture;

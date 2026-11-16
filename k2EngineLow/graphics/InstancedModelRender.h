@@ -42,6 +42,12 @@ namespace nsK2EngineLow
 		 */
 		void AddInstance(const Matrix& worldMatrix);
 		/**
+		 * @brief サブビュー用の行列を追加(映る範囲で絞らずに、全部追加する)
+		 * @param worldMatrix ワールド行列
+		 * @details サブビューを使っている時だけ呼ぶ。最大インスタンス数を超えた分は描かない
+		 */
+		void AddSubViewInstance(const Matrix& worldMatrix);
+		/**
 		 * @brief 描画(行列を GPU に送って、RenderingEngine に登録する)
 		 * @param rc 描画コンテキスト
 		 */
@@ -64,6 +70,24 @@ namespace nsK2EngineLow
 
 
 	private:
+		/** サブビューの数(RenderingEngine::MAX_SUB_VIEW と同じにする。.cpp で確かめる) */
+		static const int SUB_VIEW_COUNT = 4;
+
+		/**
+		 * @brief サブビュー用のモデルと行列リストを作る
+		 * @details サブビューを使い始めた時に、初めて作る(使わない時は、読み込みも VRAM も増やさない)
+		 */
+		void InitSubViewModels();
+
+
+	private:
+		/** モデルのファイルパス(サブビュー用のモデルをあとから作るために覚えておく) */
+		std::string m_tkmFilePath;
+		/** モデルの上方向の軸 */
+		EnModelUpAxis m_upAxis;
+		/** カリングのモード */
+		D3D12_CULL_MODE m_cullMode;
+
 		/**
 		 * ディファードモデル
 		 * ※ 作り直す時に丸ごと新しくするので unique_ptr で持つ(Model は Init を2回呼べない)
@@ -82,5 +106,19 @@ namespace nsK2EngineLow
 		int m_numInstance;
 		/** 最大インスタンス数 */
 		int m_maxInstance;
+
+		/**
+		 * サブビュー用のモデル(サブビューごとに 1 つ)
+		 * ※ Model の行列の定数バッファは 1 つしかないので、同じフレームに別のカメラで描くなら Model を分ける
+		 */
+		std::unique_ptr<Model> m_subViewModels[SUB_VIEW_COUNT];
+		/** サブビュー用の行列リスト(映る範囲で絞らない全部。全部のサブビューで共有する) */
+		StructuredBuffer m_subViewMatrixSB;
+		/** 今フレームのサブビュー用の行列(CPU側) */
+		std::vector<Matrix> m_subViewMatrices;
+		/** 今フレームのサブビュー用のインスタンスの数 */
+		int m_numSubViewInstance;
+		/** サブビュー用のモデルを作ったか */
+		bool m_isSubViewModelCreated;
 	};
 }

@@ -19,8 +19,12 @@ namespace nsK2EngineLow
 
 
 	InstancedModelRender::InstancedModelRender()
-		: m_numInstance(0)
+		: m_upAxis(enModelUpAxisZ)
+		, m_cullMode(D3D12_CULL_MODE_BACK)
+		, m_numInstance(0)
 		, m_maxInstance(0)
+		, m_numSubViewInstance(0)
+		, m_isSubViewModelCreated(false)
 	{}
 
 
@@ -33,6 +37,18 @@ namespace nsK2EngineLow
 		m_maxInstance = maxInstance;
 		m_numInstance = 0;
 		m_worldMatrices.assign(m_maxInstance, Matrix::Identity);
+
+		// サブビュー用は、使う時に作り直す(最大インスタンス数が変わると、行列リストの大きさも変わるため)
+		m_tkmFilePath = tkmFilePath;
+		m_upAxis = upAxis;
+		m_cullMode = cullMode;
+		m_numSubViewInstance = 0;
+		m_subViewMatrices.assign(m_maxInstance, Matrix::Identity);
+		for (auto& subViewModel : m_subViewModels)
+		{
+			subViewModel.reset();
+		}
+		m_isSubViewModelCreated = false;
 
 		/** 1. 行列リストを作る(Model より先に作る。Model を作る時にディスクリプタヒープに登録されるため) */
 		m_worldMatrixSB.Init(sizeof(Matrix), m_maxInstance, m_worldMatrices.data());
@@ -91,6 +107,7 @@ namespace nsK2EngineLow
 	void InstancedModelRender::ClearInstance()
 	{
 		m_numInstance = 0;
+		m_numSubViewInstance = 0;
 	}
 
 
@@ -104,20 +121,90 @@ namespace nsK2EngineLow
 	}
 
 
+	void InstancedModelRender::AddSubViewInstance(const Matrix& worldMatrix)
+	{
+		// 最大数を超えた分は描かない(行列リストの外に書いてしまうため)
+		if (m_numSubViewInstance >= m_maxInstance) return;
+
+		m_subViewMatrices[m_numSubViewInstance] = worldMatrix;
+		m_numSubViewInstance++;
+	}
+
+
 	void InstancedModelRender::Draw(RenderContext& rc)
 	{
-		// 1つも映っていなければ、登録しない
-		if (m_numInstance == 0) return;
+		RenderingEngine& renderingEngine = RenderingEngine::GetInstance();
 
-		// 行列リストを GPU に送る(今のバックバッファの方に書く)
-		m_worldMatrixSB.Update(m_worldMatrices.data());
+		// 1つも映っていなければ、本編には登録しない(サブビューは映る範囲が違うので、下で別に調べる)
+		if (m_numInstance > 0)
+		{
+			// 行列リストを GPU に送る(今のバックバッファの方に書く)
+			m_worldMatrixSB.Update(m_worldMatrices.data());
 
-		// 何個まとめて描くかを Model に覚えさせる(RenderingEngine が Draw に渡す)
-		m_deferredModel->SetNumInstance(m_numInstance);
-		m_finderModel->SetNumInstance(m_numInstance);
+			// 何個まとめて描くかを Model に覚えさせる(RenderingEngine が Draw に渡す)
+			m_deferredModel->SetNumInstance(m_numInstance);
+			m_finderModel->SetNumInstance(m_numInstance);
 
-		// 描画は RenderingEngine がまとめて行う(ModelRender::Draw と同じ)
-		RenderingEngine::GetInstance().AddModel(*m_deferredModel);
-		RenderingEngine::GetInstance().AddFinderModel(*m_finderModel);
+			// 描画は RenderingEngine がまとめて行う(ModelRender::Draw と同じ)
+			renderingEngine.AddModel(*m_deferredModel);
+			renderingEngine.AddFinderModel(*m_finderModel);
+		}
+
+		// サブビューを使っていなければ、ここまで
+		if (m_numSubViewInstance == 0 || !renderingEngine.IsAnySubViewEnabled()) return;
+
+		// 初めて使う時に、サブビュー用のモデルを作る
+		if (!m_isSubViewModelCreated) InitSubViewModels();
+
+		m_subViewMatrixSB.Update(m_subViewMatrices.data());
+		for (int i = 0; i < SUB_VIEW_COUNT; i++)
+		{
+			if (!renderingEngine.IsSubViewEnabled(i)) continue;
+
+			m_subViewModels[i]->SetNumInstance(m_numSubViewInstance);
+			renderingEngine.AddSubViewModel(i, *m_subViewModels[i]);
+		}
+	}
+
+
+	void InstancedModelRender::InitSubViewModels()
+	{
+		// サブビューのモデルの数と、RenderingEngine のサブビューの数が合っているかをコンパイル時にチェック
+		static_assert(SUB_VIEW_COUNT == RenderingEngine::MAX_SUB_VIEW,
+			"InstancedModelRender::SUB_VIEW_COUNT と RenderingEngine::MAX_SUB_VIEW の数が合っていません。");
+
+		/** 1. 行列リストを作る(Model より先に作る。Model を作る時にディスクリプタヒープに登録されるため) */
+		m_subViewMatrixSB.Init(sizeof(Matrix), m_maxInstance, m_subViewMatrices.data());
+
+		// 拡張SRV:0~3番にシャドウマップ、4番に行列リスト(Init と同じ並び)
+		std::array<IShaderResource*, MAX_MODEL_EXPAND_SRV> expandSRV = {};
+		int srvNo = 0;
+		RenderingEngine::GetInstance().QueryShadowMapTexture([&](Texture& shadowMap)
+		{
+			expandSRV[srvNo] = &shadowMap;
+			srvNo++;
+		});
+		expandSRV[INSTANCE_MATRIX_SRV_NO] = &m_subViewMatrixSB;
+
+		/** 2. サブビュー用のモデル(ファインダーと同じ、ライティングまでその場で行うシェーダー) */
+		ModelInitData subViewInitData;
+		subViewInitData.m_tkmFilePath = m_tkmFilePath.c_str();
+		subViewInitData.m_fxFilePath = "Assets/shader/model.fx";
+		subViewInitData.m_vsEntryPointFunc = "VSMainInstancing";
+		subViewInitData.m_vsSkinEntryPointFunc = "VSMainSkinInstancing";
+		subViewInitData.m_modelUpAxis = m_upAxis;
+		subViewInitData.m_cullMode = m_cullMode;
+		// ※ RenderingEngine のサブビューの描き先のフォーマットと必ず合わせる
+		subViewInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		subViewInitData.m_expandConstantBuffer = &SceneLight::GetInstance().GetLightCB();
+		subViewInitData.m_expandConstantBufferSize = sizeof(SceneLight::LightCB);
+		subViewInitData.m_expandShaderResoruceView = expandSRV;
+
+		for (auto& subViewModel : m_subViewModels)
+		{
+			subViewModel = std::make_unique<Model>();
+			subViewModel->Init(subViewInitData);
+		}
+		m_isSubViewModelCreated = true;
 	}
 }

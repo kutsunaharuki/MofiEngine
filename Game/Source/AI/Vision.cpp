@@ -24,8 +24,8 @@ namespace app
         
         bool Vision::Update(
             const float deltaTime, 
-            const Vector3& eyePos, 
-            const Vector3& forward, 
+            const Vector3& eyePos,
+            const Vector3& forward,
             const Vector3& targetPos,
             const btCollisionObject* selfObject,
             const btCollisionObject* targetObject,

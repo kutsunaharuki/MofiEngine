@@ -125,6 +125,12 @@ namespace nsK2EngineLow
 		}
 
 		// ============================================
+		// サブビューパス : 別のカメラで、別の描き先に描く(ステージエディタの真上・正面・横など)
+		// ※ 描き先が変わるので、下のコピーパスでフレームバッファとビューポートに戻す
+		// ============================================
+		RenderSubViews(rc);
+
+		// ============================================
 		// コピーパス : 加工が終わった絵を画面に出す
 		// ============================================
 
@@ -173,6 +179,13 @@ namespace nsK2EngineLow
 		, m_bloomIntensity(1.0f)
 		, m_photoCapture(nullptr)
 	{
+		// サブビューは使うまで作らない
+		for (int i = 0; i < MAX_SUB_VIEW; i++)
+		{
+			m_isSubViewCreated[i] = false;
+			m_isSubViewEnabled[i] = false;
+		}
+
 		// クリアカラー
 		float mainClearColor[4] = { 0.5f,0.7f,1.0f,1.0f };
 
@@ -406,5 +419,90 @@ namespace nsK2EngineLow
 		}
 		// どの範囲にも入っていなければ 0 番(SetShadowArea を呼んでいないシーンも、今まで通り 0 番に描く)
 		return 0;
+	}
+
+
+	void RenderingEngine::EnableSubView(const int index, const int width, const int height)
+	{
+		if (index < 0 || index >= MAX_SUB_VIEW) return;
+
+		// 描き先は最初の 1 回だけ作る
+		if (!m_isSubViewCreated[index])
+		{
+			// 何も描かれなかったところ(背景)の色
+			float clearColor[4] = { 0.22f, 0.22f, 0.25f, 1.0f };
+			// ※ フォーマットは、サブビュー用のモデル(model.fx)の m_colorBufferFormat と必ず合わせる
+			m_subViewRT[index].Create(
+				width, height,
+				1, 1,
+				DXGI_FORMAT_R16G16B16A16_FLOAT,
+				DXGI_FORMAT_D32_FLOAT,
+				clearColor
+			);
+			m_isSubViewCreated[index] = true;
+		}
+		m_isSubViewEnabled[index] = true;
+	}
+
+
+	void RenderingEngine::DisableSubView(const int index)
+	{
+		if (index < 0 || index >= MAX_SUB_VIEW) return;
+		m_isSubViewEnabled[index] = false;
+	}
+
+
+	bool RenderingEngine::IsSubViewEnabled(const int index) const
+	{
+		if (index < 0 || index >= MAX_SUB_VIEW) return false;
+		return m_isSubViewEnabled[index];
+	}
+
+
+	bool RenderingEngine::IsAnySubViewEnabled() const
+	{
+		for (int i = 0; i < MAX_SUB_VIEW; i++)
+		{
+			if (m_isSubViewEnabled[i]) return true;
+		}
+		return false;
+	}
+
+
+	void RenderingEngine::RenderSubViews(RenderContext& rc)
+	{
+		if (IsAnySubViewEnabled())
+		{
+			K2_PROFILE_BEGIN("Sub Views");
+			for (int i = 0; i < MAX_SUB_VIEW; i++)
+			{
+				if (!m_isSubViewEnabled[i]) continue;
+
+				RenderTarget& renderTarget = m_subViewRT[i];
+				// 書き込める状態になるまで待つ
+				rc.WaitUntilToPossibleSetRenderTarget(renderTarget);
+				// 描き先をサブビューに切り替え(ビューポートもサブビューの大きさになる)
+				rc.SetRenderTargetAndViewport(renderTarget);
+				// 前のフレームの絵をクリア
+				rc.ClearRenderTargetView(renderTarget);
+
+				for (auto* model : m_subViewModels[i])
+				{
+					// サブビューのカメラで描く
+					// ※ インスタンシング描画のモデルは、インスタンスの数だけまとめて描かれる(普通のモデルは 1)
+					model->Draw(rc, m_subViewCamera[i], model->GetNumInstance());
+				}
+
+				// 描き終わるまで待つ → 以後テクスチャとして読める(ImGui のウィンドウに出せる)
+				rc.WaitUntilFinishDrawingToRenderTarget(renderTarget);
+			}
+			K2_PROFILE_END();
+		}
+
+		// 毎フレームリストを空にする
+		for (int i = 0; i < MAX_SUB_VIEW; i++)
+		{
+			m_subViewModels[i].clear();
+		}
 	}
 }
