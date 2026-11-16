@@ -19,6 +19,6 @@
     }
   ],
   "stairs": [
-    { "name": "EastStairs", "from": "1F", "to": "2F", "min": [1964, 0, -1018], "max": [3944, 1251, 1662] }
+    { "name": "EastStairs", "from": "1F", "to": "2F", "min": [1964, 0,  -418], "max": [3944, 1251, 1062] }
   ]
 }
