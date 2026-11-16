@@ -90,6 +90,16 @@ namespace app
 				visibleCount++;
 			}
 
+			/** 2.5 サブビュー(ステージエディタの真上・正面・横)を使っていれば、映る範囲で絞らずに全部追加する */
+			// ※ 本編のカメラの視錐台で絞ると、真上から見た時に、本編のカメラに映っていない物が消えてしまう
+			if (RenderingEngine::GetInstance().IsAnySubViewEnabled())
+			{
+				for (const auto& object : objectList)
+				{
+					object->GetInstancedRender()->AddSubViewInstance(object->GetWorldMatrix());
+				}
+			}
+
 			/** 3. グループごとに、まとめて描画に登録する(映っている物が無いグループは登録されない) */
 			for (auto& pair : m_groupMap)
 			{
