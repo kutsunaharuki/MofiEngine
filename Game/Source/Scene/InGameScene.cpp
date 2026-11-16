@@ -10,6 +10,7 @@
 #include "Source/Actor/Character/Enemy/EnemyBase.h"
 #include "Source/Actor/Character/Enemy/EnemyStateMachine.h"
 #include "Source/Actor/Character/Boy/Boy.h"
+#include "Source/Actor/Character/Visitor/VisitorGroup.h"
 #include "Source/UI/SoundOptionMenu/SoundOptionMenu.h"
 #include "Source/UI/MissionMenu/MissionMenu.h"
 #include "Source/Sound/SoundManager.h"
@@ -151,6 +152,14 @@ namespace app
 		}
 		m_loadTimeWindow.Mark("Enemy Start");
 
+		// 訪問者(一般客)のグループを作って並べる
+		m_visitorGroup = std::make_unique<actor::VisitorGroup>();
+		m_visitorGroup->SetNavigation(m_pathfinder.get(), m_navGrid.get());
+		// 見に行く美術品は 1 階の分だけ(経路探索の地図が 1 階の分しか無いため)
+		m_visitorGroup->SetTargetList(m_enemyController.MakeFloorTargetList(0));
+		m_visitorGroup->Initialize();
+		m_loadTimeWindow.Mark("Visitor Start");
+
 
 #ifdef APP_ENABLE_PARAMETER_HOTRELOAD
 		// ステージエディタは Debug の時だけ
@@ -267,6 +276,10 @@ namespace app
 
 		// 主人公の更新(ファインダーを覗いている間は、撮影ステートになる)
 		m_boy->SetIsFinderActive(m_photoCapture.IsFinderActive());
+		// ステージエディタのパースの画面で、右クリック + WASD でカメラを飛ばしている間は、主人公を動かさない
+		// ※ WASD は主人公の移動にも使っているので、止めないと一緒に歩いてしまう
+		const bool isEditorCameraFlying = m_stageEditor != nullptr && m_stageEditor->IsCameraFlying();
+		if (!isEditorCameraFlying)
 		{
 			K2_PROFILE_CPU("Boy Update");
 			m_boy->Update();
@@ -291,6 +304,9 @@ namespace app
 			K2_PROFILE_CPU("Enemy Update");
 			enemy->Update();
 		}
+
+		// 訪問者(一般客)の更新
+		m_visitorGroup->Update();
 
 
 		/** ファインダーのオートフォーカス */
@@ -361,6 +377,9 @@ namespace app
 		{
 			enemy->Render(rc);
 		}
+
+		// 訪問者(一般客)の描画
+		m_visitorGroup->Render(rc);
 	}
 	
 	

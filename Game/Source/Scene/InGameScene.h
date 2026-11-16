@@ -62,6 +62,8 @@ namespace app
 		class Boy;
 		/** 敵の基盤 */
 		class EnemyBase;
+		/** 訪問者(一般客)の 1グループ */
+		class VisitorGroup;
 	}
 
 	namespace stage
@@ -131,6 +133,8 @@ namespace app
 
 		/** 敵の一覧 */
 		std::vector<std::unique_ptr<actor::EnemyBase>> m_enemyList;
+		/** 訪問者(一般客)のグループ(今は試しに 1 組だけ) */
+		std::unique_ptr<actor::VisitorGroup> m_visitorGroup;
 		/** 経路探索のデバッグ表示 */
 		debug::NavigationDebugWindow m_navigationDebugWindow;
 		/** 読み込み時間の計測と表示 */
