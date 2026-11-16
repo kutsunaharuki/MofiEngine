@@ -88,6 +88,12 @@
     <Filter Include="Source\Stage\Object">
       <UniqueIdentifier>{08caa5f7-2594-4bd2-8234-26d8d31ebb4e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Actor\Character\Visitor">
+      <UniqueIdentifier>{515ca1c7-81a7-4b84-b66d-f65e4901ec05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Actor\Character\Visitor\Object">
+      <UniqueIdentifier>{dc47d0bd-764e-4128-9139-b8f750299570}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -252,9 +258,6 @@
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyState.cpp">
       <Filter>Source\Actor\Character\Enemy</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Actor\Character\Enemy\Object\EnemyParameter.cpp">
-      <Filter>Source\Actor\Character\Enemy\Object</Filter>
-    </ClCompile>
     <ClCompile Include="Source\AI\Navigation\NavGrid.cpp">
       <Filter>Source\AI\Navigation</Filter>
     </ClCompile>
@@ -278,6 +281,21 @@
     </ClCompile>
     <ClCompile Include="Source\DebugTool\LoadTimeWindow.cpp">
       <Filter>Source\DebugTool</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Visitor\Visitor.cpp">
+      <Filter>Source\Actor\Character\Visitor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Visitor\VisitorController.cpp">
+      <Filter>Source\Actor\Character\Visitor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Visitor\VisitorGroup.cpp">
+      <Filter>Source\Actor\Character\Visitor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Visitor\VisitorState.cpp">
+      <Filter>Source\Actor\Character\Visitor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Visitor\VisitorStateMachine.cpp">
+      <Filter>Source\Actor\Character\Visitor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -478,6 +496,24 @@
     </ClInclude>
     <ClInclude Include="Source\Stage\Object\LightParameter.h">
       <Filter>Source\Stage\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Visitor\Visitor.h">
+      <Filter>Source\Actor\Character\Visitor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Visitor\VisitorController.h">
+      <Filter>Source\Actor\Character\Visitor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Visitor\VisitorGroup.h">
+      <Filter>Source\Actor\Character\Visitor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Visitor\VisitorState.h">
+      <Filter>Source\Actor\Character\Visitor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Visitor\VisitorStateMachine.h">
+      <Filter>Source\Actor\Character\Visitor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Visitor\Object\VisitorParameter.h">
+      <Filter>Source\Actor\Character\Visitor\Object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

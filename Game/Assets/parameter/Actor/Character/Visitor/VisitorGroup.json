@@ -1,0 +1,12 @@
+{
+  "comment":"訪問者(一般客)の 1グループのパラメーター",
+  "memberCount":8,
+  "groupPosition":[0,0,-300],
+  "groupRadius":100.0,
+  "scatter":20.0,
+  "minSpacing":40.0,
+  "lookTimeMin":4.0,
+  "lookTimeMax":8.0,
+  "talkSwitchTime":5.0,
+  "talkRate":0.4
+}

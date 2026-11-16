@@ -290,7 +290,11 @@
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyDestinationMode.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyState.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyStateMachine.cpp" />
-    <ClCompile Include="Source\Actor\Character\Enemy\Object\EnemyParameter.cpp" />
+    <ClCompile Include="Source\Actor\Character\Visitor\Visitor.cpp" />
+    <ClCompile Include="Source\Actor\Character\Visitor\VisitorController.cpp" />
+    <ClCompile Include="Source\Actor\Character\Visitor\VisitorGroup.cpp" />
+    <ClCompile Include="Source\Actor\Character\Visitor\VisitorState.cpp" />
+    <ClCompile Include="Source\Actor\Character\Visitor\VisitorStateMachine.cpp" />
     <ClCompile Include="Source\AI\Navigation\NavGrid.cpp" />
     <ClCompile Include="Source\AI\Navigation\Pathfinder.cpp" />
     <ClCompile Include="Source\AI\Navigation\PathFollower.cpp" />
@@ -355,6 +359,12 @@
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyState.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\EnemyStateMachine.h" />
     <ClInclude Include="Source\Actor\Character\Enemy\Object\EnemyParameter.h" />
+    <ClInclude Include="Source\Actor\Character\Visitor\Object\VisitorParameter.h" />
+    <ClInclude Include="Source\Actor\Character\Visitor\Visitor.h" />
+    <ClInclude Include="Source\Actor\Character\Visitor\VisitorController.h" />
+    <ClInclude Include="Source\Actor\Character\Visitor\VisitorGroup.h" />
+    <ClInclude Include="Source\Actor\Character\Visitor\VisitorState.h" />
+    <ClInclude Include="Source\Actor\Character\Visitor\VisitorStateMachine.h" />
     <ClInclude Include="Source\AI\Navigation\NavGrid.h" />
     <ClInclude Include="Source\AI\Navigation\Pathfinder.h" />
     <ClInclude Include="Source\AI\Navigation\PathFollower.h" />
