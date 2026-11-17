@@ -115,6 +115,12 @@ namespace app
 		}
 
 
+		std::string ParameterFile::GetString(const char* key, const std::string& defaultValue) const
+		{
+			return JsonConverter::ToString(m_json, key, defaultValue);
+		}
+
+
 
 
 		/*************************************/

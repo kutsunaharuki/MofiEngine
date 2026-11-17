@@ -90,6 +90,7 @@ namespace app
 			, m_pathfinder(nullptr)
 			, m_navGrid(nullptr)
 			, m_player(nullptr)
+			, m_headBoneNo(-1)
 		{}
 
 
@@ -114,6 +115,12 @@ namespace app
 
 			// モデルとアニメーションを読み込む
 			Init(*ENEMY_MODEL_DATA_LIST[type]);
+
+
+			// 頭のボーンの番号を探す(1回だけ見る)
+			const std::wstring headBoneName(parameter.headBone.begin(), parameter.headBone.end());
+			m_headBoneNo = m_modelRender.FindBoneID(headBoneName.c_str());
+
 
 			// 敵のステートマシンを作成
 			m_characterStateMachine = std::make_unique<EnemyStateMachine>(this);
@@ -227,6 +234,25 @@ namespace app
 			if (m_alertMode == nullptr) return;
 
 			m_alertMode->EndAlert();
+		}
+
+
+		bool EnemyBase::GetHead(Vector3& outPosition, Vector3& outForward)
+		{
+			// 見つからない時は処理止める
+			if (m_headBoneNo < 0) return false;
+
+			// 頭のボーンのワールド行列
+			const Matrix& head = m_modelRender.GetBone(m_headBoneNo)->GetWorldMatrix();
+
+			outPosition.Set(head.m[3][0], head.m[3][1], head.m[3][2]);
+
+			// 顔の前の向き:回転だけかけてスケールを消す
+			outForward = GetParameter().headForwardLocal;
+			head.Apply3x3(outForward);
+			outForward.Normalize();
+
+			return true;
 		}
 
 

@@ -1,16 +1,37 @@
 {
+  "tolerance":{
+    "faceAngleMax":70.0,
+    "screenMargin":40.0,
+    "yawDeg":20.0,
+    "pitchDeg":15.0,
+    "size":0.1,
+    "position":0.15
+  },
+
   "missions":[
     {
-      "comment":"ミッションの内容(大男)",
+      "comment":"大男のミッションの内容",
       "text":"大男が絵画を盗む決定的瞬間を{count}枚撮れ",
       "target":"BigMan",
-      "count":3
+      "count":3,
+      "sample":{
+        "yawDeg":-25.0,
+        "pitchDeg":12.0,
+        "size":0.42,
+        "position":[0.48,0.53]
+      }
     },
     {
-      "comment":"ミッションの内容(ねずみ男)",
+      "comment":"ねずみ男のミッションの内容",
       "text":"ねずみ男が絵画を盗む決定的瞬間を{count}枚撮れ",
       "target":"RatMan",
-      "count":2
+      "count":2,
+      "sample":{
+        "yawDeg":-10.0,
+        "pitchDeg":5.0,
+        "size":0.35,
+        "position":[0.5,0.5]
+      }
     }
   ]
 }

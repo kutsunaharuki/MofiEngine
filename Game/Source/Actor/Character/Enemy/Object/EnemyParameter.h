@@ -36,6 +36,10 @@ namespace app
 			AlertModeSetting alertMode;
 			/** ビジョン */
 			ai::VisionSetting vision;
+			/** 頭のボーンの名前 */
+			std::string headBone;
+			/** 頭のボーンの中で「顔の前」の向き */
+			Vector3 headForwardLocal;
 
 
 			EnemyParameter()
@@ -47,8 +51,8 @@ namespace app
 				, destinationMode(DestinationModeSetting())
 				, alertMode(AlertModeSetting())
 				, vision(ai::VisionSetting())
+				, headForwardLocal(Vector3(0.0f,0.0f,1.0f))
 			{}
-
 
 			/**
 			 * @brief JSONからパラメーターを読む
@@ -87,6 +91,10 @@ namespace app
 				vision.eyeHeight = file.GetFloat("visionEyeHeight", vision.eyeHeight);
 				vision.targetHeight = file.GetFloat("visionTargetHeight", vision.targetHeight);
 				vision.noticeTime = file.GetFloat("visionNoticeTime", vision.noticeTime);
+
+				// 頭(顔)のボーンの名前と向き
+				headBone = file.GetString("headBone", headBone);
+				headForwardLocal = file.GetVector3("headForwardLocal", headForwardLocal);
 			}
 		};
 	}

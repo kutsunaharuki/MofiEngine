@@ -24,5 +24,8 @@
   "visionViewAngle":90.0,
   "visionEyeHeight":120.0,
   "visionTargetHeight":70.0,
-  "visionNoticeTime":0.8
+  "visionNoticeTime":0.8,
+
+  "headBone":"mixamorig:Head",
+  "headForwardLocal":[0,0,1]
 }

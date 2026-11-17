@@ -11,7 +11,33 @@ namespace app
 {
 	namespace mission
 	{
+		namespace
+		{
+			/**
+			 * @brief 許容値を読む
+			 * @param parent "tolerance" を持っている JSON
+			 * @param base 初期値(共通の許容値)
+			 */
+			MatchTolerance ReadTolerance(const nlohmann::json& parent, const MatchTolerance& base)
+			{
+				MatchTolerance tolerance = base;
+				// JSON にこの名前がないなら初期値
+				if (!parent.contains("tolerance")) return tolerance;
+
+				const nlohmann::json& item = parent["tolerance"];
+				tolerance.faceAngleMax = util::JsonConverter::ToFloat(item, "faceAngleMax", base.faceAngleMax);
+				tolerance.screenMargin = util::JsonConverter::ToFloat(item, "screenMargin", base.screenMargin);
+				tolerance.yawDeg = util::JsonConverter::ToFloat(item, "yawDeg", base.yawDeg);
+				tolerance.pitchDeg = util::JsonConverter::ToFloat(item, "pitchDeg", base.pitchDeg);
+				tolerance.size = util::JsonConverter::ToFloat(item, "size", base.size);
+				tolerance.position = util::JsonConverter::ToFloat(item, "position", base.position);
+				return tolerance;
+			}
+		}
+
+
 		MissionManager::MissionManager()
+			: m_hasLastMatchResult(false)
 		{}
 		
 		
@@ -29,6 +55,9 @@ namespace app
 			m_missionList.clear();
 			m_countedStealList.clear();
 
+			// 全部のミッションに共通の許容値
+			m_commonTolerance = ReadTolerance(json, MatchTolerance());
+
 			// ないなら読まない
 			if (!json.contains("missions") || !json["missions"].is_array()) return;
 
@@ -37,12 +66,27 @@ namespace app
 			{
 				MissionData mission;
 
+
 				// これがミッションの文になる
 				mission.text = util::JsonConverter::ToWString(item, "text");
 				// EnemyType は std::string で直接には変換できないため ToEnemyType で変換
 				mission.target = ToEnemyType(util::JsonConverter::ToString(item, "target"));
 				// これは何枚撮ればいいか
 				mission.requiredCount = util::JsonConverter::ToInt(item, "count", 0);
+
+				// 許容値: 共通の値を初期値にして、ミッションに書いた項目だけ上書き
+				mission.tolerance = ReadTolerance(json, m_commonTolerance);
+
+				if (item.contains("sample"))
+				{
+					const nlohmann::json& sample = item["sample"];
+					mission.hasSample = true;
+					mission.sample.yawDeg = util::JsonConverter::ToFloat(sample, "yaw", 0.0f);
+					mission.sample.pitchDeg = util::JsonConverter::ToFloat(sample, "pitch", 0.0f);
+					mission.sample.size = util::JsonConverter::ToFloat(sample, "size", 0.0f);
+					mission.sample.position = util::JsonConverter::ToVector2(sample, "position", Vector2(0.5f, 0.5f));
+				}
+
 				// ミッションの一覧にミッションの構造を入れる
 				m_missionList.push_back(mission);
 			}
@@ -52,6 +96,9 @@ namespace app
 
 		bool MissionManager::OnShot(const ShotInfo& shot)
 		{
+			// 照合の結果は撮るたびに作り直す
+			m_hasLastMatchResult = false;
+
 			// 敵が写っていなければ数えない
 			if (shot.subject == nullptr) return false;
 
@@ -60,9 +107,25 @@ namespace app
 			if (it != m_countedStealList.end() && it->second == shot.stealCount) return false;
 
 			bool isCounted = false;
+
 			for (MissionData& mission : m_missionList)
 			{
-				if (!MissionJudge::IsDecisiveMoment(shot, mission)) continue;
+				// 終わったミッションはもう数えない
+				if (mission.state != MissionState::Progress) continue;
+
+				// 見本と撮った写真を照合
+				const MatchResult result = MissionJudge::Judge(shot, mission);
+				// 狙いの悪党のミッションの結果を覚える
+				const bool isTargetMission = result.isSuccess[static_cast<size_t>(MatchItem::Target)];
+				// 悪党のミッション結果がある または 最後に撮った照合結果がないなら
+				if (isTargetMission || !m_hasLastMatchResult)
+				{
+					m_lastMatchResult = result;
+					m_hasLastMatchResult = true;
+				}
+
+				// 全ての項目が成功(イメージはチェックマーク)していないなら飛ばす
+				if (!result.IsSuccess()) continue;
 
 				++mission.currentCount;
 				// 必要な枚数を撮ったら達成

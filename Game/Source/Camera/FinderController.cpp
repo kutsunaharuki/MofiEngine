@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "FinderController.h"
 #include "Source/UI/FinderMenu/FinderMenu.h"
+#include "Source/Util/ScreenPosition.h"
 #include "Source/Util/RayCast.h"
 #include <algorithm>
 #include <cmath>
@@ -20,29 +21,6 @@ namespace app
 			constexpr const char* FINDER_PARAMETER_PATH = "Assets/parameter/Camera/Finder.json";
 			/** ファインダーの UI のレイアウトの JSON */
 			constexpr const char* FINDER_LAYOUT_PATH = "Assets/parameter/UI/Finder/Finder.json";
-
-
-			/**
-			 * @brief 3D の位置を、画面の位置に変える
-			 * @param camera カメラ
-			 * @param worldPosition 3D の位置
-			 * @param out 画面の位置(画面の真ん中が原点、上が +Y。UI と同じ座標)
-			 * @return カメラの前にあれば true(後ろにある物は、画面に写らない)
-			 * @details Camera::CalcScreenPositionFromWorldPosition と同じ計算に、カメラの後ろかの判定を足したもの
-			 */
-			bool CalcScreenPosition(Camera& camera, const Vector3& worldPosition, Vector2& out)
-			{
-				Vector4 position(worldPosition.x, worldPosition.y, worldPosition.z, 1.0f);
-				camera.GetViewProjectionMatrix().Apply(position);
-
-				// w がマイナス(または 0)なら、カメラの後ろ
-				if (position.w <= 0.0001f) return false;
-
-				// -1 ~ 1 の範囲を、画面のピクセルにする(ファインダーの画面は画面全体に出ている)
-				out.x = (position.x / position.w) * UI_SPACE_WIDTH * 0.5f;
-				out.y = (position.y / position.w) * UI_SPACE_HEIGHT * 0.5f;
-				return true;
-			}
 		}
 
 
@@ -229,7 +207,7 @@ namespace app
 
 				// 顔を画面の位置に変える(カメラの後ろにいる被写体は選ばない)
 				Vector2 screenPosition;
-				if (!CalcScreenPosition(camera, facePosition, screenPosition)) continue;
+				if (!util::CalcScreenPosition(camera, facePosition, screenPosition)) continue;
 
 				// 顔が真ん中のグリッドの外なら選ばない
 				if (std::fabs(screenPosition.x) > gridHalfSize.x || std::fabs(screenPosition.y) > gridHalfSize.y) continue;
@@ -251,7 +229,7 @@ namespace app
 				Vector2 faceTopScreenPosition;
 				const Vector3 faceTop(facePosition.x, facePosition.y + parameter.subjectFaceRadius, facePosition.z);
 				
-				if (CalcScreenPosition(camera, faceTop, faceTopScreenPosition))
+				if (util::CalcScreenPosition(camera, faceTop, faceTopScreenPosition))
 				{
 					const float dx = faceTopScreenPosition.x - screenPosition.x;
 					const float dy = faceTopScreenPosition.y - screenPosition.y;

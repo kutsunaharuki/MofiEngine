@@ -78,6 +78,8 @@ namespace app
 			bool GetBool(const char* key, const bool defaultValue) const;
 			/** Vector3 を取得(無ければ defaultValue) */
 			Vector3 GetVector3(const char* key, const Vector3& defaultValue) const;
+			/** std::string(文字列) を取得(無ければ defaultValue) */
+			std::string GetString(const char* key, const std::string& defaultValue) const;
 
 			/**
 			 * @brief JSON を取得

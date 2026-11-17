@@ -21,6 +21,7 @@
 #include "Source/Util/ParameterManager.h"
 #include "Source/AI/Navigation/NavGrid.h"
 #include "Source/AI/Navigation/Pathfinder.h"
+#include "Source/Mission/ShotMeasure.h"
 
 
 namespace app
@@ -110,7 +111,7 @@ namespace app
 		sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
 		m_loadTimeWindow.Mark("UI / Mission / BGM");
 
-		// ステージの置物を作る。エディタで保存した JSON が無ければ、3ds Max の tkl から作る
+		// ステージの置物を作る。エディタで保存した JSON が無ければ、3dsMax の tkl から作る
 		m_stage = std::make_unique<stage::Stage>();
 		if (!m_stage->Load(STAGE_FILE_PATH))
 		{
@@ -324,6 +325,10 @@ namespace app
 		// オートフォーカスが選んだ被写体(いなければ nullptr)
 		const camera::IPhotoSubject* focusSubject = m_finderController.GetFocusSubject();
 
+		// 照合のデバッグ表示(Debug の時だけ。今の写り方を出して、見本の数値を決める道具)
+		// ※ 悪党とファインダーのカメラを更新した後に呼ぶ(撮った時の判定と同じ値になるように)
+		m_photoMatchDebugWindow.Draw(FindEnemy(focusSubject), m_photoCapture.GetFinderCamera(), m_boy->GetCollisionObject());
+
 		// 今のピントが、選んだ被写体に合っているかどうか(被写体がいなければ、合っていない)
 		// ※ ここで return すると、被写体がいないときに撮った写真が記録されず、前の結果が残ってしまう
 		// ※ 真ん中の十字が、顔のまわりの丸の中に入っている(範囲内の)時だけ、合っている扱いにする
@@ -404,6 +409,19 @@ namespace app
 	}
 
 
+	actor::EnemyBase* InGameScene::FindEnemy(const camera::IPhotoSubject* subject)
+	{
+		if (subject == nullptr) return nullptr;
+
+		// 被写体は const なので、敵の一覧から同じ物を探して、const でない悪党を返す
+		for (auto& enemy : m_enemyList)
+		{
+			if (enemy.get() == subject) return enemy.get();
+		}
+		return nullptr;
+	}
+
+
 	void InGameScene::JudgeMissionShot(const camera::IPhotoSubject* focusSubject, const bool isInFocus)
 	{
 		mission::ShotInfo shot;
@@ -416,6 +434,10 @@ namespace app
 			if (enemy.get() != focusSubject) continue;
 
 			shot.subject = enemy.get();
+
+			// 悪党の写り方を測る(撮影者の体はレイで無視)
+			shot.measure = mission::MeasureShot(*enemy, m_photoCapture.GetFinderCamera(), m_boy->GetCollisionObject());
+
 			const actor::EnemyStateMachine* stateMachine = enemy->GetEnemyStateMachine();
 			if (stateMachine)
 			{

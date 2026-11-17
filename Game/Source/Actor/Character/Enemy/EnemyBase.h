@@ -159,6 +159,16 @@ namespace app
 			const ai::Vision& GetVision() const { return m_vision; }
 
 
+		public:
+			/**
+			 * @brief 頭の位置と顔の前の向きを取得
+			 * @param outPosition 頭の位置(ワールド)
+			 * @param outForward 顔の前の向き(長さ 1)
+			 * @return 頭のボーンが見つかっていれば true
+			 */
+			bool GetHead(Vector3& outPosition, Vector3& outForward);
+
+
 		private:
 			/**
 			 * @brief 視線の更新
@@ -202,6 +212,9 @@ namespace app
 			std::vector<Vector3> m_targetList;
 			/** 隠れ場所の一覧(警戒モードができるまで預かる) */
 			std::vector<stage::HidePoint> m_hidePointList;
+
+			/** 頭のボーンの番号(それ以外は -1) */
+			int m_headBoneNo;
 		};
 	}
 }

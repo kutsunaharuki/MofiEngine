@@ -53,6 +53,10 @@ namespace app
 			 * @details ミッションの一覧は Jsonの missions の配列の中身を読み込んだもの。
 			 */
 			const std::vector<MissionData>& GetMissionList() const { return m_missionList; }
+			/**
+		 	 * @brief 見本を取得
+			 */
+			const MatchTolerance GetMatchTolerance() const { return m_commonTolerance; }
 
 			/**
 			 * @brief 状態ごとのミッションの一覧を取得
@@ -66,6 +70,16 @@ namespace app
 			 * @return 全て達成していれば true(ミッションが無ければ false)
 			 */
 			bool IsAllAchieved() const;
+			/**
+			 * @brief 最後に撮った写真の照合結果があるか
+			 * @return 悪党が写っていない・同じ盗みを取り直した際は false　それ以外は true
+			 */
+			bool HasLastMatchResult() const { return m_hasLastMatchResult; }
+			/**
+			 * @brief 最後に撮った写真の照合結果
+			 * @return 写真の照合結果
+			 */
+			const MatchResult& GetLastMatchResult() const { return m_lastMatchResult; }
 
 
 		private:
@@ -81,8 +95,12 @@ namespace app
 			std::vector<MissionData> m_missionList;
 			/** 敵ごとに、最後に数えた盗みの番号(同じ盗みを二重に数えないため) */
 			std::unordered_map<const actor::EnemyBase*, int> m_countedStealList;
+			/** 最後に撮った写真の照合結果 */
+			MatchResult m_lastMatchResult;
+			/** 照合の許容値をまとめた情報 */
+			MatchTolerance m_commonTolerance;
+			/** 最後に撮った写真の照合結果があるか */
+			bool m_hasLastMatchResult;
 		};
 	}
 }
-
-

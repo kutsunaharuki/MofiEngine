@@ -297,6 +297,15 @@
     <ClCompile Include="Source\Actor\Character\Visitor\VisitorStateMachine.cpp">
       <Filter>Source\Actor\Character\Visitor</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Util\ScreenPosition.cpp">
+      <Filter>Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mission\ShotMeasure.cpp">
+      <Filter>Source\Mission</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DebugTool\PhotoMatchDebugWindow.cpp">
+      <Filter>Source\DebugTool</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -514,6 +523,15 @@
     </ClInclude>
     <ClInclude Include="Source\Actor\Character\Visitor\Object\VisitorParameter.h">
       <Filter>Source\Actor\Character\Visitor\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Util\ScreenPosition.h">
+      <Filter>Source\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mission\ShotMeasure.h">
+      <Filter>Source\Mission</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DebugTool\PhotoMatchDebugWindow.h">
+      <Filter>Source\DebugTool</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

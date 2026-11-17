@@ -150,6 +150,18 @@ namespace nsK2EngineLow
 		 *          (例) physicsStaticObject.CreateFromModel(modelRender.GetModel(), modelRender.GetModel().GetWorldMatrix());
 		 */
 		Model& GetModel() { return m_deferredModel; }
+		/**
+		 * @brief ボーン番号を名前で探す
+		 * @param boneName ボーンの名前(L"mixamorig:Head")
+		 * @return ボーン番号(見つからない場合は -1)
+		 */
+		int FindBoneID(const wchar_t* boneName) const { return m_skeleton.FindBoneID(boneName); }
+		/**
+		 * @brief ボーンを取得
+		 * @param boneNo ボーン番号
+		 * @return ボーン
+		 */
+		Bone* GetBone(const int boneNo) const { return m_skeleton.GetBone(boneNo); }
 
 
 	private:

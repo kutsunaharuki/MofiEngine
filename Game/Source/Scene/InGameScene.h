@@ -11,6 +11,7 @@
 #include "Source/Manager/MissionManager.h"
 #include "Source/DebugTool/NavigationDebugWindow.h"
 #include "Source/DebugTool/LoadTimeWindow.h"
+#include "Source/DebugTool/PhotoMatchDebugWindow.h"
 #include "Source/Stage/LightController.h"
 #include <memory>
 #include <string>
@@ -115,6 +116,13 @@ namespace app
 		 * @param isInFocus ピントが合っているか
 		 */
 		void JudgeMissionShot(const camera::IPhotoSubject* focusSubject, const bool isInFocus);
+		/**
+		 * @brief 被写体と同じ悪党を、敵の一覧から探す
+		 * @param subject 被写体(いなければ nullptr)
+		 * @return 悪党(被写体が悪党でなければ nullptr)
+		 * @details 被写体は const なので、敵の一覧から同じ物を探して、const でない悪党を返す(写り方を測るのに使う)
+		 */
+		actor::EnemyBase* FindEnemy(const camera::IPhotoSubject* subject);
 
 
 	private:
@@ -139,6 +147,8 @@ namespace app
 		debug::NavigationDebugWindow m_navigationDebugWindow;
 		/** 読み込み時間の計測と表示 */
 		debug::LoadTimeWindow m_loadTimeWindow;
+		/** 照合のデバッグ表示(今の写り方を出して、見本の数値を決める道具。Debug の時だけ) */
+		debug::PhotoMatchDebugWindow m_photoMatchDebugWindow;
 
 		/** 経路探索の地図 */
 		std::unique_ptr<app::ai::NavGrid> m_navGrid;

@@ -51,6 +51,18 @@ namespace nsK2EngineLow
 	}
 
 
+	void SpriteRender::Init(Texture& texture, float width, float height)
+	{
+		// オフスクリーンで描いたものを設定
+		m_spriteInitData.m_fxFilePath = DEFAULT_SPRITE_FX_PATH;
+		m_spriteInitData.m_textures[0] = &texture;
+		m_spriteInitData.m_width = width;
+		m_spriteInitData.m_height = height;
+		m_spriteInitData.m_alphaBlendMode = AlphaBlendMode_Trans;
+		m_sprite.Init(m_spriteInitData);
+	}
+
+
 	void SpriteRender::Update()
 	{
 		// 乗算カラーは、Sprite の初期化時にリセットされるため、更新のたびに設定する

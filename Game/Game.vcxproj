@@ -306,6 +306,8 @@
     <ClCompile Include="Source\Core\StateMachineBase.cpp" />
     <ClCompile Include="Source\Core\TransformNode.cpp" />
     <ClCompile Include="Source\DebugTool\LoadTimeWindow.cpp" />
+    <ClCompile Include="Source\DebugTool\PhotoMatchDebugWindow.cpp" />
+    <ClCompile Include="Source\Mission\ShotMeasure.cpp" />
     <ClCompile Include="Source\Scene\InGameScene.cpp" />
     <ClCompile Include="Source\Scene\IScene.cpp" />
     <ClCompile Include="Source\Scene\ResultScene.cpp" />
@@ -334,6 +336,7 @@
     <ClCompile Include="Source\Stage\StageRenderer.cpp" />
     <ClCompile Include="Source\Stage\LightController.cpp" />
     <ClCompile Include="Source\Util\RayCast.cpp" />
+    <ClCompile Include="Source\Util\ScreenPosition.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -377,6 +380,8 @@
     <ClInclude Include="Source\Core\StateMachineBase.h" />
     <ClInclude Include="Source\Core\TransformNode.h" />
     <ClInclude Include="Source\DebugTool\LoadTimeWindow.h" />
+    <ClInclude Include="Source\DebugTool\PhotoMatchDebugWindow.h" />
+    <ClInclude Include="Source\Mission\ShotMeasure.h" />
     <ClInclude Include="Source\Scene\InGameScene.h" />
     <ClInclude Include="Source\Scene\IScene.h" />
     <ClInclude Include="Source\Scene\ResultScene.h" />
@@ -414,6 +419,7 @@
     <ClInclude Include="Source\Stage\StageRenderer.h" />
     <ClInclude Include="Source\Stage\LightController.h" />
     <ClInclude Include="Source\Util\RayCast.h" />
+    <ClInclude Include="Source\Util\ScreenPosition.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system\system.h" />
   </ItemGroup>

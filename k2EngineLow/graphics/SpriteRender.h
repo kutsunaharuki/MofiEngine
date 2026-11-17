@@ -28,6 +28,13 @@ namespace nsK2EngineLow
 		 * @param height 高さ(float)
 		 */
 		void Init(const char* ddsFilePath, float width, float height);
+		/**
+		 * @brief スプライトの初期化(Texture を使う版)
+		 * @param texture テクスチャ(オフスクリーンで描いたもの)
+		 * @param width 幅
+		 * @param height 高さ
+		 */
+		void Init(Texture& texture, float width, float height);
 
 		/**
 		 * @brief 位置の取得
