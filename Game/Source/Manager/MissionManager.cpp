@@ -90,7 +90,6 @@ namespace app
 				// ミッションの一覧にミッションの構造を入れる
 				m_missionList.push_back(mission);
 			}
-
 		}
 
 
