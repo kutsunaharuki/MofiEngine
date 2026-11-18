@@ -214,6 +214,13 @@ namespace app
 				, const Vector4& color
 				, const Vector2& pivot = Vector2(0.5f, 0.5f)
 			);
+			/**
+			 * @brief あとから絵(テクスチャ)を渡す
+			 * @param texture オフスクリーンで描いた絵など(渡した側が持ち続ける)
+			 * @details JSON の "asset" を空にして "texture":true にした UI に使う。
+			 *          違う絵を渡した時だけスプライトを作り直す(見本のミッションが変わった時など)
+			 */
+			void SetTexture(Texture& texture);
 
 			/**
 			 * @brief 初期化時の画像サイズ(スケール適用前)を取得
@@ -235,6 +242,8 @@ namespace app
 			SpriteRender m_spriteRender;
 			/** 初期化時の画像サイズ(スケール適用前) */
 			Vector2 m_size;
+			/** あとから渡された絵(SetTexture。DDS の時は nullptr) */
+			Texture* m_texture;
 			/** 初期化済みかどうか */
 			bool m_isInitialized;
 		};

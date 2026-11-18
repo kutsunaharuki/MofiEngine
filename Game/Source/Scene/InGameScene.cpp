@@ -22,6 +22,8 @@
 #include "Source/AI/Navigation/NavGrid.h"
 #include "Source/AI/Navigation/Pathfinder.h"
 #include "Source/Mission/ShotMeasure.h"
+#include "Source/UI/SampleMenu/SampleMenu.h"
+#include "Source/Mission/PhotoSampleRenderer.h"
 
 
 namespace app
@@ -44,6 +46,8 @@ namespace app
 		constexpr const char* SOUND_OPTION_LAYOUT_PATH = "Assets/parameter/UI/Sound/SoundOption.json";
 		/** ミッションのレイアウトのパス */
 		constexpr const char* MISSION_LAYOUT_PATH = "Assets/parameter/UI/Mission/Mission.json";
+		/** 見本の絵のレイアウトのパス */
+		constexpr const char* SAMPLE_LAYOUT_PATH = "Assets/parameter/UI/Sample/Sample.json";
 		/** ミッションの一覧のパス */
 		constexpr const char* MISSION_LIST_PATH = "Assets/parameter/Mission/MissionList.json";
 		/** ステージの配置(エディタで保存する JSON) */
@@ -67,6 +71,7 @@ namespace app
 		, m_isLastShotInFocus(false)
 		, m_soundOptionMenu(nullptr)
 		, m_missionMenu(nullptr)
+		, m_sampleMenu(nullptr)
 	{}
 	
 	
@@ -106,6 +111,9 @@ namespace app
 		{
 			m_missionMenu->SetMissionManager(&m_missionManager);
 		}
+		// 見本の絵の UI(絵は PhotoSampleRenderer が描き終わってから渡す)
+		m_sampleLayout.Initialize<ui::SampleMenu>(SAMPLE_LAYOUT_PATH);
+		m_sampleMenu = m_sampleLayout.GetMenu<ui::SampleMenu>();
 
 		// タイトルのBGMを鳴らす
 		sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
@@ -198,7 +206,22 @@ namespace app
 			m_finderController.RegisterSubject(enemy.get());
 		}
 		m_loadTimeWindow.Mark("PhotoCapture / Finder");
-		
+
+		// ミッションの見本の絵(見本のあるミッションだけ人形を作る。描くのは人形のポーズが止まってから)
+		// ※ ミッションの一覧と同じ順番にする(見本の無いミッションは nullptr)
+		for (const mission::MissionData& mission : m_missionManager.GetMissionList())
+		{
+			if (!mission.hasSample)
+			{
+				m_photoSampleList.push_back(nullptr);
+				continue;
+			}
+			auto photoSample = std::make_unique<mission::PhotoSampleRenderer>();
+			photoSample->Initialize(mission);
+			m_photoSampleList.push_back(std::move(photoSample));
+		}
+		m_loadTimeWindow.Mark("Photo Sample");
+
 		// 行き先は目的地モードが自動で決める
 		for (auto& enemy : m_enemyList)
 		{
@@ -257,6 +280,9 @@ namespace app
 		m_soundOptionLayout.Update();
 		// ミッションの UI の更新(入力は使わないので、サウンドオプションを開いていても呼ぶ)
 		m_missionLayout.Update();
+		// 見本の絵を描き進めて、UI に渡す
+		UpdatePhotoSample();
+		m_sampleLayout.Update();
 
 		// スタートボタンで、サウンドオプションを開く
 		// ※ メニューの更新の後に開くので、開いたフレームの入力でメニューが動くことはない
@@ -327,7 +353,7 @@ namespace app
 
 		// 照合のデバッグ表示(Debug の時だけ。今の写り方を出して、見本の数値を決める道具)
 		// ※ 悪党とファインダーのカメラを更新した後に呼ぶ(撮った時の判定と同じ値になるように)
-		m_photoMatchDebugWindow.Draw(FindEnemy(focusSubject), m_photoCapture.GetFinderCamera(), m_boy->GetCollisionObject());
+		m_photoMatchDebugWindow.Draw(FindEnemy(focusSubject), m_photoCapture.GetFinderCamera(), m_boy->GetCollisionObject(), m_missionManager);
 
 		// 今のピントが、選んだ被写体に合っているかどうか(被写体がいなければ、合っていない)
 		// ※ ここで return すると、被写体がいないときに撮った写真が記録されず、前の結果が残ってしまう
@@ -371,6 +397,10 @@ namespace app
 		{
 			m_missionLayout.Render(rc);
 		}
+
+		// 見本の絵(覗いている時と、いない時で、出す場所が変わる)
+		// ※ ファインダーの UI より後に描画して、手前に出す
+		m_sampleLayout.Render(rc);
 
 		// サウンドオプションは毎フレーム描画を呼ぶ(閉じているときは、メニューの中で何も描画されない)
 		// ※ IsTrigger の中で呼ぶと、ボタンを押した1フレームしか描画されない
@@ -451,6 +481,36 @@ namespace app
 		if (m_missionManager.OnShot(shot) && m_missionMenu)
 		{
 			m_missionMenu->UpdateMissionTexts();
+		}
+	}
+
+
+	void InGameScene::UpdatePhotoSample()
+	{
+		// 描き終わっていない見本だけ進める(描き終わった物は中で何もしない)
+		for (auto& photoSample : m_photoSampleList)
+		{
+			if (photoSample) photoSample->Update();
+		}
+
+		// 出す絵: 進行中で、見本を描き終わった最初のミッション
+		Texture* texture = nullptr;
+		const std::vector<mission::MissionData>& missionList = m_missionManager.GetMissionList();
+		for (int i = 0; i < static_cast<int>(missionList.size()) && i < static_cast<int>(m_photoSampleList.size()); ++i)
+		{
+			if (missionList[i].state != mission::MissionState::Progress) continue;
+			mission::PhotoSampleRenderer* photoSample = m_photoSampleList[i].get();
+			if (photoSample == nullptr || !photoSample->IsRendered()) continue;
+
+			texture = &photoSample->GetTexture();
+			break;
+		}
+
+		// 毎フレーム渡す(同じ絵なら中で作り直さない。ホットリロードで UI が作り直されても出る)
+		if (m_sampleMenu)
+		{
+			m_sampleMenu->SetTexture(texture);
+			m_sampleMenu->SetIsFinderActive(m_photoCapture.IsFinderActive());
 		}
 	}
 }

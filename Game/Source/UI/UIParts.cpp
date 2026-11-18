@@ -18,6 +18,7 @@ namespace app
 
 		UIImage::UIImage()
 			: m_size(0.0f, 0.0f)
+			, m_texture(nullptr)
 			, m_isInitialized(false)
 		{}
 
@@ -59,10 +60,34 @@ namespace app
 			m_pivot = pivot;
 			m_size = Vector2(width, height);
 
+			// 画像が無い時は、スプライトを作らない(あとで SetTexture で渡す)
+			// ※ 先に DDS で作ってからテクスチャで作り直すと、同じスプライトを 2 回 Init することになる
+			if (assetName == nullptr || assetName[0] == '\0')
+			{
+				m_transform.UpdateTransform();
+				return;
+			}
+
 			m_spriteRender.Init(assetName, width, height);
 			m_isInitialized = true;
 
 			// 初期状態をスプライトに反映する
+			m_transform.UpdateTransform();
+			ApplyToSprite();
+		}
+
+
+		void UIImage::SetTexture(Texture& texture)
+		{
+			// 同じ絵を渡し直した時は作り直さない(毎フレーム呼ばれても重くならないように)
+			if (m_texture == &texture) return;
+			m_texture = &texture;
+
+			// 大きさは JSON の width / height のまま
+			m_spriteRender.Init(texture, m_size.x, m_size.y);
+			m_isInitialized = true;
+
+			// 位置・色などをスプライトに反映する
 			m_transform.UpdateTransform();
 			ApplyToSprite();
 		}

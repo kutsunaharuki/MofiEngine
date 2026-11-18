@@ -9,6 +9,7 @@
 #include "Source/Util/ScreenPosition.h"
 #include "Source/Actor/Character/Enemy/EnemyBase.h"
 #include "Source/Mission/ShotMeasure.h"
+#include "Source/Manager/MissionManager.h"
 #include <cstdio>
 
 
@@ -43,13 +44,41 @@ namespace app
 				const float rateY = HALF - uiPosition.y / static_cast<float>(UI_SPACE_HEIGHT);
 				return ImVec2(rateX * io.DisplaySize.x, rateY * io.DisplaySize.y);
 			}
+
+
+			/** 照合の項目の名前(MatchItem と同じ順番) */
+			const char* MATCH_ITEM_NAME_LIST[] =
+			{
+				"Target",
+				"Stealing",
+				"Focus",
+				"FaceAngle",
+				"FaceBlocked",
+				"FaceInFrame",
+				"Yaw",
+				"Pitch",
+				"Size",
+				"Position",
+			};
+
+			// MATCH_ITEM_NAME_LIST の数と、MatchItem の数が合っているかをコンパイル時にチェック
+			static_assert(sizeof(MATCH_ITEM_NAME_LIST) / sizeof(MATCH_ITEM_NAME_LIST[0]) == static_cast<size_t>(mission::MatchItem::Max),
+				"MATCH_ITEM_NAME_LIST と MatchItem の数が合っていません。");
+
+			/** OK の色(緑) */
+			const ImVec4 OK_COLOR = ImVec4(0.4f, 1.0f, 0.4f, 1.0f);
+			/** NG の色(赤) */
+			const ImVec4 NG_COLOR = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
 		}
 
 
-		void PhotoMatchDebugWindow::Draw(actor::EnemyBase* focusEnemy, Camera& finderCamera, const btCollisionObject* photographer)
+		void PhotoMatchDebugWindow::Draw(actor::EnemyBase* focusEnemy, Camera& finderCamera, const btCollisionObject* photographer, const mission::MissionManager& missionManager)
 		{
 #ifdef APP_ENABLE_PARAMETER_HOTRELOAD
 			ImGui::Begin("Photo Match");
+
+			// 最後に撮った写真の照合結果(ピントの被写体がいなくても出す)
+			DrawLastShot(missionManager);
 
 			// ピントの被写体が悪党でなければ、測るものが無い
 			if (focusEnemy == nullptr)
@@ -102,7 +131,39 @@ namespace app
 			(void)focusEnemy;
 			(void)finderCamera;
 			(void)photographer;
+			(void)missionManager;
 #endif
+		}
+
+
+		void PhotoMatchDebugWindow::DrawLastShot(const mission::MissionManager& missionManager)
+		{
+			ImGui::SeparatorText("Last shot");
+
+			// 悪党が写っていない・同じ盗みを撮り直した時は、照合していない
+			if (!missionManager.HasLastMatchResult())
+			{
+				ImGui::TextDisabled("No match result. (no enemy / same steal)");
+				return;
+			}
+
+			const mission::MatchResult& result = missionManager.GetLastMatchResult();
+			if (result.IsSuccess())
+			{
+				ImGui::TextColored(OK_COLOR, "MATCH OK");
+			}
+			else
+			{
+				ImGui::TextColored(NG_COLOR, "MATCH NG");
+			}
+
+			// 項目ごとの合否とずれ(NG の項目は全部出す)
+			for (int i = 0; i < static_cast<int>(mission::MatchItem::Max); ++i)
+			{
+				const bool isSuccess = result.isSuccess[i];
+				ImGui::TextColored(isSuccess ? OK_COLOR : NG_COLOR, "%-12s %s  diff %.2f",
+					MATCH_ITEM_NAME_LIST[i], isSuccess ? "OK" : "NG", result.diff[i]);
+			}
 		}
 
 

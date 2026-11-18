@@ -94,6 +94,9 @@
     <Filter Include="Source\Actor\Character\Visitor\Object">
       <UniqueIdentifier>{dc47d0bd-764e-4128-9139-b8f750299570}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\UI\SampleMenu">
+      <UniqueIdentifier>{a1fcf144-973d-485c-8497-110241eefb54}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -305,6 +308,12 @@
     </ClCompile>
     <ClCompile Include="Source\DebugTool\PhotoMatchDebugWindow.cpp">
       <Filter>Source\DebugTool</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mission\PhotoSampleRenderer.cpp">
+      <Filter>Source\Mission</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\SampleMenu\SampleMenu.cpp">
+      <Filter>Source\UI\SampleMenu</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -532,6 +541,12 @@
     </ClInclude>
     <ClInclude Include="Source\DebugTool\PhotoMatchDebugWindow.h">
       <Filter>Source\DebugTool</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mission\PhotoSampleRenderer.h">
+      <Filter>Source\Mission</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\SampleMenu\SampleMenu.h">
+      <Filter>Source\UI\SampleMenu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

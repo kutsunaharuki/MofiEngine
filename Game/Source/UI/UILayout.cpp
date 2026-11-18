@@ -59,8 +59,10 @@ namespace
 	T* CreateImageUI(app::ui::UICanvas* canvas, const uint32_t key, const nlohmann::json& item)
 	{
 		const std::string asset = JsonConverter::ToString(item, "asset");
+		// "texture":true は、画像をあとからコードで渡す UI(見本の絵など)。画像が無くても作る
+		const bool isLaterTexture = JsonConverter::ToBool(item, "texture", false);
 		// 画像が無いままスプライトを作ると落ちるので、作らない
-		if (asset.empty()) return nullptr;
+		if (asset.empty() && !isLaterTexture) return nullptr;
 
 		const UICommonParameter parameter = ReadCommonParameter(item);
 		const float width = JsonConverter::ToFloat(item, "width");

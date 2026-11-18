@@ -13,6 +13,11 @@ namespace app
 		/** 敵の基盤 */
 		class EnemyBase;
 	}
+	namespace mission
+	{
+		/** ミッションの管理(最後に撮った写真の照合結果を見る) */
+		class MissionManager;
+	}
 
 
 	namespace debug
@@ -34,12 +39,18 @@ namespace app
 			 * @param focusEnemy ピントの被写体の悪党(悪党でなければ nullptr)
 			 * @param finderCamera 撮るカメラ(ファインダーのカメラ)
 			 * @param photographer 撮る人の体(レイで無視する)
+			 * @param missionManager ミッションの管理(最後に撮った写真の照合結果を出す)
 			 * @details ImGui::NewFrame と ImGui::Render の間で呼ぶ(Update の中なら大丈夫)
 			 */
-			void Draw(actor::EnemyBase* focusEnemy, Camera& finderCamera, const btCollisionObject* photographer);
+			void Draw(actor::EnemyBase* focusEnemy, Camera& finderCamera, const btCollisionObject* photographer, const mission::MissionManager& missionManager);
 
 
 		private:
+			/**
+			 * @brief 最後に撮った写真の照合結果を出す(照合結果の UI ができるまでの仮の表示)
+			 * @param missionManager ミッションの管理
+			 */
+			void DrawLastShot(const mission::MissionManager& missionManager);
 			/**
 			 * @brief 顔の向きの矢印を、ゲームの画面に描く
 			 * @param enemy 悪党

@@ -307,6 +307,7 @@
     <ClCompile Include="Source\Core\TransformNode.cpp" />
     <ClCompile Include="Source\DebugTool\LoadTimeWindow.cpp" />
     <ClCompile Include="Source\DebugTool\PhotoMatchDebugWindow.cpp" />
+    <ClCompile Include="Source\Mission\PhotoSampleRenderer.cpp" />
     <ClCompile Include="Source\Mission\ShotMeasure.cpp" />
     <ClCompile Include="Source\Scene\InGameScene.cpp" />
     <ClCompile Include="Source\Scene\IScene.cpp" />
@@ -314,6 +315,7 @@
     <ClCompile Include="Source\Scene\SceneManager.cpp" />
     <ClCompile Include="Source\Scene\TitleScene.cpp" />
     <ClCompile Include="Source\UI\Animation\UIAnimation.cpp" />
+    <ClCompile Include="Source\UI\SampleMenu\SampleMenu.cpp" />
     <ClCompile Include="Source\UI\TitleEventMenu\TitleEventMenu.cpp" />
     <ClCompile Include="Source\UI\UILayout.cpp" />
     <ClCompile Include="Source\UI\UIMenu.cpp" />
@@ -381,6 +383,7 @@
     <ClInclude Include="Source\Core\TransformNode.h" />
     <ClInclude Include="Source\DebugTool\LoadTimeWindow.h" />
     <ClInclude Include="Source\DebugTool\PhotoMatchDebugWindow.h" />
+    <ClInclude Include="Source\Mission\PhotoSampleRenderer.h" />
     <ClInclude Include="Source\Mission\ShotMeasure.h" />
     <ClInclude Include="Source\Scene\InGameScene.h" />
     <ClInclude Include="Source\Scene\IScene.h" />
@@ -393,6 +396,7 @@
     <ClInclude Include="Source\UI\Animation\UIAnimationTypes.h" />
     <ClInclude Include="Source\UI\Animation\UIAnimationFactory.h" />
     <ClInclude Include="Source\UI\Animation\UIAnimationParameter.h" />
+    <ClInclude Include="Source\UI\SampleMenu\SampleMenu.h" />
     <ClInclude Include="Source\UI\TitleEventMenu\TitleEventMenu.h" />
     <ClInclude Include="Source\UI\UILayout.h" />
     <ClInclude Include="Source\UI\UIMenu.h" />

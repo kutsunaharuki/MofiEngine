@@ -1,0 +1,30 @@
+{
+  "canvas": {
+    "elements": [
+      {
+        "comment":"見本の絵(ファインダーを覗いていない時。ミッションの一覧の下)。画像は読まない。InGameScene が見本の人形を描いた絵を渡す。16:9 にする",
+        "type":"UIIcon",
+        "name":"SampleNormal",
+        "asset":"",
+        "texture":true,
+        "width":320,
+        "height":180,
+        "position":[-940,360,0],
+        "color":[1,1,1,1],
+        "pivot":[0,1]
+      },
+      {
+        "comment":"見本の絵(ファインダーを覗いている時。画面の右下)",
+        "type":"UIIcon",
+        "name":"SampleFinder",
+        "asset":"",
+        "texture":true,
+        "width":320,
+        "height":180,
+        "position":[700,-460,0],
+        "color":[1,1,1,1],
+        "pivot":[1,0]
+      }
+    ]
+  }
+}
