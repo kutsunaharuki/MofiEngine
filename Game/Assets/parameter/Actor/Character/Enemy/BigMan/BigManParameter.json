@@ -8,7 +8,9 @@
 
   "wanderAmplitudeDeg":30,
   "wanderFrequency":0.5,
-  "stealTime":5.0,
+  "stealGrabTime":2.6,
+  "stealTurnTime":1.0,
+  "stealShowTime":3.0,
   "lookAroundTime":10.0,
   "detourCheckInterval":10.0,
   "detourChance":0.5,

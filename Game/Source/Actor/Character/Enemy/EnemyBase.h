@@ -11,6 +11,7 @@
 #include <vector>
 #include "Source/Stage/HidePoint.h"
 #include "Source/Util/ParameterManager.h"
+#include "Source/Util/WorldTime.h"
 #include "Object/EnemyParameter.h"
 #include "Source/AI/Vision.h"
 
@@ -69,6 +70,8 @@ namespace app
 			bool Start() override;
 			/** 更新処理 */
 			void Update() override;
+			/** 時間の倍率(スローモーションで遅くなる) */
+			float GetTimeScale() const override { return util::WorldTime::GetScale(); }
 
 
 		public:

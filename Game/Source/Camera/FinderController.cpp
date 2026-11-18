@@ -35,7 +35,10 @@ namespace app
 
 
 		FinderController::~FinderController()
-		{}
+		{
+			// 世界の時間の倍率は全体で 1 つなので、遅いまま次のシーンに残さない
+			m_slowMotion.Reset();
+		}
 
 
 		void FinderController::Initialize(PhotoCapture* photoCapture)
@@ -47,6 +50,9 @@ namespace app
 			// ファインダーの UI を作る(最初は閉じている)
 			m_finderLayout.Initialize<ui::FinderMenu>(FINDER_LAYOUT_PATH);
 			m_finderMenu = m_finderLayout.GetMenu<ui::FinderMenu>();
+
+			// スローモーション(ゲージ満タン・普通の速さから始める)
+			m_slowMotion.Initialize();
 		}
 
 
@@ -63,6 +69,9 @@ namespace app
 			{
 				m_photoCapture->SetFinderActive(!m_photoCapture->IsFinderActive());
 			}
+
+			// 覗いている間だけ、悪党と客を遅くする(ゲージがある間だけ。悪党の更新より先なので、このフレームから効く)
+			m_slowMotion.Update(m_photoCapture->IsFinderActive());
 
 			if (!m_photoCapture->IsFinderActive())
 			{
@@ -115,6 +124,8 @@ namespace app
 				{
 					m_finderMenu->SetFocusRate(m_photoCapture->GetFocusDistanceRate());
 					m_finderMenu->SetZoomRate(m_photoCapture->GetFinderZoomRate());
+					// スローモーションのゲージ
+					m_finderMenu->SetSlowGauge(m_slowMotion.GetGaugeRate(), m_slowMotion.CanStart());
 				}
 			}
 

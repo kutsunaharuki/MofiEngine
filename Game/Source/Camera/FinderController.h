@@ -8,6 +8,7 @@
 #include "PhotoSubject.h"
 #include <vector>
 #include "Object/FinderParameter.h"
+#include "SlowMotion.h"
 
 
 namespace app
@@ -162,6 +163,8 @@ namespace app
 			std::vector<const IPhotoSubject*> m_subjectList;
 			/** クールタイムの残り(秒) */
 			float m_coolTimer;
+			/** 覗いている間のスローモーション(ゲージ付き) */
+			SlowMotion m_slowMotion;
 		};
 	}
 }

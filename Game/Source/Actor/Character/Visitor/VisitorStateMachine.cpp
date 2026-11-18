@@ -96,7 +96,7 @@ namespace app
 			target.SetRotationYFromDirectionXZ(direction);
 
 			// 1フレームの経過時間を取得
-			const float deltaTime = g_gameTime->GetFrameDeltaTime();
+			const float deltaTime = util::WorldTime::GetDeltaTime();
 
 			// フレームレートが変わっても同じ速さで向く
 			const float t = TClamp<float>::Clamp(ROTATE_SPEED * deltaTime, ROTATION_VALUE_LOW, ROTATION_VALUE_HIGH);

@@ -67,6 +67,8 @@ namespace app
 			inline void SetStealing(const bool isStealing)
 			{
 				if (isStealing && !m_isStealing) ++m_stealCount;
+				// 盗むのをやめた時は、振り向く間に止めたアニメーションを動かし直す(警戒で途中でやめた時も)
+				if (!isStealing && m_isStealing) SetAnimationSpeed(1.0f);
 				m_isStealing = isStealing;
 			}
 			/**

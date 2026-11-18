@@ -52,12 +52,8 @@ namespace app
 
 			/** セット(床・壁・絵画)の JSON */
 			constexpr const char* SAMPLE_SET_PATH = "Assets/parameter/Mission/PhotoSampleSet.json";
-			/** 壁を、人形の真正面からカメラの方へ回す角度(JSON に無い時。45 度以下だとカメラが壁の裏に入りやすい) */
-			constexpr float DEFAULT_WALL_TURN_DEG = 65.0f;
-			/** 伸ばした手から、壁までの距離(JSON に無い時。額の厚みくらい) */
-			constexpr float DEFAULT_WALL_GAP = 6.0f;
-			/** 手のボーンが取れない時に、手を伸ばしている距離 */
-			constexpr float DEFAULT_REACH = 50.0f;
+			/** 人形の足元から、背中側の壁までの距離(JSON に無い時) */
+			constexpr float DEFAULT_WALL_DISTANCE = 60.0f;
 			/** 向きが決まらないくらい短い長さ(の 2 乗) */
 			constexpr float MIN_LENGTH_SQ = 0.0001f;
 			/** 客と壁の間を、少なくともこれだけ空ける(壁にめり込まない) */
@@ -88,8 +84,7 @@ namespace app
 			, m_rightHandBoneNo(-1)
 			, m_setFile(nullptr)
 			, m_setVersion(0)
-			, m_wallTurnDeg(DEFAULT_WALL_TURN_DEG)
-			, m_wallGap(DEFAULT_WALL_GAP)
+			, m_wallDistance(DEFAULT_WALL_DISTANCE)
 			, m_poseTimer(0.0f)
 			, m_isInitialized(false)
 			, m_isPosed(false)
@@ -134,7 +129,7 @@ namespace app
 			m_headBoneNo = m_dummy.FindBoneID(headBoneName.c_str());
 			m_headForwardLocal = enemyParameter.headForwardLocal;
 
-			// 手のボーン(伸ばしている方の手の先に絵画を掛ける。悪党の JSON の leftHandBone / rightHandBone)
+			// 手のボーン(盗んだ絵画を持たせる所。悪党の JSON の leftHandBone / rightHandBone)
 			m_leftHandBoneNo = FindBone(m_dummy, enemyParameter.leftHandBone);
 			m_rightHandBoneNo = FindBone(m_dummy, enemyParameter.rightHandBone);
 
@@ -199,7 +194,7 @@ namespace app
 			// 2. 見本の数値 → カメラ
 			PhotoCamera();
 
-			// 3. セットを置く: 伸ばした手の先の壁に絵画を掛ける(壁はカメラの方へ斜めに回す)
+			// 3. セットを置く: 背中側に絵画の掛かった壁、両手に盗んだ絵画、画面の端に客
 			PlaceSet();
 
 			// 4. 見本そのものを照合にかけて確かめる
@@ -336,8 +331,7 @@ namespace app
 			m_setVersion = m_setFile->GetVersion();
 
 			const nlohmann::json& json = m_setFile->GetJson();
-			m_wallTurnDeg = util::JsonConverter::ToFloat(json, "wallTurnDeg", DEFAULT_WALL_TURN_DEG);
-			m_wallGap = util::JsonConverter::ToFloat(json, "wallGap", DEFAULT_WALL_GAP);
+			m_wallDistance = util::JsonConverter::ToFloat(json, "wallDistance", DEFAULT_WALL_DISTANCE);
 
 			// 客(画面の端で見切れている人)
 			if (json.contains("people"))
@@ -379,8 +373,8 @@ namespace app
 				// 回転はステージ(Museum.json)と同じ形(X → Y → Z の度)なので、置物と同じ関数で変える
 				piece.rotation = actor::StageObject::ToQuaternion(util::JsonConverter::ToVector3(item, "rotation", Vector3::Zero));
 				piece.scale = util::JsonConverter::ToVector3(item, "scale", Vector3::One);
-				// "atHand":true は、伸ばした手の所に置く物(盗まれている絵画)
-				piece.isAtHand = util::JsonConverter::ToBool(item, "atHand", false);
+				// "hold":true は、人形の両手に持たせる物(盗んだ絵画)
+				piece.isHeld = util::JsonConverter::ToBool(item, "hold", false);
 
 				// ステージと同じ上の向き(Z)。影は落とさない(本編の影に入らない)。影を受けるにしないと、フォワード用のモデルが作られない
 				piece.render = std::make_unique<ModelRender>();
@@ -398,66 +392,31 @@ namespace app
 			Vector3 headForward;
 			if (!CalcHead(m_dummy, m_headBoneNo, m_headForwardLocal, headPosition, headForward)) return;
 
-			// ① 伸ばしている手。取れなければ、顔の前の腰の高さに手があることにする
-			Vector3 reach;
-			if (!CalcReachHand(reach))
+			// ① 部屋の方 = 振り向いた人形の正面(水平)
+			Vector3 roomFront(headForward.x, 0.0f, headForward.z);
+			if (roomFront.LengthSq() < MIN_LENGTH_SQ) roomFront = Vector3::Front;
+			roomFront.Normalize();
+
+			// ② 壁は、人形の背中側(盗んだ壁)に、部屋の方を向けて立てる
+			// ※ 顔が写る角度のカメラは人形の前(部屋の側)にいるので、壁がカメラをふさぐことはない
+			Vector3 wallOrigin = DUMMY_POSITION - roomFront * m_wallDistance;
+
+			// ③ 盗んだ絵画は、両手の真ん中に持たせる。手が取れなければ、人形の腰の高さの前くらい
+			Vector3 handCenter;
+			if (!CalcHandCenter(handCenter))
 			{
-				Vector3 forwardFlat(headForward.x, 0.0f, headForward.z);
-				if (forwardFlat.LengthSq() < MIN_LENGTH_SQ) forwardFlat = Vector3::Front;
-				forwardFlat.Normalize();
-				reach = DUMMY_POSITION + forwardFlat * DEFAULT_REACH;
-				reach.y = DUMMY_POSITION.y + DEFAULT_HEIGHT * HALF;
+				handCenter = DUMMY_POSITION + Vector3(0.0f, DEFAULT_HEIGHT * HALF, 0.0f);
 			}
-
-			// ② 体の前 = 足元 → 伸ばした手(水平)。体の右 = 上 × 前
-			Vector3 bodyForward = reach - DUMMY_POSITION;
-			bodyForward.y = 0.0f;
-			if (bodyForward.LengthSq() < MIN_LENGTH_SQ) bodyForward = Vector3::Front;
-			bodyForward.Normalize();
-			Vector3 bodyRight;
-			bodyRight.Cross(Vector3::Up, bodyForward);
-			bodyRight.Normalize();
-
-			// ③ カメラが体の右・左のどちらにいるか
-			Vector3 toCamera = m_camera.GetPosition() - DUMMY_POSITION;
-			toCamera.y = 0.0f;
-			const float cameraSide = toCamera.Dot(bodyRight) >= 0.0f ? 1.0f : -1.0f;
-
-			// ④ 壁の正面(部屋の方) = 人形の方を向いた正面を、カメラの方へ wallTurnDeg だけ回す
-			// ※ 真正面(0 度)だと、顔が写る角度のカメラは壁の裏に入る。回すほど、カメラから絵画が正面に近く見える
-			const float turn = Math::DegToRad(m_wallTurnDeg);
-			Vector3 wallFront = bodyForward * -std::cos(turn) + bodyRight * (cameraSide * std::sin(turn));
-			wallFront.Normalize();
-
-			// ⑤ 基準: 床・壁は、伸ばした手の前の壁の根元。手の所の物(絵画)は、壁の手の高さ
-			Vector3 handOnWall = reach - wallFront * m_wallGap;
-			Vector3 wallOrigin = handOnWall;
-			wallOrigin.y = DUMMY_POSITION.y;
-
-			// ⑥ JSON の +X がカメラの方になるように、X の符号を決める(壁ぞいの向きは、壁の正面の向きで変わる)
-			Vector3 wallSide;
-			wallSide.Cross(Vector3::Up, wallFront);
-			const float signX = wallSide.Dot(toCamera) >= 0.0f ? 1.0f : -1.0f;
 
 			for (SetPiece& piece : m_setPieceList)
 			{
-				PlacePiece(piece, piece.isAtHand ? handOnWall : wallOrigin, wallFront, signX);
+				PlacePiece(piece, piece.isHeld ? handCenter : wallOrigin, roomFront);
 			}
-			PlacePeople(wallOrigin, wallFront);
-
-			// ⑦ 壁がカメラ・顔をふさいでいないか(ふさいでいたら知らせるだけ。JSON を直して保存すれば描き直される)
-			if ((m_camera.GetPosition() - wallOrigin).Dot(wallFront) <= 0.0f)
-			{
-				OutputDebugStringA("[PhotoSample] camera is behind the wall. Increase wallTurnDeg.\n");
-			}
-			if ((headPosition - wallOrigin).Dot(wallFront) <= 0.0f)
-			{
-				OutputDebugStringA("[PhotoSample] head is inside the wall. Flip the sign of yawDeg, or decrease wallTurnDeg / increase wallGap.\n");
-			}
+			PlacePeople(wallOrigin, roomFront);
 		}
 
 
-		void PhotoSampleRenderer::PlacePiece(SetPiece& piece, const Vector3& origin, const Vector3& frontZ, const float signX)
+		void PhotoSampleRenderer::PlacePiece(SetPiece& piece, const Vector3& origin, const Vector3& frontZ)
 		{
 			Vector3 axisX;
 			axisX.Cross(Vector3::Up, frontZ);
@@ -470,9 +429,7 @@ namespace app
 			baseRotation.m[2][0] = frontZ.x;  baseRotation.m[2][1] = frontZ.y;  baseRotation.m[2][2] = frontZ.z;
 
 			// 位置: 基準の中の位置を回してから、基準の位置に足す
-			// ※ X の符号だけ変える(回転の行列の X を逆にすると裏返しになるので、位置の方で変える)
 			Vector3 position = piece.position;
-			position.x *= signX;
 			baseRotation.Apply(position);
 			position += origin;
 
@@ -532,28 +489,22 @@ namespace app
 		}
 
 
-		bool PhotoSampleRenderer::CalcReachHand(Vector3& outPosition) const
+		bool PhotoSampleRenderer::CalcHandCenter(Vector3& outPosition) const
 		{
-			bool isFound = false;
-			float farthestSq = -1.0f;
+			Vector3 sum = Vector3::Zero;
+			int count = 0;
 			const int handBoneList[] = { m_leftHandBoneNo, m_rightHandBoneNo };
 			for (const int boneNo : handBoneList)
 			{
 				if (boneNo < 0) continue;
 				const Matrix& hand = m_dummy.GetBone(boneNo)->GetWorldMatrix();
-				const Vector3 handPosition(hand.m[3][0], hand.m[3][1], hand.m[3][2]);
-
-				// 足元から水平に一番離れている手 = 盗もうとして伸ばしている手
-				Vector3 fromFoot = handPosition - DUMMY_POSITION;
-				fromFoot.y = 0.0f;
-				const float distanceSq = fromFoot.LengthSq();
-				if (distanceSq <= farthestSq) continue;
-
-				farthestSq = distanceSq;
-				outPosition = handPosition;
-				isFound = true;
+				sum += Vector3(hand.m[3][0], hand.m[3][1], hand.m[3][2]);
+				++count;
 			}
-			return isFound;
+			if (count == 0) return false;
+
+			outPosition = sum * (1.0f / static_cast<float>(count));
+			return true;
 		}
 	}
 }

@@ -75,7 +75,9 @@ namespace app
 				// 目的地モード
 				destinationMode.wanderAmplitudeDeg = file.GetFloat("wanderAmplitudeDeg", destinationMode.wanderAmplitudeDeg);
 				destinationMode.wanderFrequency = file.GetFloat("wanderFrequency", destinationMode.wanderFrequency);
-				destinationMode.stealTime = file.GetFloat("stealTime", destinationMode.stealTime);
+				destinationMode.stealGrabTime = file.GetFloat("stealGrabTime", destinationMode.stealGrabTime);
+				destinationMode.stealTurnTime = file.GetFloat("stealTurnTime", destinationMode.stealTurnTime);
+				destinationMode.stealShowTime = file.GetFloat("stealShowTime", destinationMode.stealShowTime);
 				destinationMode.lookAroundTime = file.GetFloat("lookAroundTime", destinationMode.lookAroundTime);
 				destinationMode.detourCheckInterval = file.GetFloat("detourCheckInterval", destinationMode.detourCheckInterval);
 				destinationMode.detourChance = file.GetFloat("detourChance", destinationMode.detourChance);

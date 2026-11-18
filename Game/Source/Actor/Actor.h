@@ -61,7 +61,16 @@ namespace app
              * @brief アニメーションの再生速度の設定
              * @param speed 再生速度(1.0 = 通常速度)
              */
-            void SetAnimationSpeed(float speed) { m_modelRender.SetAnimationSpeed(speed); }
+            void SetAnimationSpeed(float speed)
+            {
+                m_animationSpeed = speed;
+                m_modelRender.SetAnimationSpeed(speed);
+            }
+            /**
+             * @brief アニメーションの再生速度を取得
+             * @return 再生速度(スローモーションの倍率をかける前)
+             */
+            float GetAnimationSpeed() const { return m_animationSpeed; }
 
 
         public:
@@ -83,6 +92,8 @@ namespace app
             app::core::TransformNode m_transform;
             /** モデルレンダー */
             ModelRender m_modelRender;
+            /** アニメーションの再生速度(スローモーションの倍率をかける前) */
+            float m_animationSpeed = 1.0f;
         };
     }
 }

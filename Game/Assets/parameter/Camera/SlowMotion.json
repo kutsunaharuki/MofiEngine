@@ -1,0 +1,13 @@
+{
+  "comment":"ファインダーを覗いている間のスローモーション。遅くなるのは悪党と客だけ(主人公・カメラ・UI は普通の速さ)",
+  "timeScale":0.3,
+  "comment_timeScale":"遅くした時の世界の速さ(1.0 = 普通)",
+  "blendTime":0.2,
+  "comment_blendTime":"普通の速さ ⇔ 遅い速さ、に変わるのにかける時間(本当の秒)",
+  "maxTime":3.0,
+  "comment_maxTime":"続けて遅くできる時間(本当の秒。ゲージが満タンの時の量)。遅くしている間は減る",
+  "recoverTime":6.0,
+  "comment_recoverTime":"ゲージが空から満タンまで戻る時間(本当の秒)。ファインダーを下ろしている間に戻る",
+  "restartTime":1.0,
+  "comment_restartTime":"使い切った後、また遅くできるようになるのに要るゲージの量(本当の秒)"
+}

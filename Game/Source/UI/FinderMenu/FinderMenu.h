@@ -73,6 +73,17 @@ namespace app
 			 */
 			Vector2 GetGridHalfSize();
 
+			/**
+			 * @brief スローモーションのゲージを設定
+			 * @param rate 残りの割合(0.0 = 空 ~ 1.0 = 満タン)
+			 * @param canStart 覗けば遅くできるか(使い切った直後は false → ゲージの色を変える)
+			 */
+			void SetSlowGauge(const float rate, const bool canStart)
+			{
+				m_slowGaugeRate = rate;
+				m_canSlowStart = canStart;
+			}
+
 
 		private:
 			/**
@@ -90,6 +101,10 @@ namespace app
 			 * @param radius 半径
 			 */
 			void ApplyCircle(UIIcon* circle, const Vector2& screenPosition, const float radius);
+			/**
+			 * @brief スローモーションのゲージを、残りの量と色に合わせる
+			 */
+			void ApplySlowGauge();
 
 
 		private:
@@ -120,6 +135,14 @@ namespace app
 			float m_focusRate;
 			/** ズームの量(0 ~ 1) */
 			float m_zoomRate;
+			/** スローモーションのゲージの中身(残りの量だけ横に伸びる) */
+			UIIcon* m_slowGauge;
+			/** スローモーションのゲージの中身の、JSON での色(遅くできる時の色) */
+			Vector4 m_slowGaugeColor;
+			/** スローモーションのゲージの残り(0 ~ 1) */
+			float m_slowGaugeRate;
+			/** 覗けば遅くできるか */
+			bool m_canSlowStart;
 			/** 開いているか */
 			bool m_isOpen;
 		};

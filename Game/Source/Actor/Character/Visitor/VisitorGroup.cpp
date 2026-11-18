@@ -100,7 +100,7 @@ namespace app
 		void VisitorGroup::Update()
 		{
 			const VisitorGroupParameter& parameter = m_parameter.Get();
-			const float deltaTime = g_gameTime->GetFrameDeltaTime();
+			const float deltaTime = util::WorldTime::GetDeltaTime();
 
 			// ImGui で並び方の値を変えたら、並び直す(調整用)
 			if (IsLayoutChanged(parameter))

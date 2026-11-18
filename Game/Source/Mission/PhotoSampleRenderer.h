@@ -57,14 +57,14 @@ namespace app
 			{
 				/** モデル(Draw は呼ばない。見本にだけ描く) */
 				std::unique_ptr<ModelRender> render;
-				/** 基準からの位置(床・壁: 壁の根元が原点、手の所の物: 壁の、伸ばした手の前が原点。どちらも部屋の方が +Z、カメラの方が +X) */
+				/** 基準からの位置(床・壁・壁の絵画: 壁の根元が原点、手に持つ物: 両手の真ん中が原点。どちらも部屋(人形の正面)の方が +Z、+Y が上) */
 				Vector3 position;
 				/** 基準の中の回転 */
 				Quaternion rotation;
 				/** スケール */
 				Vector3 scale;
-				/** 伸ばした手の所に置く物か(盗まれている絵画) */
-				bool isAtHand = false;
+				/** 手に持つ物か(盗んだ絵画) */
+				bool isHeld = false;
 			};
 			/**
 			 * @brief セットの客(画面の端で見切れている人)
@@ -116,9 +116,9 @@ namespace app
 			void InitializeSet();
 			/**
 			 * @brief セットを置く
-			 * @details カメラを決めてから呼ぶ。ステージと同じく、絵画は壁に掛けて、人形はそれに手を伸ばして盗もうとしている形にする。
-			 *          壁は人形が手を伸ばした先に立てて、カメラの方へ wallTurnDeg だけ斜めに回す
-			 *          (人形の真正面に立てると、顔が写る角度のカメラが壁の裏に入る)
+			 * @details カメラを決めてから呼ぶ。決定的瞬間 = 絵画をつかんで、部屋の方へ振り向いた所。
+			 *          壁は人形の背中側(盗んだ壁)に、部屋の方を向けて置く。壁には周りの絵画が掛かっている。
+			 *          盗んだ絵画("hold":true)は、人形の両手の間に持たせる
 			 */
 			void PlaceSet();
 			/**
@@ -126,9 +126,8 @@ namespace app
 			 * @param piece 置物
 			 * @param origin 基準の位置
 			 * @param frontZ 基準の +Z の向き(水平・長さ 1)
-			 * @param signX JSON の X にかける符号(+1 か -1。+X がカメラの方になるようにする)
 			 */
-			void PlacePiece(SetPiece& piece, const Vector3& origin, const Vector3& frontZ, const float signX);
+			void PlacePiece(SetPiece& piece, const Vector3& origin, const Vector3& frontZ);
 			/**
 			 * @brief 客を、画面の端の位置に置く(人形には近づけない)
 			 * @param wallOrigin 壁の根元(客が壁にめり込まないようにする)
@@ -136,11 +135,11 @@ namespace app
 			 */
 			void PlacePeople(const Vector3& wallOrigin, const Vector3& wallFront);
 			/**
-			 * @brief 伸ばしている手の位置を取る
-			 * @param outPosition 足元から水平に一番離れている手(盗もうとして伸ばしている手)
+			 * @brief 両手の真ん中の位置を取る
+			 * @param outPosition 両手の真ん中(片手しか取れなければ、その手)
 			 * @return 取れたら true
 			 */
-			bool CalcReachHand(Vector3& outPosition) const;
+			bool CalcHandCenter(Vector3& outPosition) const;
 
 
 		private:
@@ -170,10 +169,8 @@ namespace app
 			util::ParameterFile* m_setFile;
 			/** セットを読んだ時の、JSON の変わった回数 */
 			uint32_t m_setVersion;
-			/** 壁を、人形の真正面からカメラの方へ回す角度(度) */
-			float m_wallTurnDeg;
-			/** 伸ばした手から、壁までの距離 */
-			float m_wallGap;
+			/** 人形の足元から、背中側の壁までの距離 */
+			float m_wallDistance;
 			/** 盗むアニメーションを始めてからの時間 */
 			float m_poseTimer;
 			/** 見本があって、人形を作ったか */

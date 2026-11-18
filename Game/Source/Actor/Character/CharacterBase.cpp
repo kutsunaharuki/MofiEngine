@@ -79,8 +79,11 @@ namespace app
 			// ステートマシンが行動を決める(移動量やアニメーションの指示)
 			m_characterStateMachine->Update();
 
+			// 時間の倍率(スローモーション。主人公は 1.0)
+			const float timeScale = GetTimeScale();
+
 			// キャラクターコントローラーを実行して、移動量を反映する
-			m_characterController.Execute(m_moveSpeed, g_gameTime->GetFrameDeltaTime());
+			m_characterController.Execute(m_moveSpeed, g_gameTime->GetFrameDeltaTime() * timeScale);
 
 			// 位置をトランスフォームに書き込んで、ワールド値を更新する
 			m_transform.SetLocalPosition(m_characterController.GetPosition());
@@ -93,6 +96,9 @@ namespace app
 				m_transform.GetWorldRotation(),
 				m_transform.GetWorldScale()
 			);
+
+			// アニメーションも同じ倍率で遅くする(止めている時は 0 のまま)
+			m_modelRender.SetAnimationSpeed(m_animationSpeed * timeScale);
 
 			// モデルの更新
 			m_modelRender.Update();

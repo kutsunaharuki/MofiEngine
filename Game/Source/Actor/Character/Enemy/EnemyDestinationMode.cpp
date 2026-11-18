@@ -7,6 +7,7 @@
 #include "EnemyStateMachine.h"
 #include "Source/AI/Navigation/NavGrid.h"
 #include "Source/AI/Navigation/PathFollower.h"
+#include <cmath>
 #include <cstdlib>
 
 
@@ -22,6 +23,10 @@ namespace app
 			constexpr int DETOUR_MIN_DISTANCE_CELL = 2;
 			/** 美術品が決まっていない */
 			constexpr int NO_TARGET = -1;
+			/** 向き終わったとみなす角度(度) */
+			constexpr float FACE_DONE_DEG = 10.0f;
+			/** 向きが決まらないくらい短い長さ(の 2 乗) */
+			constexpr float MIN_LENGTH_SQ = 0.0001f;
 		}
 
 
@@ -133,11 +138,38 @@ namespace app
 				break;
 			}
 
-			// 美術品を盗んでいる(盗むステートになる)
+			// 美術品を盗んでいる(盗むステートになる): 美術品の方を向いて、手を伸ばしてつかむ
 			case Phase::Steal:
 			{
-				// 盗み終わったら、次の美術品へ
-				if (m_phaseTimer >= m_setting.stealTime)
+				FaceTarget(false);
+
+				// つかみ終わったら(両手をそろえた所)、そのポーズで止めて、振り向き始める
+				if (m_phaseTimer >= m_setting.stealGrabTime)
+				{
+					m_stateMachine->SetAnimationSpeed(0.0f);
+					ChangePhase(Phase::StealTurn);
+				}
+				break;
+			}
+
+			// つかんだまま、部屋の方へ振り向いている
+			case Phase::StealTurn:
+			{
+				// 向き終わったら(または上限の時間が来たら)、見せる
+				if (FaceTarget(true) || m_phaseTimer >= m_setting.stealTurnTime)
+				{
+					ChangePhase(Phase::StealShow);
+				}
+				break;
+			}
+
+			// 振り向いて、つかんだ物を持っている(決定的瞬間。ここを撮る)
+			case Phase::StealShow:
+			{
+				FaceTarget(true);
+
+				// 見せ終わったら、次の美術品へ(盗むのをやめると、アニメーションの速さも戻る)
+				if (m_phaseTimer >= m_setting.stealShowTime)
 				{
 					m_stateMachine->SetStealing(false);
 					ChooseNextTarget();
@@ -170,6 +202,8 @@ namespace app
 			case Phase::Detour:       return "Detour";
 			case Phase::LookAround:   return "LookAround";
 			case Phase::Steal:        return "Steal";
+			case Phase::StealTurn:    return "StealTurn";
+			case Phase::StealShow:    return "StealShow";
 			}
 			return "Unknown";
 		}
@@ -291,6 +325,30 @@ namespace app
 				return true;
 			}
 			return false;
+		}
+
+
+		bool EnemyDestinationMode::FaceTarget(const bool isAway)
+		{
+			if (m_targetIndex == NO_TARGET) return true;
+
+			// 自分 → 美術品(水平)。振り向く時は、その反対(部屋の方)
+			const Vector3& position = m_stateMachine->GetTransform().GetWorldPosition();
+			Vector3 direction = m_targetList[m_targetIndex] - position;
+			direction.y = 0.0f;
+			if (direction.LengthSq() < MIN_LENGTH_SQ) return true;
+			direction.Normalize();
+			if (isAway) direction *= -1.0f;
+
+			m_stateMachine->RotateToward(direction);
+
+			// 今の正面(回転で +Z を回した向き)と比べて、向き終わったか
+			Vector3 forward = Vector3::Front;
+			m_stateMachine->GetTransform().GetWorldRotation().Apply(forward);
+			forward.y = 0.0f;
+			if (forward.LengthSq() < MIN_LENGTH_SQ) return false;
+			forward.Normalize();
+			return forward.Dot(direction) >= std::cos(Math::DegToRad(FACE_DONE_DEG));
 		}
 	}
 }

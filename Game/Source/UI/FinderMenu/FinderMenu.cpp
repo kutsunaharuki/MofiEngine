@@ -22,6 +22,10 @@ namespace app
 			constexpr const char* GRID_CENTER_NAME = "FocusGridCenter";
 			constexpr const char* IN_RANGE_CIRCLE_NAME = "InRangeCircle";
 			constexpr const char* OUT_RANGE_CIRCLE_NAME = "OutRangeCircle";
+			constexpr const char* SLOW_GAUGE_NAME = "SlowGauge";
+
+			/** 使い切った直後(まだ遅くできない)の、スローモーションのゲージの色 */
+			const Vector4 SLOW_GAUGE_EMPTY_COLOR = Vector4(0.9f, 0.3f, 0.3f, 0.9f);
 
 			/**
 			 * @brief つまみが動く範囲の、バーの端からの余白(バーの高さに対する割合)
@@ -47,6 +51,10 @@ namespace app
 			, m_zoomKnobBasePosition(0.0f, 0.0f, 0.0f)
 			, m_focusRate(0.0f)
 			, m_zoomRate(0.0f)
+			, m_slowGauge(nullptr)
+			, m_slowGaugeColor(1.0f, 1.0f, 1.0f, 1.0f)
+			, m_slowGaugeRate(1.0f)
+			, m_canSlowStart(true)
 			, m_isOpen(false)
 		{}
 
@@ -63,6 +71,8 @@ namespace app
 			// つまみを、今の量の位置に動かす
 			ApplyKnob(m_focusKnob, m_focusKnobBasePosition, m_focusBar, m_focusRate);
 			ApplyKnob(m_zoomKnob, m_zoomKnobBasePosition, m_zoomBar, m_zoomRate);
+			// スローモーションのゲージを、残りの量に合わせる
+			ApplySlowGauge();
 
 			UIMenuBase::Update();
 		}
@@ -88,6 +98,10 @@ namespace app
 
 			// 丸は、被写体が見つかるまで出さない
 			HideSubjectCircle();
+
+			// スローモーションのゲージ(JSON の色を、遅くできる時の色として覚える)
+			m_slowGauge = FindUI<UIIcon>(SLOW_GAUGE_NAME);
+			if (m_slowGauge) m_slowGaugeColor = m_slowGauge->GetColor();
 
 			// 作り直したキャンバスにも、開いているかを反映する
 			GetCanvas()->SetIsDraw(m_isOpen);
@@ -154,6 +168,21 @@ namespace app
 			Vector3 position = knobBasePosition;
 			position.y = bottom + movableHeight * TClamp<float>::Clamp(rate, 0.0f, 1.0f);
 			knob->SetPosition(position);
+		}
+
+
+		void FinderMenu::ApplySlowGauge()
+		{
+			if (m_slowGauge == nullptr) return;
+
+			// 基底軸を左端(pivot の x = 0)にしてあるので、横のスケールを残りの割合にすると、左から縮む
+			const float rate = TClamp<float>::Clamp(m_slowGaugeRate, 0.0f, 1.0f);
+			Vector3 scale = m_slowGauge->GetScale();
+			scale.x = rate;
+			m_slowGauge->SetScale(scale);
+
+			// 使い切った直後(まだ遅くできない)は赤くする
+			m_slowGauge->SetColor(m_canSlowStart ? m_slowGaugeColor : SLOW_GAUGE_EMPTY_COLOR);
 		}
 
 

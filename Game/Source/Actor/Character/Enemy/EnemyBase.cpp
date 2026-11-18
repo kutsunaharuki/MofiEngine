@@ -148,7 +148,8 @@ namespace app
 			// ※ GetFocusPosition は const なので、Get()(JSON が変わっていれば読み直す)を呼べない。ここで読んでおく
 			m_focusHeight = parameter.focusHeight;
 			
-			const float deltaTime = g_gameTime->GetFrameDeltaTime();
+			// 世界の時間で進める(スローモーションで遅くなる)
+			const float deltaTime = util::WorldTime::GetDeltaTime();
 
 
 			// SetSetting は値をコピーしているだけなので目的地モードをやり直したりはしない

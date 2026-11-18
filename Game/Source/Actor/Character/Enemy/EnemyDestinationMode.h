@@ -28,8 +28,12 @@ namespace app
 			float wanderAmplitudeDeg;
 			/** ふらつく速さ(1秒に何回くらい揺れるか) */
 			float wanderFrequency;
-			/** 美術品の前で盗んでいる時間(秒) */
-			float stealTime;
+			/** 盗む: 美術品の方を向いて、手を伸ばしてつかむまでの時間(秒。盗むアニメーションの、両手をそろえる所まで) */
+			float stealGrabTime;
+			/** 盗む: つかんだ後に、部屋の方へ振り向く時間の上限(秒。向き終われば、もっと早く次へ) */
+			float stealTurnTime;
+			/** 盗む: 振り向いて、つかんだ物を持っている時間(秒。決定的瞬間。ここを撮る) */
+			float stealShowTime;
 			/** 寄り道した先で見回している時間(秒) */
 			float lookAroundTime;
 			/** 寄り道するかを決める間隔(秒) */
@@ -47,7 +51,9 @@ namespace app
 			DestinationModeSetting()
 				: wanderAmplitudeDeg(25.0f)
 				, wanderFrequency(0.5f)
-				, stealTime(3.0f)
+				, stealGrabTime(2.6f)
+				, stealTurnTime(1.0f)
+				, stealShowTime(3.0f)
 				, lookAroundTime(2.0f)
 				, detourCheckInterval(3.0f)
 				, detourChance(0.3f)
@@ -119,7 +125,9 @@ namespace app
 				MoveToTarget,  // 美術品へ向かっている
 				Detour,        // 寄り道している
 				LookAround,    // 寄り道した先で見回している
-				Steal,         // 美術品を盗んでいる
+				Steal,         // 美術品を盗んでいる(美術品の方を向いて、つかむ)
+				StealTurn,     // つかんだまま、部屋の方へ振り向いている
+				StealShow,     // 振り向いて、つかんだ物を持っている(決定的瞬間)
 			};
 
 
@@ -156,6 +164,12 @@ namespace app
 			 * @return 見つかれば true
 			 */
 			bool FindDetourPoint(Vector3& outPosition);
+			/**
+			 * @brief 今の美術品の方、またはその反対(部屋の方)へ向く
+			 * @param isAway true なら美術品と反対の方(振り向く)
+			 * @return その方を向き終わっていれば true
+			 */
+			bool FaceTarget(const bool isAway);
 
 
 		private:

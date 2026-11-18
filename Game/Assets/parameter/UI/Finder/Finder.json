@@ -81,6 +81,28 @@
         "height":346,
         "position":[0,0,0],
         "visible":false
+      },
+      {
+        "comment":"スローモーションのゲージの下地(画面の下の真ん中)",
+        "type":"UIIcon",
+        "name":"SlowGaugeBack",
+        "asset":"Assets/spriteData/UI/Common/White.DDS",
+        "width":400,
+        "height":14,
+        "position":[-200,-430,0],
+        "color":[0.1,0.1,0.1,0.6],
+        "pivot":[0,0.5]
+      },
+      {
+        "comment":"スローモーションのゲージの中身(FinderMenu が残りの量に合わせて横に縮める。width・position・pivot は下地と同じにする。この色は遅くできる時の色。使い切った直後は赤)",
+        "type":"UIIcon",
+        "name":"SlowGauge",
+        "asset":"Assets/spriteData/UI/Common/White.DDS",
+        "width":400,
+        "height":14,
+        "position":[-200,-430,0],
+        "color":[0.5,0.85,1.0,0.9],
+        "pivot":[0,0.5]
       }
     ]
   }
