@@ -28,6 +28,8 @@ namespace app
 			 * @details バーの画像は、上下の端が丸くなっているので、端ぴったりまでは動かさない
 			 */
 			constexpr float KNOB_MARGIN_RATE = 0.05f;
+			/** 半分 */
+			constexpr float HALF = 0.5f;
 		}
 
 
@@ -136,7 +138,7 @@ namespace app
 
 			const Vector2 size = m_grid->GetSize();
 			const Vector3& scale = m_grid->GetScale();
-			return Vector2(size.x * scale.x * 0.5f, size.y * scale.y * 0.5f);
+			return Vector2(size.x * scale.x * HALF, size.y * scale.y * HALF);
 		}
 
 
