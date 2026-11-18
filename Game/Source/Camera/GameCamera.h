@@ -25,6 +25,12 @@ namespace app
 			float thirdPersonDistance = 250.0f;
 			/** 目の高さ(足元からの高さ) */
 			float eyeHeight = 120.0f;
+			/** 壁に当たった時に止める、カメラの球の半径(壁にめり込んで向こうが見えないように) */
+			float collisionRadius = 15.0f;
+			/** 壁に押されても、目の位置からこれ以上は近づけない距離 */
+			float minDistance = 30.0f;
+			/** 壁が無くなった時に、元の距離へ戻る速さ(1秒に進む距離) */
+			float returnSpeed = 400.0f;
 
 			/**
 			 * @brief JSON から読む
@@ -36,6 +42,9 @@ namespace app
 				finderRotateSpeed = file.GetFloat("finderRotateSpeed", finderRotateSpeed);
 				thirdPersonDistance = file.GetFloat("thirdPersonDistance", thirdPersonDistance);
 				eyeHeight = file.GetFloat("eyeHeight", eyeHeight);
+				collisionRadius = file.GetFloat("collisionRadius", collisionRadius);
+				minDistance = file.GetFloat("minDistance", minDistance);
+				returnSpeed = file.GetFloat("returnSpeed", returnSpeed);
 			}
 		};
 
@@ -98,6 +107,14 @@ namespace app
 			 * @brief スティック入力で回転させる
 			 */
 			void RotateCamera();
+			/**
+			 * @brief 3人称のカメラの距離を、壁や手すりに当たらない距離にする
+			 * @param eyePos 目の位置(ここから後ろへ球を飛ばす)
+			 * @param backward 目からカメラへの向き(長さ 1)
+			 * @return カメラの距離
+			 * @details 当たった時はすぐ縮めて、当たらなくなったら少しずつ戻す(急に跳ねないように)
+			 */
+			float CalcThirdPersonDistance(const Vector3& eyePos, const Vector3& backward);
 
 
 		private:
@@ -117,6 +134,8 @@ namespace app
 			bool m_isFirstPerson;
 			/** ズームの比率(ズームなしで 1、寄るほど小さい) */
 			float m_zoomRatio;
+			/** 今の 3人称のカメラの距離(壁に押されると縮む。負なら、まだ決まっていない) */
+			float m_currentDistance;
 		};
 	}
 }

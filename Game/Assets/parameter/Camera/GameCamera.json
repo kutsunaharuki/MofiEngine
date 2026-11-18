@@ -2,5 +2,8 @@
   "rotateSpeed": 102.0,
   "finderRotateSpeed": 48.0,
   "thirdPersonDistance": 250.0,
-  "eyeHeight": 120.0
+  "eyeHeight": 120.0,
+  "collisionRadius": 15.0,
+  "minDistance": 30.0,
+  "returnSpeed": 400.0
 }

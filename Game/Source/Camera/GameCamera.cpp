@@ -34,6 +34,28 @@ namespace app
 			constexpr float THIRD_PERSON_PITCH_MIN_DEG = -50.0f;
 			/** 3人称の上下の向きの最大値(度。上向き) */
 			constexpr float THIRD_PERSON_PITCH_MAX_DEG = 15.0f;
+
+
+			/**
+			 * @brief 球を飛ばして、一番近くで当たった所を残すコールバック(キャラクターには当たらない)
+			 * @details 主人公・悪党・一般客の体でカメラが縮まないように、キャラクターは無視する
+			 */
+			struct CameraSweepCallback : public btCollisionWorld::ClosestConvexResultCallback
+			{
+				CameraSweepCallback(const btVector3& from, const btVector3& to)
+					: btCollisionWorld::ClosestConvexResultCallback(from, to)
+				{}
+
+
+				bool needsCollision(btBroadphaseProxy* proxy) const override
+				{
+					const btCollisionObject* object = static_cast<const btCollisionObject*>(proxy->m_clientObject);
+					// キャラクターの体には当たらない
+					if (object->getUserIndex() == EnCollisionAttr::enCollisionAttr_Character) return false;
+
+					return btCollisionWorld::ClosestConvexResultCallback::needsCollision(proxy);
+				}
+			};
 		}
 
 
@@ -45,6 +67,7 @@ namespace app
 			, m_pitchDeg(0.0f)
 			, m_isFirstPerson(false)
 			, m_zoomRatio(1.0f)
+			, m_currentDistance(-1.0f)
 		{}
 
 
@@ -79,8 +102,10 @@ namespace app
 			}
 			else
 			{
-				// 3人称
-				g_camera3D->SetPosition(eyePos - forward * m_parameter.Get().thirdPersonDistance);
+				// 3人称(壁や手すりの向こうに行かない距離にする)
+				const Vector3 backward = forward * -1.0f;
+				const float distance = CalcThirdPersonDistance(eyePos, backward);
+				g_camera3D->SetPosition(eyePos + backward * distance);
 				g_camera3D->SetTarget(eyePos);
 			}
 
@@ -159,6 +184,55 @@ namespace app
 			{
 				m_pitchDeg = nsK2EngineLow::TClamp<float>::Clamp(m_pitchDeg, THIRD_PERSON_PITCH_MIN_DEG, THIRD_PERSON_PITCH_MAX_DEG);
 			}
+		}
+
+
+		float GameCamera::CalcThirdPersonDistance(const Vector3& eyePos, const Vector3& backward)
+		{
+			const GameCameraParameter& parameter = m_parameter.Get();
+			const float maxDistance = parameter.thirdPersonDistance;
+
+			// 最初のフレームは、元の距離から始める
+			if (m_currentDistance < 0.0f) m_currentDistance = maxDistance;
+
+			// 目の位置から、カメラを置きたい所まで球を飛ばす
+			// ※ レイ(細い線)だと手すりの隙間を抜けたり、壁ぎりぎりで近平面が壁にめり込んだりするので、太さのある球にする
+			const Vector3 end = eyePos + backward * maxDistance;
+			btSphereShape sphere(parameter.collisionRadius);
+			btTransform from;
+			btTransform to;
+			from.setIdentity();
+			to.setIdentity();
+			from.setOrigin(btVector3(eyePos.x, eyePos.y, eyePos.z));
+			to.setOrigin(btVector3(end.x, end.y, end.z));
+
+			CameraSweepCallback callback(from.getOrigin(), to.getOrigin());
+			PhysicsWorld::GetInstance()->GetDynamicWorld()->convexSweepTest(&sphere, from, to, callback);
+
+			// 当たらなければ元の距離、当たったら当たった所まで(m_closestHitFraction は 0 ~ 1 の割合)
+			float targetDistance = maxDistance;
+			if (callback.hasHit())
+			{
+				targetDistance = maxDistance * callback.m_closestHitFraction;
+			}
+			// 主人公に近づきすぎない(頭の中が写らないように)
+			// ※ Windows.h の max マクロとぶつかるので、std::max は使わない
+			if (targetDistance < parameter.minDistance) targetDistance = parameter.minDistance;
+
+			if (targetDistance < m_currentDistance)
+			{
+				// 壁が来たら、すぐ縮める(1 フレームでも壁の向こうが見えないように)
+				m_currentDistance = targetDistance;
+			}
+			else
+			{
+				// 壁が無くなったら、少しずつ戻す(急に後ろへ跳ねないように)
+				const float step = parameter.returnSpeed * g_gameTime->GetFrameDeltaTime();
+				m_currentDistance += step;
+				if (m_currentDistance > targetDistance) m_currentDistance = targetDistance;
+			}
+
+			return m_currentDistance;
 		}
 
 
