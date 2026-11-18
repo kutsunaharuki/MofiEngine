@@ -99,7 +99,30 @@ namespace nsK2EngineLow
 		 * @brief ライトカメラの初期化
 		 */
 		void InitializeLight();
-		
+		/**
+		 * @brief オフスクリーン1 回だけ描くようにする
+		 * @param renderTarget 描き先
+		 * @param camera カメラ
+		 * @param model 描くモデル
+		 * @details このフレームの Excute で 1 回だけ描く
+		 */
+		void RequestSnapshot(RenderTarget& renderTarget, Camera& camera, Model& model)
+		{
+			RequestSnapshot(renderTarget, camera, std::vector<Model*>{ &model });
+		}
+		/**
+		 * @brief オフスクリーンに 1 回だけ描くようにする(モデルを何個でも)
+		 * @param renderTarget 描き先
+		 * @param camera カメラ
+		 * @param modelList 描くモデルの一覧(フォワード用。本編のファインダーと同じフレームに描かない Model)
+		 * @details このフレームの Execute で 1 回だけ描く
+		 */
+		void RequestSnapshot(RenderTarget& renderTarget, Camera& camera, const std::vector<Model*>& modelList)
+		{
+			m_snapshotList.push_back({ &renderTarget, &camera, modelList });
+		}
+
+
 		/**
 		 * @brief 影を作る範囲(箱)を決める
 		 * @param index 範囲の番号(0 ~ GetShadowAreaCount() - 1。この番号のシャドウマップを使う)
@@ -245,6 +268,26 @@ namespace nsK2EngineLow
 
 	private:
 		/**
+		 * @brief 1 回だけ描くリクエスト
+		 */
+		struct Snapshot
+		{
+			RenderTarget* renderTarget;
+			Camera* camera;
+			/** 描くモデルの一覧 */
+			std::vector<Model*> modelList;
+		};
+
+
+		/**
+		 * @brief 頼まれた物をそれぞれの描き先に 1 回だけ描く
+		 * @param rc レンダリングコンテキスト
+		 */
+		void RenderSnapshot(RenderContext& rc);
+
+
+	private:
+		/**
 		 * @brief コンストラクタ
 		 * @details: シングルトンパターンを採用しているため、外部からのインスタンス化を禁止するためにprivateにしている
 		 */
@@ -267,6 +310,9 @@ namespace nsK2EngineLow
 		 */
 		void RenderSubViews(RenderContext& rc);
 
+
+	private:
+
 		/** サブビューのカメラ */
 		Camera m_subViewCamera[MAX_SUB_VIEW];
 		/** サブビューの描き先 */
@@ -282,6 +328,9 @@ namespace nsK2EngineLow
 		PhotoCapture* m_photoCapture;
 		/** ファインダー用モデルのリスト */
 		std::vector<Model*> m_finderModels;
+		
+		/** 1 回だけ描く頼みの一覧 */
+		std::vector<Snapshot> m_snapshotList;
 
 		/** ブルーム用 */
 		DualBlur m_bloomBlur;

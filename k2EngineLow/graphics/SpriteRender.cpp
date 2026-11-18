@@ -55,6 +55,8 @@ namespace nsK2EngineLow
 	{
 		// オフスクリーンで描いたものを設定
 		m_spriteInitData.m_fxFilePath = DEFAULT_SPRITE_FX_PATH;
+		// DDS のパスが残っていると、そちらが優先されてテクスチャが無視されるので消す
+		m_spriteInitData.m_ddsFilePath[0] = nullptr;
 		m_spriteInitData.m_textures[0] = &texture;
 		m_spriteInitData.m_width = width;
 		m_spriteInitData.m_height = height;

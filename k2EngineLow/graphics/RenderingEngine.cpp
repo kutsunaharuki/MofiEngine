@@ -131,6 +131,12 @@ namespace nsK2EngineLow
 		RenderSubViews(rc);
 
 		// ============================================
+		// 1 回だけ描くパス : 頼まれた物を、それぞれの描き先に 1 回だけ描く(ミッションの見本の絵など)
+		// ※ 描き先が変わるので、下のコピーパスでフレームバッファとビューポートに戻す
+		// ============================================
+		RenderSnapshot(rc);
+
+		// ============================================
 		// コピーパス : 加工が終わった絵を画面に出す
 		// ============================================
 
@@ -168,6 +174,30 @@ namespace nsK2EngineLow
 		m_finderModels.clear();
 		// 2Dパスのリストを空にする
 		m_render2DList.clear();
+	}
+
+	void RenderingEngine::RenderSnapshot(RenderContext& rc)
+	{
+		for (const Snapshot& snapshot : m_snapshotList)
+		{
+			RenderTarget& renderTarget = *snapshot.renderTarget;
+			// 書き込める状態になるまで待つ
+			rc.WaitUntilToPossibleSetRenderTarget(renderTarget);
+			// 描き先を切り替えて前の絵を消す
+			// ※ SetRenderTarget だけだとビューポートが前の描き先(サブビューなど)の大きさのままになる
+			rc.SetRenderTargetAndViewport(renderTarget);
+			rc.ClearRenderTargetView(renderTarget);
+			// リクエストされたカメラで描く
+			for (Model* model : snapshot.modelList)
+			{
+				model->Draw(rc, *snapshot.camera);
+			}
+			//描き終えるまで待つ → 以後テクスチャとして読める
+			rc.WaitUntilFinishDrawingToRenderTarget(renderTarget);
+		}
+
+		// リクエストは1回だけ
+		m_snapshotList.clear();
 	}
 
 

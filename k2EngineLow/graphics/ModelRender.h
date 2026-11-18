@@ -162,6 +162,11 @@ namespace nsK2EngineLow
 		 * @return ボーン
 		 */
 		Bone* GetBone(const int boneNo) const { return m_skeleton.GetBone(boneNo); }
+		/**
+		 * @brief フォワード用のモデルを取得
+		 * @return ファインダーモデル(オフスクリーンに描くときに使う)
+		 */
+		Model& GetFinderModel() { return m_finderModel; }
 
 
 	private:
