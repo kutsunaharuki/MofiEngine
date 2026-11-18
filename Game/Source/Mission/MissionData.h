@@ -15,10 +15,16 @@ namespace app
 		 */
 		struct PhotoSample
 		{
+			/** 顔の正面から見てカメラが左右に何度ずれているか */
 			float yawDeg;
+			/** カメラがどれだけ上から見ているか */
 			float pitchDeg;
+			/** 悪党の大きさ(画面の高さの割合) */
 			float size;
+			/** 悪党の中心の画面の位置(左上:0,0、右下:1,1) */
 			Vector2 position;
+			/** 見本の絵で、盗むアニメーションを何秒目で止めるか */
+			float poseTime;
 
 
 			PhotoSample()
@@ -26,6 +32,7 @@ namespace app
 				, pitchDeg(0.0f)
 				, size(0.0f)
 				, position(Vector2(0.5f,0.5f))
+				, poseTime(1.0f)
 			{}
 		};
 

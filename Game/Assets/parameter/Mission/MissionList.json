@@ -15,10 +15,11 @@
       "target":"BigMan",
       "count":3,
       "sample":{
-        "yawDeg":-25.0,
-        "pitchDeg":12.0,
-        "size":0.42,
-        "position":[0.48,0.53]
+        "yawDeg":45.0,
+        "pitchDeg":5.0,
+        "size":0.3,
+        "position":[0.48,0.53],
+        "poseTime":1.4
       }
     },
     {
@@ -27,10 +28,11 @@
       "target":"RatMan",
       "count":2,
       "sample":{
-        "yawDeg":-10.0,
+        "yawDeg":45.0,
         "pitchDeg":5.0,
-        "size":0.35,
-        "position":[0.5,0.5]
+        "size":0.25,
+        "position":[0.5,0.5],
+        "poseTime":1.4
       }
     }
   ]

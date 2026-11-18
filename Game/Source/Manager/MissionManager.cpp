@@ -75,16 +75,19 @@ namespace app
 				mission.requiredCount = util::JsonConverter::ToInt(item, "count", 0);
 
 				// 許容値: 共通の値を初期値にして、ミッションに書いた項目だけ上書き
-				mission.tolerance = ReadTolerance(json, m_commonTolerance);
+				// ※ json(ファイル全体)ではなく item(このミッション)を渡す。json だと共通の値がそのまま入るだけになる
+				mission.tolerance = ReadTolerance(item, m_commonTolerance);
 
 				if (item.contains("sample"))
 				{
+					// ※ キーの名前は PhotoMatchDebugWindow の「Copy as sample」と同じにする(違うとエラーにならず 0 になる)
 					const nlohmann::json& sample = item["sample"];
 					mission.hasSample = true;
-					mission.sample.yawDeg = util::JsonConverter::ToFloat(sample, "yaw", 0.0f);
-					mission.sample.pitchDeg = util::JsonConverter::ToFloat(sample, "pitch", 0.0f);
+					mission.sample.yawDeg = util::JsonConverter::ToFloat(sample, "yawDeg", 0.0f);
+					mission.sample.pitchDeg = util::JsonConverter::ToFloat(sample, "pitchDeg", 0.0f);
 					mission.sample.size = util::JsonConverter::ToFloat(sample, "size", 0.0f);
 					mission.sample.position = util::JsonConverter::ToVector2(sample, "position", Vector2(0.5f, 0.5f));
+					mission.sample.poseTime = util::JsonConverter::ToFloat(sample, "poseTime", mission.sample.poseTime);
 				}
 
 				// ミッションの一覧にミッションの構造を入れる

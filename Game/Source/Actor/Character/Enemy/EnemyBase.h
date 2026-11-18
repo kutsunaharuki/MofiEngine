@@ -167,6 +167,18 @@ namespace app
 			 * @return 頭のボーンが見つかっていれば true
 			 */
 			bool GetHead(Vector3& outPosition, Vector3& outForward);
+			/**
+			 * @brief 悪党の種類のモデルデータを取得
+			 * @param type 悪党の種類
+			 * @return モデルデータ
+			 */
+			static const ModelData& GetModelData(const EnemyType type);
+			/**
+			 * @brief悪党の種類のパラメーターの JSON パスを取得
+			 * @param type 悪党の種類
+			 * @return JSON のパス
+			 */
+			static const char* GetParameterPath(const EnemyType type);
 
 
 		private:

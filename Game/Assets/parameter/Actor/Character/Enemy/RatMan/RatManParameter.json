@@ -6,6 +6,7 @@
   "initialPosition":[0,0,0],
   "initialScale":[1,1,1],
 
+  "comment2":"目的地モードのパラメーター",
   "wanderAmplitudeDeg":25.0,
   "wanderFrequency":2.0,
   "stealTime":10.0,
@@ -16,16 +17,21 @@
   "maxDetourPerTarget":5,
   "retryInterval":2.0,
 
+  "comment3":"警戒モードのパラメーター",
   "alertDuration":15.0,
   "alertLookAroundTime":3.0,
   "alertRetryInterval":1.0,
 
+  "comment4":"視界のパラメーター",
   "visionViewDistance":600.0,
   "visionViewAngle":90.0,
   "visionEyeHeight":120.0,
   "visionTargetHeight":70.0,
   "visionNoticeTime":0.4,
 
+  "comment5":"頭のボーン名と、頭の前方ベクトル(ローカル座標系)",
   "headBone":"head",
-  "headForwardLocal":[0,0,1]
+  "headForwardLocal":[0,0,1],
+  "leftHandBone":"hand_l",
+  "rightHandBone":"hand_r"
 }

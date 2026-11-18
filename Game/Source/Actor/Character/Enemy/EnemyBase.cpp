@@ -7,6 +7,7 @@
 #include "EnemyStateMachine.h"
 #include "EnemyDestinationMode.h"
 #include "EnemyAlertMode.h"
+#include "Source/Mission/ShotMeasure.h"
 
 
 namespace app
@@ -146,7 +147,7 @@ namespace app
 			// ピントの高さを覚えておく
 			// ※ GetFocusPosition は const なので、Get()(JSON が変わっていれば読み直す)を呼べない。ここで読んでおく
 			m_focusHeight = parameter.focusHeight;
-
+			
 			const float deltaTime = g_gameTime->GetFrameDeltaTime();
 
 
@@ -239,20 +240,19 @@ namespace app
 
 		bool EnemyBase::GetHead(Vector3& outPosition, Vector3& outForward)
 		{
-			// 見つからない時は処理止める
-			if (m_headBoneNo < 0) return false;
+			return mission::CalcHead(m_modelRender, m_headBoneNo, GetParameter().headForwardLocal, outPosition, outForward);
+		}
 
-			// 頭のボーンのワールド行列
-			const Matrix& head = m_modelRender.GetBone(m_headBoneNo)->GetWorldMatrix();
 
-			outPosition.Set(head.m[3][0], head.m[3][1], head.m[3][2]);
+		const ModelData& EnemyBase::GetModelData(const EnemyType type)
+		{
+			return *ENEMY_MODEL_DATA_LIST[static_cast<int>(type)];
+		}
 
-			// 顔の前の向き:回転だけかけてスケールを消す
-			outForward = GetParameter().headForwardLocal;
-			head.Apply3x3(outForward);
-			outForward.Normalize();
 
-			return true;
+		const char* EnemyBase::GetParameterPath(const EnemyType type)
+		{
+			return PARAMETER_JSON_LIST[static_cast<int>(type)];
 		}
 
 

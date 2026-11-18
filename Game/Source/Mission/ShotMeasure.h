@@ -48,11 +48,32 @@ namespace app
 				, isFaceBlocked(true)
 				, isFaceInFront(false)
 				, yawDeg(0.0f)
-				, size(0.0f)
 				, pitchDeg(0.0f)
+				, size(0.0f)
 			{}
 		};
 
+
+
+		/**
+		 * @brief モデルの頭のボーンから頭の位置と顔の前の向きを取る
+		 * @param modelRender モデル
+		 * @param headBoneNo 頭のボーン番号(-1 なら取れない)
+		 * @param headForwardLocal 頭のボーンの中で「顔の前」の向き
+		 * @param outPosition 頭の位置
+		 * @param outForward 顔の頭の前の向き(長さ 1)
+		 * @return 取れたら true
+		 */
+		bool CalcHead(const ModelRender& modelRender, const int headBoneNo, const Vector3& headForwardLocal, Vector3& outPosition, Vector3& outForward);
+		/**
+		 * @brief 頭と足元の位置から写り方の「形」を測る(隠れているかは調べない)
+		 * @param headPosition 頭の位置
+		 * @param headForward 顔の頭の向き
+		 * @param footPosition 足元の位置
+		 * @param camera 撮るカメラ
+		 * @return 測った値(isFaceBlocked は false のまま)
+		 */
+		ShotMeasure MeasureShape(const Vector3& headPosition, const Vector3& headForward, const Vector3& footPosition, Camera& camera);
 
 		/**
 		 * @brief 悪党の写り方を測る

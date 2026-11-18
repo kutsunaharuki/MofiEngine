@@ -40,6 +40,10 @@ namespace app
 			std::string headBone;
 			/** 頭のボーンの中で「顔の前」の向き */
 			Vector3 headForwardLocal;
+			/** 左手のボーンの名前(見本の絵で、絵画を持たせる所) */
+			std::string leftHandBone;
+			/** 右手のボーンの名前 */
+			std::string rightHandBone;
 
 
 			EnemyParameter()
@@ -95,6 +99,10 @@ namespace app
 				// 頭(顔)のボーンの名前と向き
 				headBone = file.GetString("headBone", headBone);
 				headForwardLocal = file.GetVector3("headForwardLocal", headForwardLocal);
+
+				// 手のボーンの名前(見本の絵で、絵画を持たせる)
+				leftHandBone = file.GetString("leftHandBone", leftHandBone);
+				rightHandBone = file.GetString("rightHandBone", rightHandBone);
 			}
 		};
 	}
