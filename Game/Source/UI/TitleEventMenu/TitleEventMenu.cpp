@@ -35,9 +35,7 @@ namespace app
 
 
 		TitleEventMenu::TitleEventMenu()
-			: m_selectTextType(TitleTextType::Start)
-			, m_selectIndex(static_cast<int>(TitleTextType::Start))
-			, m_isDecided(false)
+			: m_selectIndex(static_cast<int>(TitleTextType::Start))
 		{
 			// アニメーションのパラメーターを読み込む
 			m_animationParameter.Load("Assets/parameter/UI/TitleEventItem/TitleSelectAnimation.json");
@@ -57,20 +55,6 @@ namespace app
 				{
 					UIAnimationFactory::Attach<UIScaleAnimation>(text, m_animationParameter, animKey::SELECT);
 				}
-			}
-
-			// 上と下の入力で選択項目を変更
-			if (g_pad[0]->IsTrigger(enButtonDown)) Select((m_selectIndex + 1) % ITEM_COUNT);
-			
-			if (g_pad[0]->IsTrigger(enButtonUp)) Select((m_selectIndex + ITEM_COUNT - 1) % ITEM_COUNT);
-
-			// 選択されている テキストを持つ
-			m_selectTextType = static_cast<TitleTextType>(m_selectIndex);
-
-			// Aボタンで決定(何をするかはここでは決めない)
-			if (g_pad[0]->IsTrigger(enButtonA))
-			{
-				m_isDecided = true;
 			}
 
 			UIMenuBase::Update();
@@ -108,25 +92,14 @@ namespace app
 			}
 
 			// 最初の選択中の項目をアニメーション再生
-			Select(m_selectIndex);
+			SetSelect(static_cast<TitleTextType>(m_selectIndex));
 		}
 
 
-		bool TitleEventMenu::ConsumeDecided(TitleTextType& outPutType)
+		void TitleEventMenu::SetSelect(const TitleTextType type)
 		{
-			// 何もしない
-			if (!m_isDecided) return false;
-
-			// 1回受け取ったら戻す
-			m_isDecided = false;
-			outPutType = m_selectTextType;
-			return true;
-		}
-
-
-		void TitleEventMenu::Select(int index)
-		{
-			if (m_textList.empty()) return;
+			const int index = static_cast<int>(type);
+			if (index < 0 || index >= static_cast<int>(m_textList.size())) return;
 
 			// 前に選んでいた項目はアニメーションを止めて、色も戻す
 			m_textList[m_selectIndex]->GetAnimator().StopAll();
@@ -135,7 +108,6 @@ namespace app
 
 			// 選び直す
 			m_selectIndex = index;
-			m_selectTextType = static_cast<TitleTextType>(m_selectTextType);
 
 			// 新しく選んだ項目の色を変えて再生する
 			m_textList[m_selectIndex]->SetColor(SELECT_COLOR);

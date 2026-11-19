@@ -6,7 +6,6 @@
 #include "TitleScene.h"
 #include "InGameScene.h"
 #include "Source/Sound/SoundManager.h"
-#include "Source/UI/SoundOptionMenu/SoundOptionMenu.h"
 #include "Source/UI/TitleEventMenu/TitleEventMenu.h"
 
 
@@ -29,8 +28,8 @@ namespace app
 
     TitleScene::TitleScene()
 		: m_titleSceneSpriteRender(nullptr)
-		, m_soundOptionMenu(nullptr)
         , m_titleEventMenu(nullptr)
+        , m_titleSelectIndex(static_cast<int>(ui::TitleEventMenu::TitleTextType::Start))
         , m_isRequestInGame(false)
     {}
 
@@ -58,12 +57,15 @@ namespace app
         m_titleSceneSpriteRender->Update();
 
         // サウンドオプションのUIを作る(最初は閉じている)
-        m_soundOptionLayout.Initialize<ui::SoundOptionMenu>(SOUND_OPTION_LAYOUT_PATH);
-        m_soundOptionMenu = m_soundOptionLayout.GetMenu<ui::SoundOptionMenu>();
+        m_soundOption.Initialize(SOUND_OPTION_LAYOUT_PATH);
         
         // タイトルイベントのUIを作る(最初は閉じている)
         m_titleEventLayout.Initialize<ui::TitleEventMenu>(TITLE_EVENT_LAYOUT_PATH);
         m_titleEventMenu = m_titleEventLayout.GetMenu<ui::TitleEventMenu>();
+        if (m_titleEventMenu)
+        {
+            m_titleEventMenu->SetSelect(static_cast<ui::TitleEventMenu::TitleTextType>(m_titleSelectIndex));
+        }
 
         // タイトルのBGMを鳴らす
         sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
@@ -87,25 +89,44 @@ namespace app
         m_titleSceneSpriteRender->Update();
 
         // サウンドオプションの更新(開いているときだけ、中で入力を受け付ける)
-        m_soundOptionLayout.Update();
+        m_soundOption.Update();
 
         // サウンドオプションを開いている間は、タイトルのメニューは動かさない
-        if (m_soundOptionMenu && m_soundOptionMenu->IsOpen()) return;
+        if (m_soundOption.IsOpen()) return;
+
+        // タイトルイベントの入力(上下で選ぶ・A で決める)
+        UpdateTitleSelect();
 
         // タイトルイベントメニューの更新
-        m_titleEventMenu->Update();
+        if (m_titleEventMenu) m_titleEventMenu->Update();
+    }
 
-        // タイトルテキストタイプを宣言
-        ui::TitleEventMenu::TitleTextType decidedType;
-        if (m_titleEventMenu && m_titleEventMenu->ConsumeDecided(decidedType))
+
+    void TitleScene::UpdateTitleSelect()
+    {
+        using TitleTextType = ui::TitleEventMenu::TitleTextType;
+        constexpr int itemCount = static_cast<int>(TitleTextType::Max);
+
+        // 上と下の入力で選ぶ項目を変える(端まで行ったら反対側に戻る)
+        const int prevIndex = m_titleSelectIndex;
+        if (g_pad[0]->IsTrigger(enButtonDown)) m_titleSelectIndex = (m_titleSelectIndex + 1) % itemCount;
+        if (g_pad[0]->IsTrigger(enButtonUp))   m_titleSelectIndex = (m_titleSelectIndex + itemCount - 1) % itemCount;
+
+        // 変わった時だけ、View に選んでいる項目を伝える
+        const TitleTextType selectType = static_cast<TitleTextType>(m_titleSelectIndex);
+        if (m_titleSelectIndex != prevIndex && m_titleEventMenu)
         {
-            switch (decidedType)
-            {
-                case ui::TitleEventMenu::TitleTextType::Start: m_isRequestInGame = true;  break;
-                case ui::TitleEventMenu::TitleTextType::Sound: m_soundOptionMenu->Open(); break;
-                case ui::TitleEventMenu::TitleTextType::End:   PostQuitMessage(0);        break;
-                default: break;
-            }
+            m_titleEventMenu->SetSelect(selectType);
+        }
+
+        // A で決める
+        if (!g_pad[0]->IsTrigger(enButtonA)) return;
+        switch (selectType)
+        {
+            case TitleTextType::Start: m_isRequestInGame = true; break;
+            case TitleTextType::Sound: m_soundOption.Open();     break;
+            case TitleTextType::End:   PostQuitMessage(0);       break;
+            default: break;
         }
     }
     
@@ -121,14 +142,14 @@ namespace app
         // タイトルイベントを描画(テキスト群)
         m_titleEventLayout.Render(rc);
         // 背景の上に重ねる(閉じているときは描画されない)
-        m_soundOptionLayout.Render(rc);
+        m_soundOption.Render(rc);
     }
 
 
     bool TitleScene::RequestScene(uint32_t& id, float& waitTime)
     {
         // サウンドオプションを開いている間は、Aボタンをメニューが使うので遷移しない
-        if (m_soundOptionMenu && m_soundOptionMenu->IsOpen())
+        if (m_soundOption.IsOpen())
         {
             return false;
         }

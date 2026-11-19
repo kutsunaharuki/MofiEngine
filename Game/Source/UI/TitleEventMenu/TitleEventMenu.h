@@ -16,6 +16,8 @@ namespace app
 	{
 		/**
 		 * @brief タイトルのイベントメニュー
+		 * @details MVP の View。項目を並べて、言われた項目を光らせるだけ。
+		 *          入力(上下で選ぶ・A で決める)と、決めた後に何をするかは Presenter(TitleScene)の役目
 		 */
 		class TitleEventMenu : public UIMenuBase
 		{
@@ -36,7 +38,7 @@ namespace app
 			TitleEventMenu();
 			~TitleEventMenu() override;
 
-			/** 更新処理 */
+			/** 更新処理(アニメーションのパラメーターの読み直しと、UI の更新) */
 			void Update() override;
 			/** 初期化処理 */
 			void InitializeLogic() override;
@@ -44,35 +46,15 @@ namespace app
 
 		public:
 			/**
-			 * @brief 決定された項目を受け取る
-			 * @param outPutType 結果の項目
-			 * @return 決定されていたら ture
+			 * @brief 選んでいる項目を設定する(色が変わって、アニメーションする)
+			 * @param type 選んでいる項目
 			 */
-			bool ConsumeDecided(TitleTextType& outPutType);
-
-			/**
-			 * @brief 項目が選択されていたときの関数
-			 * @param index 選択されている項目番号
-			 */
-			void Select(int index);
-
-
-		public:
-			/**
-			 * @brief 決定しているかを取得
-			 * @return 決定されていたら true(やりたいことはシーンで決める)
-			 */
-			bool IsDecided() const { return m_isDecided; }
+			void SetSelect(const TitleTextType type);
 
 
 		private:
 			/** 選んでいる項目の番号 */
 			int m_selectIndex;
-			/** 決定されたか */
-			bool m_isDecided;
-
-			/** 選んでいる項目のタイプ */
-			TitleTextType m_selectTextType;
 			/** 並べた文字の UIText */
 			std::vector<UIText*> m_textList;
 			/** アニメーションのパラメーター */

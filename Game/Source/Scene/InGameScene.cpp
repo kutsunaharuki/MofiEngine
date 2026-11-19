@@ -72,7 +72,6 @@ namespace app
 		, m_gameCamera(nullptr)
 		, m_isLastShotInFocus(false)
 		, m_isFinishRequested(false)
-		, m_soundOptionMenu(nullptr)
 		, m_missionMenu(nullptr)
 		, m_sampleMenu(nullptr)
 	{}
@@ -103,8 +102,7 @@ namespace app
 		m_loadTimeWindow.Begin("InGameScene::Start");
 
 		// サウンドオプションのUIを作る(最初は閉じている)
-		m_soundOptionLayout.Initialize<ui::SoundOptionMenu>(SOUND_OPTION_LAYOUT_PATH);
-		m_soundOptionMenu = m_soundOptionLayout.GetMenu<ui::SoundOptionMenu>();
+		m_soundOption.Initialize(SOUND_OPTION_LAYOUT_PATH);
 
 		// ミッションを読み込んでから、ミッションの UI に渡す(渡した時に行が作られる)
 		m_missionManager.Initialize(MISSION_LIST_PATH);
@@ -112,10 +110,8 @@ namespace app
 		GameResult::GetInstance()->Reset();
 		m_missionLayout.Initialize<ui::MissionMenu>(MISSION_LAYOUT_PATH);
 		m_missionMenu = m_missionLayout.GetMenu<ui::MissionMenu>();
-		if (m_missionMenu)
-		{
-			m_missionMenu->SetMissionManager(&m_missionManager);
-		}
+		// ミッション(Model)から行を作って、ミッションの UI(View)に渡す
+		UpdateMissionMenu();
 		// 見本の絵の UI(絵は PhotoSampleRenderer が描き終わってから渡す)
 		m_sampleLayout.Initialize<ui::SampleMenu>(SAMPLE_LAYOUT_PATH);
 		m_sampleMenu = m_sampleLayout.GetMenu<ui::SampleMenu>();
@@ -284,7 +280,7 @@ namespace app
 		DrawGameLoopDebug();
 
 		// サウンドオプションの更新(開いているときだけ、中で入力を受け付ける)
-		m_soundOptionLayout.Update();
+		m_soundOption.Update();
 		// ミッションの UI の更新(入力は使わないので、サウンドオプションを開いていても呼ぶ)
 		m_missionLayout.Update();
 		// 見本の絵を描き進めて、UI に渡す
@@ -293,14 +289,14 @@ namespace app
 
 		// スタートボタンで、サウンドオプションを開く
 		// ※ メニューの更新の後に開くので、開いたフレームの入力でメニューが動くことはない
-		if (m_soundOptionMenu && !m_soundOptionMenu->IsOpen() && g_pad[0]->IsTrigger(enButtonStart))
+		if (!m_soundOption.IsOpen() && g_pad[0]->IsTrigger(enButtonStart))
 		{
-			m_soundOptionMenu->Open();
+			m_soundOption.Open();
 		}
 
 		// サウンドオプションを開いている間は、ゲームを止める
 		// ※ 止めないと、メニューの A(試し聞き)で主人公がジャンプしたり、B(閉じる)で撮影したりしてしまう
-		if (m_soundOptionMenu && m_soundOptionMenu->IsOpen())
+		if (m_soundOption.IsOpen())
 		{
 			return;
 		}
@@ -412,7 +408,7 @@ namespace app
 		// サウンドオプションは毎フレーム描画を呼ぶ(閉じているときは、メニューの中で何も描画されない)
 		// ※ IsTrigger の中で呼ぶと、ボタンを押した1フレームしか描画されない
 		// ※ ファインダーの UI より後に描画して、手前に出す
-		m_soundOptionLayout.Render(rc);
+		m_soundOption.Render(rc);
 
 		// 敵の描画
 		for (auto& enemy : m_enemyList)
@@ -428,7 +424,7 @@ namespace app
 	bool InGameScene::RequestScene(uint32_t& id, float& waitTime)
 	{
 		// サウンドオプションを開いている間は、Aボタンをメニューが使うので遷移しない
-		if (m_soundOptionMenu && m_soundOptionMenu->IsOpen())
+		if (m_soundOption.IsOpen())
 		{
 			return false;
 		}
@@ -494,9 +490,9 @@ namespace app
 		}
 
 		// 枚数が増えた時だけ、UI の文と色を変える
-		if (m_missionManager.OnShot(shot) && m_missionMenu)
+		if (m_missionManager.OnShot(shot))
 		{
-			m_missionMenu->UpdateMissionTexts();
+			UpdateMissionMenu();
 		}
 	}
 
@@ -541,11 +537,35 @@ namespace app
 		ImGui::End();
 
 		// 枚数が変わったら、ミッションの UI の文と色を変える(撮って数えた時と同じ)
-		if (isChanged && m_missionMenu)
+		if (isChanged)
 		{
-			m_missionMenu->UpdateMissionTexts();
+			UpdateMissionMenu();
 		}
 #endif
+	}
+
+
+	void InGameScene::UpdateMissionMenu()
+	{
+		if (m_missionMenu == nullptr) return;
+
+		std::vector<ui::MissionRowData> rowList;
+		for (const mission::MissionData& mission : m_missionManager.GetMissionList())
+		{
+			ui::MissionRowData row;
+			// 文の後ろに、今の枚数を付ける(例: (1/3))
+			row.text = mission.GetDisplayText()
+				+ L" (" + std::to_wstring(mission.currentCount) + L"/" + std::to_wstring(mission.requiredCount) + L")";
+
+			switch (mission.state)
+			{
+			case mission::MissionState::Achievement: row.tone = ui::MissionRowTone::Achievement; break;
+			case mission::MissionState::Failed:      row.tone = ui::MissionRowTone::Failed;      break;
+			default:                                 row.tone = ui::MissionRowTone::Progress;    break;
+			}
+			rowList.push_back(row);
+		}
+		m_missionMenu->SetMissionRows(rowList);
 	}
 
 

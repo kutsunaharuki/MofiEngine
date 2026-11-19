@@ -16,9 +16,9 @@ namespace app
 		namespace
 		{
 			/**
-			 * @brief 1つの項目の情報
+			 * @brief 1つの項目の UI の名前
 			 */
-			struct SoundOptionItem
+			struct SoundOptionItemName
 			{
 				/** 文字のUIの名前(JSON の "name") */
 				const char* textName;
@@ -28,71 +28,20 @@ namespace app
 				const char* gaugeBackName;
 				/** 音量の数値のUIの名前(JSON の "name") */
 				const char* valueName;
-				/** 全体の音量(マスター音量)の項目か */
-				bool isMaster;
-				/** 音の種類(isMaster のときは使わない) */
-				sound::EnSoundType type;
 			};
 
 
-			/** 項目の表(上から順番) */
-			constexpr SoundOptionItem ITEM_TABLE[] =
+			/** 項目の表(ItemType の順番) */
+			constexpr SoundOptionItemName ITEM_TABLE[] =
 			{
-				{ "MasterText",	"MasterGauge",	"MasterGaugeBack",	"MasterValue",	true,	sound::EnSoundType::BGM },
-				{ "VoiceText",	"VoiceGauge",	"VoiceGaugeBack",	"VoiceValue",	false,	sound::EnSoundType::Voice },
-				{ "BGMText",	"BGMGauge",		"BGMGaugeBack",		"BGMValue",		false,	sound::EnSoundType::BGM },
-				{ "SEText",		"SEGauge",		"SEGaugeBack",		"SEValue",		false,	sound::EnSoundType::SE },
+				{ "MasterText",	"MasterGauge",	"MasterGaugeBack",	"MasterValue" },
+				{ "VoiceText",	"VoiceGauge",	"VoiceGaugeBack",	"VoiceValue" },
+				{ "BGMText",	"BGMGauge",		"BGMGaugeBack",		"BGMValue" },
+				{ "SEText",		"SEGauge",		"SEGaugeBack",		"SEValue" },
 			};
 
 			/** 選んでいる文字の下線のUIの名前(JSON の "name") */
 			constexpr const char* UNDERLINE_NAME = "SelectUnderline";
-
-
-			/**
-			 * @brief 項目の音量を取得
-			 * @param item 項目
-			 * @return 音量(0.0〜1.0)
-			 */
-			float GetItemVolume(const SoundOptionItem& item)
-			{
-				const sound::SoundManager* soundManager = sound::SoundManager::GetInstance();
-				return item.isMaster ? soundManager->GetMasterVolume() : soundManager->GetVolume(item.type);
-			}
-
-
-			/**
-			 * @brief 項目の音量を設定
-			 * @param item 項目
-			 * @param volume 音量(0.0〜1.0)
-			 */
-			void SetItemVolume(const SoundOptionItem& item, const float volume)
-			{
-				sound::SoundManager* soundManager = sound::SoundManager::GetInstance();
-				if (item.isMaster)
-				{
-					soundManager->SetMasterVolume(volume);
-				}
-				else
-				{
-					soundManager->SetVolume(item.type, volume);
-				}
-			}
-
-
-			/** 音量の段階の数(0〜10) */
-			constexpr int VOLUME_STEP_COUNT = 10;
-
-			/**
-			 * @brief 音量を段階(0〜10)にする
-			 * @param volume 音量(0.0〜1.0)
-			 * @return 段階
-			 * @details float のまま 0.1 を足し引きすると誤差がたまるので、段階(整数)で扱う
-			 */
-			int ToVolumeStep(const float volume)
-			{
-				return static_cast<int>(std::lround(volume * VOLUME_STEP_COUNT));
-			}
-
 
 			/** 点滅の1往復の秒数 */
 			constexpr float BLINK_PERIOD_SEC = 0.8f;
@@ -129,6 +78,7 @@ namespace app
 			m_gaugeList.fill(nullptr);
 			m_gaugeBackList.fill(nullptr);
 			m_valueTextList.fill(nullptr);
+			m_volumeStepList.fill(0);
 		}
 
 
@@ -143,7 +93,6 @@ namespace app
 
 			m_blinkTimer += g_gameTime->GetFrameDeltaTime();
 
-			UpdateInput();
 			ApplyToUI();
 
 			// アニメーション → UI の順に更新して、このフレームの値を描画に反映する
@@ -173,75 +122,33 @@ namespace app
 			m_openAnimator->CreateAnimation<UIScaleAnimation>(ANIM_OPEN)
 				->SetParameter(Vector3(0.9f, 0.9f, 1.0f), Vector3::One, 0.15f, util::EasingType::EaseOut);
 
-			// 作り直したキャンバスにも、開いているかを反映する
+			// 作り直したキャンバスにも、出しているかと、覚えている音量を反映する
 			GetCanvas()->SetIsDraw(m_isOpen);
 			ApplyToUI();
 		}
 
 
-		void SoundOptionMenu::Open()
+		void SoundOptionMenu::SetIsOpen(const bool isOpen)
 		{
-			m_isOpen = true;
-			Select(0);
-			GetCanvas()->SetIsDraw(true);
-			if (m_openAnimator) m_openAnimator->Play(ANIM_OPEN);
+			m_isOpen = isOpen;
+			GetCanvas()->SetIsDraw(isOpen);
 
-			sound::SoundManager::GetInstance()->Play(sound::EnSoundType::SE, sound::se::DECIDE);
+			// 出した時だけ、開くアニメーション
+			if (isOpen && m_openAnimator) m_openAnimator->Play(ANIM_OPEN);
 		}
 
 
-		void SoundOptionMenu::Close()
+		void SoundOptionMenu::SetSelect(const ItemType type)
 		{
-			m_isOpen = false;
-			GetCanvas()->SetIsDraw(false);
+			m_selectIndex = static_cast<int>(type);
+			// 選んだ瞬間は、はっきり見えるところから点滅を始める
+			m_blinkTimer = 0.0f;
 		}
 
 
-		void SoundOptionMenu::UpdateInput()
+		void SoundOptionMenu::SetVolumeStep(const ItemType type, const int volumeStep)
 		{
-			sound::SoundManager* soundManager = sound::SoundManager::GetInstance();
-
-			// 閉じる
-			if (g_pad[0]->IsTrigger(enButtonB))
-			{
-				soundManager->Play(sound::EnSoundType::SE, sound::se::DECIDE);
-				Close();
-				return;
-			}
-
-			// 項目を選ぶ(端まで行ったら反対側に戻る)
-			if (g_pad[0]->IsTrigger(enButtonUp))
-			{
-				Select((m_selectIndex + ITEM_COUNT - 1) % ITEM_COUNT);
-			}
-			if (g_pad[0]->IsTrigger(enButtonDown))
-			{
-				Select((m_selectIndex + 1) % ITEM_COUNT);
-			}
-
-			// 音量を変える
-			if (g_pad[0]->IsTrigger(enButtonRight))
-			{
-				ChangeVolume(+1);
-			}
-			if (g_pad[0]->IsTrigger(enButtonLeft))
-			{
-				ChangeVolume(-1);
-			}
-
-			// ボイスは長いので、変えるたびではなく、Aボタンで試し聞きする
-			if (g_pad[0]->IsTrigger(enButtonA))
-			{
-				const SoundOptionItem& item = ITEM_TABLE[m_selectIndex];
-				if (!item.isMaster && item.type == sound::EnSoundType::Voice)
-				{
-					soundManager->Play(sound::EnSoundType::Voice, sound::voice::CROWD);
-				}
-				else
-				{
-					soundManager->Play(sound::EnSoundType::SE, sound::se::DECIDE);
-				}
-			}
+			m_volumeStepList[static_cast<size_t>(type)] = volumeStep;
 		}
 
 
@@ -253,8 +160,7 @@ namespace app
 
 			for (int i = 0; i < ITEM_COUNT; ++i)
 			{
-				const SoundOptionItem& item = ITEM_TABLE[i];
-				const int volumeStep = ToVolumeStep(GetItemVolume(item));
+				const int volumeStep = m_volumeStepList[i];
 
 				// JSON の色はそのままにして、α値だけ点滅
 				if (m_textList[i])
@@ -277,14 +183,6 @@ namespace app
 			}
 
 			UpdateUnderline();
-		}
-
-
-		void SoundOptionMenu::Select(const int index)
-		{
-			m_selectIndex = index;
-			// 選んだ瞬間は、はっきり見えるところから点滅を始める
-			m_blinkTimer = 0.0f;
 		}
 
 
@@ -344,18 +242,226 @@ namespace app
 		}
 
 
-		void SoundOptionMenu::ChangeVolume(const int step)
+
+
+		/****************************************************/
+		// SoundOptionController
+		/****************************************************/
+
+
+		namespace
 		{
-			const SoundOptionItem& item = ITEM_TABLE[m_selectIndex];
+			using ItemType = SoundOptionMenu::ItemType;
 
-			int volumeStep = ToVolumeStep(GetItemVolume(item)) + step;
-			volumeStep = TClamp<int>::Clamp(volumeStep, 0, VOLUME_STEP_COUNT);
-			SetItemVolume(item, static_cast<float>(volumeStep) / VOLUME_STEP_COUNT);
 
-			// 変えた音量で、どのくらいの大きさかを聞かせる(BGMは鳴っているので不要。ボイスはAボタン)
-			if (item.isMaster || item.type == sound::EnSoundType::SE)
+			/**
+			 * @brief 項目の音の種類(Master は使わない)
+			 * @param type 項目
+			 * @return 音の種類
+			 */
+			sound::EnSoundType ToSoundType(const ItemType type)
+			{
+				switch (type)
+				{
+				case ItemType::Voice: return sound::EnSoundType::Voice;
+				case ItemType::SE:    return sound::EnSoundType::SE;
+				default:              return sound::EnSoundType::BGM;
+				}
+			}
+
+
+			/**
+			 * @brief 項目の音量を取得
+			 * @param type 項目
+			 * @return 音量(0.0〜1.0)
+			 */
+			float GetItemVolume(const ItemType type)
+			{
+				const sound::SoundManager* soundManager = sound::SoundManager::GetInstance();
+				return type == ItemType::Master ? soundManager->GetMasterVolume() : soundManager->GetVolume(ToSoundType(type));
+			}
+
+
+			/**
+			 * @brief 項目の音量を設定
+			 * @param type 項目
+			 * @param volume 音量(0.0〜1.0)
+			 */
+			void SetItemVolume(const ItemType type, const float volume)
+			{
+				sound::SoundManager* soundManager = sound::SoundManager::GetInstance();
+				if (type == ItemType::Master)
+				{
+					soundManager->SetMasterVolume(volume);
+				}
+				else
+				{
+					soundManager->SetVolume(ToSoundType(type), volume);
+				}
+			}
+
+
+			/**
+			 * @brief 音量を段階(0〜10)にする
+			 * @param volume 音量(0.0〜1.0)
+			 * @return 段階
+			 * @details float のまま 0.1 を足し引きすると誤差がたまるので、段階(整数)で扱う
+			 */
+			int ToVolumeStep(const float volume)
+			{
+				return static_cast<int>(std::lround(volume * SoundOptionMenu::VOLUME_STEP_COUNT));
+			}
+
+
+			/**
+			 * @brief 決定の音を鳴らす
+			 */
+			void PlayDecideSE()
 			{
 				sound::SoundManager::GetInstance()->Play(sound::EnSoundType::SE, sound::se::DECIDE);
+			}
+		}
+
+
+		SoundOptionController::SoundOptionController()
+			: m_view(nullptr)
+			, m_selectIndex(0)
+			, m_isOpen(false)
+		{}
+
+
+		SoundOptionController::~SoundOptionController()
+		{}
+
+
+		void SoundOptionController::Initialize(const char* layoutPath)
+		{
+			m_layout.Initialize<SoundOptionMenu>(layoutPath);
+			m_view = m_layout.GetMenu<SoundOptionMenu>();
+
+			// 最初は閉じている。音量は今の値を出しておく
+			if (m_view)
+			{
+				m_view->SetIsOpen(false);
+				m_view->SetSelect(static_cast<ItemType>(m_selectIndex));
+			}
+			ApplyVolumesToView();
+		}
+
+
+		void SoundOptionController::Update()
+		{
+			// 入力 → View の順にして、このフレームの値を描画に反映する
+			if (m_isOpen) UpdateInput();
+			m_layout.Update();
+		}
+
+
+		void SoundOptionController::Render(RenderContext& rc)
+		{
+			m_layout.Render(rc);
+		}
+
+
+		void SoundOptionController::Open()
+		{
+			m_isOpen = true;
+			Select(0);
+			// ほかの所で音量が変わっていても、開いた時の値を出す
+			ApplyVolumesToView();
+			if (m_view) m_view->SetIsOpen(true);
+
+			PlayDecideSE();
+		}
+
+
+		void SoundOptionController::Close()
+		{
+			m_isOpen = false;
+			if (m_view) m_view->SetIsOpen(false);
+		}
+
+
+		void SoundOptionController::UpdateInput()
+		{
+			constexpr int itemCount = SoundOptionMenu::ITEM_COUNT;
+
+			// 閉じる
+			if (g_pad[0]->IsTrigger(enButtonB))
+			{
+				PlayDecideSE();
+				Close();
+				return;
+			}
+
+			// 項目を選ぶ(端まで行ったら反対側に戻る)
+			if (g_pad[0]->IsTrigger(enButtonUp))
+			{
+				Select((m_selectIndex + itemCount - 1) % itemCount);
+			}
+			if (g_pad[0]->IsTrigger(enButtonDown))
+			{
+				Select((m_selectIndex + 1) % itemCount);
+			}
+
+			// 音量を変える
+			if (g_pad[0]->IsTrigger(enButtonRight))
+			{
+				ChangeVolume(+1);
+			}
+			if (g_pad[0]->IsTrigger(enButtonLeft))
+			{
+				ChangeVolume(-1);
+			}
+
+			// ボイスは長いので、変えるたびではなく、Aボタンで試し聞きする
+			if (g_pad[0]->IsTrigger(enButtonA))
+			{
+				if (static_cast<ItemType>(m_selectIndex) == ItemType::Voice)
+				{
+					sound::SoundManager::GetInstance()->Play(sound::EnSoundType::Voice, sound::voice::CROWD);
+				}
+				else
+				{
+					PlayDecideSE();
+				}
+			}
+		}
+
+
+		void SoundOptionController::Select(const int index)
+		{
+			m_selectIndex = index;
+			if (m_view) m_view->SetSelect(static_cast<ItemType>(m_selectIndex));
+		}
+
+
+		void SoundOptionController::ChangeVolume(const int step)
+		{
+			const ItemType type = static_cast<ItemType>(m_selectIndex);
+
+			int volumeStep = ToVolumeStep(GetItemVolume(type)) + step;
+			volumeStep = TClamp<int>::Clamp(volumeStep, 0, SoundOptionMenu::VOLUME_STEP_COUNT);
+			SetItemVolume(type, static_cast<float>(volumeStep) / SoundOptionMenu::VOLUME_STEP_COUNT);
+
+			if (m_view) m_view->SetVolumeStep(type, volumeStep);
+
+			// 変えた音量で、どのくらいの大きさかを聞かせる(BGMは鳴っているので不要。ボイスはAボタン)
+			if (type == ItemType::Master || type == ItemType::SE)
+			{
+				PlayDecideSE();
+			}
+		}
+
+
+		void SoundOptionController::ApplyVolumesToView()
+		{
+			if (m_view == nullptr) return;
+
+			for (int i = 0; i < SoundOptionMenu::ITEM_COUNT; ++i)
+			{
+				const ItemType type = static_cast<ItemType>(i);
+				m_view->SetVolumeStep(type, ToVolumeStep(GetItemVolume(type)));
 			}
 		}
 	}

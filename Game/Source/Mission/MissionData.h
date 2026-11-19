@@ -97,6 +97,25 @@ namespace app
 			PhotoSample sample;
 			/** 照合の許容値 */
 			MatchTolerance tolerance;
+
+
+			/**
+			 * @brief 画面に出すミッションの文を取得
+			 * @return 文({count} を必要な枚数に置き換えた物)
+			 */
+			std::wstring GetDisplayText() const
+			{
+				/** 文の中で必要な枚数に置き換える目印 */
+				constexpr const wchar_t* COUNT_TAG = L"{count}";
+
+				std::wstring result = text;
+				const size_t tagPos = result.find(COUNT_TAG);
+				if (tagPos != std::wstring::npos)
+				{
+					result.replace(tagPos, wcslen(COUNT_TAG), std::to_wstring(requiredCount));
+				}
+				return result;
+			}
 		};
 	}
 }

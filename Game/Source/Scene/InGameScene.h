@@ -6,6 +6,7 @@
 #include "Source/Core/TransformNode.h"
 #include "IScene.h"
 #include "Source/UI/UILayout.h"
+#include "Source/UI/SoundOptionMenu/SoundOptionMenu.h"
 #include "Source/Camera/FinderController.h"
 #include "Source/Actor/Character/Enemy/EnemyController.h"
 #include "Source/Manager/MissionManager.h"
@@ -35,8 +36,6 @@ namespace app
 	{
 		/** UI の大元 */
 		class UILayout;
-		/** サウンド設定 */
-		class SoundOptionMenu;
 		/** ミッションの表示 */
 		class MissionMenu;
 		/** ミッションの見本の絵の表示 */
@@ -126,6 +125,11 @@ namespace app
 		 */
 		void DrawGameLoopDebug();
 		/**
+		 * @brief ミッション(Model)から行の値を作って、ミッションの UI(View)に渡す
+		 * @details MVP の Presenter の役目。枚数や状態が変わった時に呼ぶ
+		 */
+		void UpdateMissionMenu();
+		/**
 		 * @brief 被写体と同じ悪党を、敵の一覧から探す
 		 * @param subject 被写体(いなければ nullptr)
 		 * @return 悪党(被写体が悪党でなければ nullptr)
@@ -195,10 +199,8 @@ namespace app
 		stage::LightController m_lightController;
 
 		// UI関連
-		/** SoundOptionのUIレイアウト */
-		ui::UILayout m_soundOptionLayout;
-		/** サウンドオプションメニュー */
-		ui::SoundOptionMenu* m_soundOptionMenu;
+		/** サウンドオプション(入力と音量の受け渡し。メニューの UI も持っている) */
+		ui::SoundOptionController m_soundOption;
 		/** ミッションのUIレイアウト */
 		ui::UILayout m_missionLayout;
 		/** ミッションメニュー */

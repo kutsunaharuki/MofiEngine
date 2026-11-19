@@ -4,7 +4,6 @@
  */
 #include "stdafx.h"
 #include "MissionMenu.h"
-#include "Source/Manager/MissionManager.h"
 
 
 namespace app
@@ -32,8 +31,6 @@ namespace app
 			const Vector2 MISSION_TEXT_PIVOT = { 0.0f,0.5f };
 			/** ミッション文のマーク(● ○ はフォントに無いので 〇 を使う) */
 			constexpr const wchar_t* MISSION_TEXT_MARK = L"〇";
-			/** 文の中で必要な枚数に置き換える目印 */
-			constexpr const wchar_t* COUNT_TAG = L"{count}";
 
 			/** 進行中の色 */
 			const Vector4 COLOR_PROGRESS = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -55,39 +52,17 @@ namespace app
 
 
 			/**
-			 * @brief 表示する文を作る関数
-			 * @param mission ミッションデータ
-			 * @return マーク付きの文({count} は必要な枚数に置き換えて、後ろに今の枚数を付ける)
-			 */
-			std::wstring MakeMissionText(const mission::MissionData& mission)
-			{
-				std::wstring text = mission.text;
-
-				const size_t tagPos = text.find(COUNT_TAG);
-				if (tagPos != std::wstring::npos)
-				{
-					text.replace(tagPos, wcslen(COUNT_TAG), std::to_wstring(mission.requiredCount));
-				}
-
-				// 今の枚数(例: (1/3))
-				const std::wstring progress = L" (" + std::to_wstring(mission.currentCount) + L"/" + std::to_wstring(mission.requiredCount) + L")";
-
-				return MISSION_TEXT_MARK + text + progress;
-			}
-
-
-			/**
-			 * @brief ミッションの状態から、行の色を決める
-			 * @param state ミッションの状態
+			 * @brief 行の見え方から、色を決める(色は View の持ち物)
+			 * @param tone 行の見え方
 			 * @return 行の色
 			 */
-			const Vector4& GetMissionColor(const mission::MissionState state)
+			const Vector4& GetToneColor(const MissionRowTone tone)
 			{
-				switch (state)
+				switch (tone)
 				{
-				case mission::MissionState::Achievement: return COLOR_ACHIEVEMENT;
-				case mission::MissionState::Failed:      return COLOR_FAILED;
-				default:                                 return COLOR_PROGRESS;
+				case MissionRowTone::Achievement: return COLOR_ACHIEVEMENT;
+				case MissionRowTone::Failed:      return COLOR_FAILED;
+				default:                          return COLOR_PROGRESS;
 				}
 			}
 		}
@@ -96,7 +71,6 @@ namespace app
 		MissionMenu::MissionMenu()
 			: m_mainUnderLine(nullptr)
 			, m_titleText(nullptr)
-			, m_missionManager(nullptr)
 		{}
 
 
@@ -115,15 +89,22 @@ namespace app
 			// 下線の長さと位置を、タイトルに合わせる
 			FitTitleLine();
 
-			// マネージャーを設定した後(ホットリロード)なら、ここで行を作り直す
+			// 行を設定した後(ホットリロード)なら、ここで作り直す
 			CreateMissionTexts();
+		}
+
+
+		void MissionMenu::SetMissionRows(const std::vector<MissionRowData>& rowList)
+		{
+			m_rowDataList = rowList;
+			UpdateMissionTexts();
 		}
 
 
 		void MissionMenu::CreateMissionTexts()
 		{
-			// ミッションの目次とミッションマネージャーが nullptr なら処理しない
-			if (!m_titleText || !m_missionManager) return;
+			// ミッションの目次が nullptr なら処理しない
+			if (!m_titleText) return;
 
 			// 複数個作ると、前のテキストが残ってしまうため、作る前に消す
 			// ※ ポインタは使えなくなっていることがあるので、名前からキーを作り直して消す
@@ -134,13 +115,10 @@ namespace app
 			}
 			m_missionTextList.clear();
 
-
-			const std::vector<mission::MissionData>& missionList = m_missionManager->GetMissionList();
 			const Vector3& titlePosition = m_titleText->GetPosition();
-			for (int i = 0; i < static_cast<int>(missionList.size()); ++i)
+			for (int i = 0; i < static_cast<int>(m_rowDataList.size()); ++i)
 			{
-				// ミッションから行を作る
-				const mission::MissionData& mission = missionList[i];
+				const MissionRowData& row = m_rowDataList[i];
 
 				// 名前からキーを作って、キャンバスにテキストを作る
 				UIText* text = GetCanvas()->CreateUI<UIText>(Hash32(MakeMissionTextName(i).c_str()));
@@ -151,13 +129,13 @@ namespace app
 					titlePosition.y - MISSION_TEXT_SPACING * static_cast<float>(i + 1),
 					titlePosition.z);
 
-				const std::wstring missionText = MakeMissionText(mission);
+				const std::wstring missionText = MISSION_TEXT_MARK + row.text;
 				text->Initialize(
 					missionText.c_str(),
 					position,
 					MISSION_TEXT_SCALE,
 					Quaternion::Identity,
-					GetMissionColor(mission.state),
+					GetToneColor(row.tone),
 					MISSION_TEXT_PIVOT);
 
 				// 一覧に入れる(達成・失敗の色を変えるときに使う)
@@ -168,21 +146,18 @@ namespace app
 
 		void MissionMenu::UpdateMissionTexts()
 		{
-			if (!m_missionManager) return;
-
-			const std::vector<mission::MissionData>& missionList = m_missionManager->GetMissionList();
 			// 行とミッションの数が違う時は、作り直す
-			if (missionList.size() != m_missionTextList.size())
+			if (m_rowDataList.size() != m_missionTextList.size())
 			{
 				CreateMissionTexts();
 				return;
 			}
 
-			for (int i = 0; i < static_cast<int>(missionList.size()); ++i)
+			for (int i = 0; i < static_cast<int>(m_rowDataList.size()); ++i)
 			{
-				const mission::MissionData& mission = missionList[i];
-				m_missionTextList[i]->SetText(MakeMissionText(mission).c_str());
-				m_missionTextList[i]->SetColor(GetMissionColor(mission.state));
+				const MissionRowData& row = m_rowDataList[i];
+				m_missionTextList[i]->SetText((MISSION_TEXT_MARK + row.text).c_str());
+				m_missionTextList[i]->SetColor(GetToneColor(row.tone));
 			}
 		}
 
@@ -201,14 +176,6 @@ namespace app
 			// 画像の横幅を 1 にしているので、スケールの x がそのまま線の長さになる
 			const Vector3 lineScale = m_mainUnderLine->GetScale();
 			m_mainUnderLine->SetScale(Vector3(titleWidth, lineScale.y, lineScale.z));
-		}
-
-
-		void MissionMenu::SetMissionManager(const mission::MissionManager* missionManager)
-		{
-			m_missionManager = missionManager;
-			// マネージャーが来たので、行を作る
-			CreateMissionTexts();
 		}
 	}
 }

@@ -23,8 +23,6 @@ namespace app
 		constexpr const wchar_t* TITLE_FAILED = L"ミッション失敗";
 		/** ミッションの行のマーク(● ○ はフォントに無いので 〇 を使う) */
 		constexpr const wchar_t* MISSION_MARK = L"〇";
-		/** 文の中で必要な枚数に置き換える目印 */
-		constexpr const wchar_t* COUNT_TAG = L"{count}";
 		/** 出す写真の枚数(新しい順) */
 		constexpr int PHOTO_SHOW_COUNT = 8;
 		/** 1 行に出す NG の項目の数(多いと写真の幅からはみ出す) */
@@ -76,17 +74,11 @@ namespace app
 		/**
 		 * @brief ミッションの行を作る
 		 * @param mission ミッション
-		 * @return 行({count} は必要な枚数に置き換えて、後ろに枚数と結果を付ける)
+		 * @return 行(ミッションの文の後ろに、枚数と結果を付ける)
 		 */
 		ui::ResultTextData MakeMissionRow(const mission::MissionData& mission)
 		{
-			std::wstring text = mission.text;
-			const size_t tagPos = text.find(COUNT_TAG);
-			if (tagPos != std::wstring::npos)
-			{
-				text.replace(tagPos, wcslen(COUNT_TAG), std::to_wstring(mission.requiredCount));
-			}
-
+			const std::wstring text = mission.GetDisplayText();
 			const bool isAchieved = mission.state == mission::MissionState::Achievement;
 
 			ui::ResultTextData row;
