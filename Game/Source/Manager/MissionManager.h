@@ -45,6 +45,18 @@ namespace app
 			 */
 			void Finish();
 
+			/**
+			 * @brief デバッグ: ミッションを 1 枚進める(撮らずにゲームループを確かめる用)
+			 * @param index ミッションの番号(一覧の順番)
+			 * @return 進めたら true(進行中でない・番号が無い時は false)
+			 * @details 必要な枚数になったら達成にする(撮って数えた時と同じ)
+			 */
+			bool DebugAddCount(const int index);
+			/**
+			 * @brief デバッグ: 進行中のミッションを全部達成にする
+			 */
+			void DebugAchieveAll();
+
 
 		public:
 			/**

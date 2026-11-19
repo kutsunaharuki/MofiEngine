@@ -160,6 +160,35 @@ namespace app
 		}
 
 
+		bool MissionManager::DebugAddCount(const int index)
+		{
+			if (index < 0 || index >= static_cast<int>(m_missionList.size())) return false;
+
+			MissionData& mission = m_missionList[index];
+			if (mission.state != MissionState::Progress) return false;
+
+			// 撮って数えた時と同じ: 1 枚増やして、必要な枚数になったら達成
+			++mission.currentCount;
+			if (mission.currentCount >= mission.requiredCount)
+			{
+				mission.state = MissionState::Achievement;
+			}
+			return true;
+		}
+
+
+		void MissionManager::DebugAchieveAll()
+		{
+			for (MissionData& mission : m_missionList)
+			{
+				if (mission.state != MissionState::Progress) continue;
+
+				mission.currentCount = mission.requiredCount;
+				mission.state = MissionState::Achievement;
+			}
+		}
+
+
 		std::vector<MissionData> MissionManager::GetMissionList(const MissionState state) const
 		{
 			std::vector<MissionData> result;

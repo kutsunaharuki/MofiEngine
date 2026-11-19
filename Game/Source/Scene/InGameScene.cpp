@@ -24,6 +24,7 @@
 #include "Source/Mission/ShotMeasure.h"
 #include "Source/UI/SampleMenu/SampleMenu.h"
 #include "Source/Mission/PhotoSampleRenderer.h"
+#include "imgui.h"
 
 
 namespace app
@@ -275,6 +276,8 @@ namespace app
 		m_navigationDebugWindow.Draw();
 		// 読み込み時間の表示(Debug / Preview の時だけ)
 		m_loadTimeWindow.Draw();
+		// ゲームループ確認用(Debug の時だけ。撮らずにミッションを進める)
+		DrawGameLoopDebug();
 
 		// サウンドオプションの更新(開いているときだけ、中で入力を受け付ける)
 		m_soundOptionLayout.Update();
@@ -482,6 +485,49 @@ namespace app
 		{
 			m_missionMenu->UpdateMissionTexts();
 		}
+	}
+
+
+	void InGameScene::DrawGameLoopDebug()
+	{
+#ifdef APP_ENABLE_PARAMETER_HOTRELOAD
+		ImGui::Begin("Game Loop");
+
+		bool isChanged = false;
+		const std::vector<mission::MissionData>& missionList = m_missionManager.GetMissionList();
+		for (int i = 0; i < static_cast<int>(missionList.size()); ++i)
+		{
+			const mission::MissionData& mission = missionList[i];
+			const char* stateName = "Progress";
+			if (mission.state == mission::MissionState::Achievement) stateName = "Achievement";
+			else if (mission.state == mission::MissionState::Failed) stateName = "Failed";
+
+			// ボタンの名前が同じだと ImGui が区別できないので、番号を ID にする
+			ImGui::PushID(i);
+			ImGui::Text("Mission %d : %d / %d  %s", i, mission.currentCount, mission.requiredCount, stateName);
+			ImGui::SameLine();
+			if (ImGui::Button("+1"))
+			{
+				isChanged |= m_missionManager.DebugAddCount(i);
+			}
+			ImGui::PopID();
+		}
+
+		// 全部達成にする(次の RequestScene でリザルトへ移る)
+		if (ImGui::Button("Achieve all -> Result"))
+		{
+			m_missionManager.DebugAchieveAll();
+			isChanged = true;
+		}
+
+		ImGui::End();
+
+		// 枚数が変わったら、ミッションの UI の文と色を変える(撮って数えた時と同じ)
+		if (isChanged && m_missionMenu)
+		{
+			m_missionMenu->UpdateMissionTexts();
+		}
+#endif
 	}
 
 

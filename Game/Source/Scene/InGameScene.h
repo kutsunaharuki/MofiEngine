@@ -121,6 +121,11 @@ namespace app
 		 */
 		void JudgeMissionShot(const camera::IPhotoSubject* focusSubject, const bool isInFocus);
 		/**
+		 * @brief ゲームループ確認用のデバッグ窓(Debug の時だけ)
+		 * @details 撮らずにミッションを進めて、インゲーム → リザルト → タイトル を流して確かめる
+		 */
+		void DrawGameLoopDebug();
+		/**
 		 * @brief 被写体と同じ悪党を、敵の一覧から探す
 		 * @param subject 被写体(いなければ nullptr)
 		 * @return 悪党(被写体が悪党でなければ nullptr)

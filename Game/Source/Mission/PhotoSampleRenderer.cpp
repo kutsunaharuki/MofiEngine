@@ -392,16 +392,16 @@ namespace app
 			Vector3 headForward;
 			if (!CalcHead(m_dummy, m_headBoneNo, m_headForwardLocal, headPosition, headForward)) return;
 
-			// ① 部屋の方 = 振り向いた人形の正面(水平)
+			// 部屋の方 = 振り向いた人形の正面(水平)
 			Vector3 roomFront(headForward.x, 0.0f, headForward.z);
 			if (roomFront.LengthSq() < MIN_LENGTH_SQ) roomFront = Vector3::Front;
 			roomFront.Normalize();
 
-			// ② 壁は、人形の背中側(盗んだ壁)に、部屋の方を向けて立てる
+			// 壁は、人形の背中側(盗んだ壁)に、部屋の方を向けて立てる
 			// ※ 顔が写る角度のカメラは人形の前(部屋の側)にいるので、壁がカメラをふさぐことはない
 			Vector3 wallOrigin = DUMMY_POSITION - roomFront * m_wallDistance;
 
-			// ③ 盗んだ絵画は、両手の真ん中に持たせる。手が取れなければ、人形の腰の高さの前くらい
+			// 盗んだ絵画は、両手の真ん中に持たせる。手が取れなければ、人形の腰の高さの前くらい
 			Vector3 handCenter;
 			if (!CalcHandCenter(handCenter))
 			{
