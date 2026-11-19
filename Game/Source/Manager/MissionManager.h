@@ -17,6 +17,35 @@ namespace app
 	namespace mission
 	{
 		/**
+		 * @brief 1 枚の写真を、ミッションがどう数えたか
+		 */
+		enum class ShotStatus : uint8_t
+		{
+			NoSubject,		// 悪党が写っていない
+			AlreadyCounted,	// 同じ盗みを、もう数えた
+			NoMission,		// 進行中のミッションが無い
+			Counted,		// ミッションに数えた(成功)
+			Failed			// 照合して、どれかの項目が NG
+		};
+
+
+		/**
+		 * @brief 撮った写真 1 枚の記録(リザルトのアルバムに出す)
+		 */
+		struct ShotRecord
+		{
+			/** アルバムに残した写真の番号(残していなければ -1) */
+			int photoIndex = -1;
+			/** ミッションがどう数えたか */
+			ShotStatus status = ShotStatus::NoSubject;
+			/** 写っていた悪党の種類(写っていなければ Max) */
+			actor::EnemyBase::EnemyType subjectType = actor::EnemyBase::EnemyType::Max;
+			/** 照合の結果(Counted / Failed の時だけ使う) */
+			MatchResult result;
+		};
+
+
+		/**
 		 * @brief ミッションを管理
 		 */
 		class MissionManager : public Noncopyable
@@ -35,7 +64,8 @@ namespace app
 			 * @brief 撮影した時に呼ぶ
 			 * @param shot 撮った瞬間の情報
 			 * @return どれかのミッションの枚数が増えたら true(UI を更新する合図)
-			 * @details 同じ盗みを何枚撮っても、1枚として数える
+			 * @details 同じ盗みを何枚撮っても、1枚として数える。
+			 *          数えなかった写真も、撮った記録(ShotRecord)には残す
 			 */
 			bool OnShot(const ShotInfo& shot);
 
@@ -92,9 +122,21 @@ namespace app
 			 * @return 写真の照合結果
 			 */
 			const MatchResult& GetLastMatchResult() const { return m_lastMatchResult; }
+			/**
+			 * @brief 撮った写真の記録を取得
+			 * @return 撮った順の記録(リザルトのアルバムに出す)
+			 */
+			const std::vector<ShotRecord>& GetShotRecordList() const { return m_shotRecordList; }
 
 
 		private:
+			/**
+			 * @brief 撮った写真をミッションと照合して、数える
+			 * @param shot 撮った瞬間の情報
+			 * @param record 撮った記録(どう数えたかを入れる)
+			 * @return どれかのミッションの枚数が増えたら true
+			 */
+			bool JudgeShot(const ShotInfo& shot, ShotRecord& record);
 			/**
 			 * @brief "BigMan" などの文字を敵の種類にする
 			 * @param name 敵の種類("BigMan")...
@@ -107,6 +149,8 @@ namespace app
 			std::vector<MissionData> m_missionList;
 			/** 敵ごとに、最後に数えた盗みの番号(同じ盗みを二重に数えないため) */
 			std::unordered_map<const actor::EnemyBase*, int> m_countedStealList;
+			/** 撮った写真の記録(撮った順) */
+			std::vector<ShotRecord> m_shotRecordList;
 			/** 最後に撮った写真の照合結果 */
 			MatchResult m_lastMatchResult;
 			/** 照合の許容値をまとめた情報 */

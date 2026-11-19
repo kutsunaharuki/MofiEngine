@@ -97,6 +97,9 @@
     <Filter Include="Source\UI\SampleMenu">
       <UniqueIdentifier>{a1fcf144-973d-485c-8497-110241eefb54}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\UI\ResultMenu">
+      <UniqueIdentifier>{5d3b7a2e-8c41-4f6b-9e17-2b6c4a9f0d35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -314,6 +317,15 @@
     </ClCompile>
     <ClCompile Include="Source\UI\SampleMenu\SampleMenu.cpp">
       <Filter>Source\UI\SampleMenu</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\ResultMenu\ResultMenu.cpp">
+      <Filter>Source\UI\ResultMenu</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mission\PhotoAlbum.cpp">
+      <Filter>Source\Mission</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Manager\GameResult.cpp">
+      <Filter>Source\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -547,6 +559,15 @@
     </ClInclude>
     <ClInclude Include="Source\UI\SampleMenu\SampleMenu.h">
       <Filter>Source\UI\SampleMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\ResultMenu\ResultMenu.h">
+      <Filter>Source\UI\ResultMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mission\PhotoAlbum.h">
+      <Filter>Source\Mission</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\GameResult.h">
+      <Filter>Source\Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

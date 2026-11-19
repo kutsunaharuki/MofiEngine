@@ -24,6 +24,7 @@
 #include "Source/Mission/ShotMeasure.h"
 #include "Source/UI/SampleMenu/SampleMenu.h"
 #include "Source/Mission/PhotoSampleRenderer.h"
+#include "Source/Manager/GameResult.h"
 #include "imgui.h"
 
 
@@ -70,6 +71,7 @@ namespace app
 		, m_gScale(Vector3::One)
 		, m_gameCamera(nullptr)
 		, m_isLastShotInFocus(false)
+		, m_isFinishRequested(false)
 		, m_soundOptionMenu(nullptr)
 		, m_missionMenu(nullptr)
 		, m_sampleMenu(nullptr)
@@ -106,6 +108,8 @@ namespace app
 
 		// ミッションを読み込んでから、ミッションの UI に渡す(渡した時に行が作られる)
 		m_missionManager.Initialize(MISSION_LIST_PATH);
+		// 新しいプレイを始める(前のプレイの結果と写真を空にする。リトライでもここを通る)
+		GameResult::GetInstance()->Reset();
 		m_missionLayout.Initialize<ui::MissionMenu>(MISSION_LAYOUT_PATH);
 		m_missionMenu = m_missionLayout.GetMenu<ui::MissionMenu>();
 		if (m_missionMenu)
@@ -432,8 +436,12 @@ namespace app
 
 		// TODO : ゲームオーバーの条件を作る
 		// ゴール：全てのミッションを達成したら、すぐにリザルトへ
-		if (m_missionManager.IsAllAchieved())
+		if (m_missionManager.IsAllAchieved() || m_isFinishRequested)
 		{
+			// 達成していないミッションを失敗にして、結果をリザルトに渡す(インゲームはこの後に消える)
+			m_missionManager.Finish();
+			GameResult::GetInstance()->SetResult(m_missionManager);
+
 			id = app::ResultScene::ID();
 			waitTime = 1.0f;
 			return true;
@@ -459,6 +467,11 @@ namespace app
 	{
 		mission::ShotInfo shot;
 		shot.isInFocus = isInFocus;
+
+		// 撮った写真をアルバムにも残す(写真用のRTは次に撮ると上書きされ、インゲームと一緒に消えるため)
+		// ※ 撮影は、このフレームの描画(RenderOffscreen)で行われるので、それより前に描き先を渡す
+		RenderTarget* saveTarget = GameResult::GetInstance()->GetAlbum().Reserve(shot.photoIndex);
+		m_photoCapture.SetSaveTarget(saveTarget);
 
 		// 被写体が敵なら、盗んでいるかと、何回目の盗みかを入れる
 		// ※ 被写体は const なので、敵の一覧から同じ敵を探して、ステートマシンを見る
@@ -518,6 +531,11 @@ namespace app
 		{
 			m_missionManager.DebugAchieveAll();
 			isChanged = true;
+		}
+		// 今のまま終わらせる(達成していないミッションは失敗。失敗のリザルトを確かめる用)
+		if (ImGui::Button("Finish -> Result"))
+		{
+			m_isFinishRequested = true;
 		}
 
 		ImGui::End();

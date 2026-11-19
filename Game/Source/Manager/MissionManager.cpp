@@ -54,6 +54,7 @@ namespace app
 			// Initialize が2回以上呼ばれた時に、ミッションが二重に入らないようにする
 			m_missionList.clear();
 			m_countedStealList.clear();
+			m_shotRecordList.clear();
 
 			// 全部のミッションに共通の許容値
 			m_commonTolerance = ReadTolerance(json, MatchTolerance());
@@ -101,14 +102,37 @@ namespace app
 			// 照合の結果は撮るたびに作り直す
 			m_hasLastMatchResult = false;
 
+			ShotRecord record;
+			record.photoIndex = shot.photoIndex;
+			const bool isCounted = JudgeShot(shot, record);
+
+			// 数えなかった写真も、リザルトで「なぜダメだったか」を出すために残す
+			m_shotRecordList.push_back(record);
+			return isCounted;
+		}
+
+
+		bool MissionManager::JudgeShot(const ShotInfo& shot, ShotRecord& record)
+		{
 			// 敵が写っていなければ数えない
-			if (shot.subject == nullptr) return false;
+			if (shot.subject == nullptr)
+			{
+				record.status = ShotStatus::NoSubject;
+				return false;
+			}
+			record.subjectType = shot.subject->GetEnemyType();
 
 			// この盗みは、もう数えた(クールタイムの後に同じ盗みをもう一度撮っても、増やさない)
 			auto it = m_countedStealList.find(shot.subject);
-			if (it != m_countedStealList.end() && it->second == shot.stealCount) return false;
+			if (it != m_countedStealList.end() && it->second == shot.stealCount)
+			{
+				record.status = ShotStatus::AlreadyCounted;
+				return false;
+			}
 
 			bool isCounted = false;
+			// 進行中のミッションが無ければ、照合しない
+			record.status = ShotStatus::NoMission;
 
 			for (MissionData& mission : m_missionList)
 			{
@@ -126,8 +150,19 @@ namespace app
 					m_hasLastMatchResult = true;
 				}
 
+				// 照合した(数えるかは、この後で決まる)
+				if (!isCounted)
+				{
+					record.status = ShotStatus::Failed;
+					record.result = m_lastMatchResult;
+				}
+
 				// 全ての項目が成功(イメージはチェックマーク)していないなら飛ばす
 				if (!result.IsSuccess()) continue;
+
+				// 数えたミッションの結果を残す
+				record.status = ShotStatus::Counted;
+				record.result = result;
 
 				++mission.currentCount;
 				// 必要な枚数を撮ったら達成

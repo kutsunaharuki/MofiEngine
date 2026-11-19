@@ -185,6 +185,8 @@ namespace app
 		Quaternion m_gRotation;
 		/** ピントの判定を記録 */
 		bool m_isLastShotInFocus;
+		/** ミッションを終わらせてリザルトへ移るか(デバッグの「Finish -> Result」で立てる) */
+		bool m_isFinishRequested;
 		
 		/** ファインダーコントローラー */
 		camera::FinderController m_finderController;

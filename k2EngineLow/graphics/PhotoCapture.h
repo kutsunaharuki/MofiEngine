@@ -77,6 +77,24 @@ namespace nsK2EngineLow
 		 */
 		void Shot() { if (m_isFinderActive) m_isShotRequested = true; }
 		/**
+		 * @brief 次に撮る写真を、もう 1 つの描き先にも残す
+		 * @param saveTarget 写真を残す描き先(大きさは GetPhotoWidth / GetPhotoHeight に合わせる。nullptr で取り消し)
+		 * @details Shot() と同じフレームに呼ぶ。撮った時に 1 回だけ写して、外れる。
+		 *          写真用のRTは撮るたびに上書きされるので、写真を残したい時に使う(リザルトのアルバムなど)。
+		 *          描き先は、渡した側が持ち続ける
+		 */
+		void SetSaveTarget(RenderTarget* saveTarget) { m_saveTarget = saveTarget; }
+		/**
+		 * @brief 写真の横幅(ピクセル)を取得
+		 * @return 写真の横幅
+		 */
+		static int GetPhotoWidth();
+		/**
+		 * @brief 写真の縦幅(ピクセル)を取得
+		 * @return 写真の縦幅
+		 */
+		static int GetPhotoHeight();
+		/**
 		 * @brief 撮影済みの写真があるかどうかをチェックする
 		 * @return 撮影済みの写真がある場合は、true
 		 */
@@ -201,6 +219,8 @@ namespace nsK2EngineLow
 		bool m_isShotRequested;
 		/** 撮影済みかどうか */
 		bool m_hasPhoto;
+		/** 次に撮る写真を、もう 1 つ残す描き先(借りているだけ。撮ったら nullptr に戻す) */
+		RenderTarget* m_saveTarget;
 
 
 		/** ファインダー用のレンダリングターゲット */

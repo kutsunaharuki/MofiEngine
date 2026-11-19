@@ -8,6 +8,7 @@
 #include "Source/Scene/SceneManager.h"
 #include "Source/Sound/SoundManager.h"
 #include "Source/Util/ParameterManager.h"
+#include "Source/Manager/GameResult.h"
 
 
 Game::Game()
@@ -18,6 +19,8 @@ Game::~Game()
 {
 	// シーンが SoundManager / ParameterManager を使うので、シーンを先に破棄する
 	app::SceneManager::DestoryInstance();
+	// プレイの結果(写真)はシーンが使うので、シーンの後に破棄する
+	app::GameResult::DestroyInstance();
 	app::sound::SoundManager::DestroyInstance();
 	app::util::ParameterManager::DestroyInstance();
 }
@@ -28,6 +31,8 @@ bool Game::Start()
 	// シーンの Start で使うので、SoundManager と ParameterManager を先に作る
 	app::util::ParameterManager::CreateInstance();
 	app::sound::SoundManager::CreateInstance();
+	// インゲーム → リザルトに渡すプレイの結果(シーンより先に作る)
+	app::GameResult::CreateInstance();
 	app::SceneManager::CreateInstance();
 	return true;
 }

@@ -73,6 +73,7 @@ namespace nsK2EngineLow
 		, m_isFinderActive(false)
 		, m_isShotRequested(false)
 		, m_hasPhoto(false)
+		, m_saveTarget(nullptr)
 		, m_viewAngle(FINDER_VIEW_ANGLE_WIDE)
 		, m_focusDistance(0.0f)
 		, m_focusBlurRange(FOCUS_BLUR_RANGE)
@@ -325,6 +326,20 @@ namespace nsK2EngineLow
 		if (m_isFinderActive == isActive) return;
 		m_isFinderActive = isActive;
 		if (m_isFinderActive) m_focusDistance = FOCUS_DISTANCE_MIN;
+		// 覗くのをやめたら、撮らなかった写真の残し先は取り消す(次に撮った時に、違う描き先に写さないように)
+		if (!m_isFinderActive) m_saveTarget = nullptr;
+	}
+
+
+	int PhotoCapture::GetPhotoWidth()
+	{
+		return PHOTO_W;
+	}
+
+
+	int PhotoCapture::GetPhotoHeight()
+	{
+		return PHOTO_H;
 	}
 
 
@@ -413,5 +428,19 @@ namespace nsK2EngineLow
 
 		// 描画が終わるまで待つ → 以後このRTをテクスチャとして読める
 		rc.WaitUntilFinishDrawingToRenderTarget(m_photoRT);
+
+
+		/** 残す描き先があれば、同じ絵をそこにも写す(写真用のRTは次に撮ると上書きされるため) */
+		if (m_saveTarget != nullptr)
+		{
+			rc.WaitUntilToPossibleSetRenderTarget(*m_saveTarget);
+			rc.SetRenderTargetAndViewport(*m_saveTarget);
+			// 写真用のRTと同じ大きさなので、同じスプライトで写せる
+			m_photoCopySprite.Draw(rc);
+			rc.WaitUntilFinishDrawingToRenderTarget(*m_saveTarget);
+
+			// 1 枚写したら外す
+			m_saveTarget = nullptr;
+		}
 	}
 }

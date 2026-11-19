@@ -1,0 +1,88 @@
+{
+  "canvas": {
+    "elements": [
+      {
+        "comment":"アルバムの背景(暗い板)",
+        "type":"UIIcon",
+        "name":"ResultPanel",
+        "asset":"Assets/spriteData/UI/Common/White.DDS",
+        "width":1600,
+        "height":1000,
+        "position":[0,0,0],
+        "color":[0.05,0.05,0.08,0.85],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"結果のタイトル(文字と色は ResultMenu が「ミッション成功 / 失敗」にする)",
+        "type":"UIText",
+        "name":"ResultTitle",
+        "text":"リザルト",
+        "position":[0,440,0],
+        "scale":[1.4,1.4,1],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"ミッションの行の基準(1 行目の左端。この下に ResultMenu が行を作る)",
+        "type":"UIDummy",
+        "name":"ResultMissionBase",
+        "position":[-720,370,0]
+      },
+      {
+        "comment":"写真の見出し",
+        "type":"UIText",
+        "name":"ResultPhotoHeading",
+        "text":"撮った写真(新しい順)",
+        "position":[-720,280,0],
+        "scale":[0.6,0.6,1],
+        "color":[0.8,0.8,0.8,1],
+        "pivot":[0,0.5]
+      },
+      {
+        "comment":"写真を並べる基準(1 枚目の写真の左上。横に 4 枚 × 2 段を ResultMenu が作る)",
+        "type":"UIDummy",
+        "name":"ResultPhotoBase",
+        "position":[-700,240,0]
+      },
+      {
+        "comment":"写真を 1 枚も撮らなかった時の文字",
+        "type":"UIText",
+        "name":"ResultEmpty",
+        "text":"写真はありません",
+        "position":[0,0,0],
+        "scale":[0.8,0.8,1],
+        "color":[0.7,0.7,0.7,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"もう一度(インゲームへ)。選んでいる時は ResultMenu が色と大きさを変える",
+        "type":"UIText",
+        "name":"ResultRetry",
+        "text":"もう一度",
+        "position":[-220,-430,0],
+        "scale":[0.9,0.9,1],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"タイトルへ",
+        "type":"UIText",
+        "name":"ResultToTitle",
+        "text":"タイトルへ",
+        "position":[220,-430,0],
+        "scale":[0.9,0.9,1],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      }
+    ]
+  }
+}

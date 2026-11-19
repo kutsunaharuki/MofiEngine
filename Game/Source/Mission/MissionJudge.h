@@ -65,6 +65,8 @@ namespace app
 			bool isStealing = false;
 			// 撮った時の盗みの番号(EnemyStateMachine::GetStealCount)
 			int stealCount = 0;
+			// アルバムに残した写真の番号(残していなければ -1)
+			int photoIndex = -1;
 			/** 写り方を測った値 */
 			ShotMeasure measure;
 		};
