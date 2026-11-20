@@ -213,9 +213,6 @@
     <ClCompile Include="Source\Mission\MissionJudge.cpp">
       <Filter>Source\Mission</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Manager\MissionManager.cpp">
-      <Filter>Source\Manager</Filter>
-    </ClCompile>
     <ClCompile Include="Source\UI\MissionMenu\MissionMenu.cpp">
       <Filter>Source\UI\MissionMenu</Filter>
     </ClCompile>
@@ -291,7 +288,7 @@
     <ClCompile Include="Source\Actor\Character\Visitor\Visitor.cpp">
       <Filter>Source\Actor\Character\Visitor</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Actor\Character\Visitor\VisitorController.cpp">
+    <ClCompile Include="Source\Actor\Character\Visitor\VisitorManager.cpp">
       <Filter>Source\Actor\Character\Visitor</Filter>
     </ClCompile>
     <ClCompile Include="Source\Actor\Character\Visitor\VisitorGroup.cpp">
@@ -326,6 +323,9 @@
     </ClCompile>
     <ClCompile Include="Source\Manager\GameResult.cpp">
       <Filter>Source\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Mission\MissionManager.cpp">
+      <Filter>Source\Mission</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -437,9 +437,6 @@
     <ClInclude Include="Source\Mission\MissionJudge.h">
       <Filter>Source\Mission</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Manager\MissionManager.h">
-      <Filter>Source\Manager</Filter>
-    </ClInclude>
     <ClInclude Include="Source\UI\MissionMenu\MissionMenu.h">
       <Filter>Source\UI\MissionMenu</Filter>
     </ClInclude>
@@ -530,7 +527,7 @@
     <ClInclude Include="Source\Actor\Character\Visitor\Visitor.h">
       <Filter>Source\Actor\Character\Visitor</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Actor\Character\Visitor\VisitorController.h">
+    <ClInclude Include="Source\Actor\Character\Visitor\VisitorManager.h">
       <Filter>Source\Actor\Character\Visitor</Filter>
     </ClInclude>
     <ClInclude Include="Source\Actor\Character\Visitor\VisitorGroup.h">
@@ -568,6 +565,9 @@
     </ClInclude>
     <ClInclude Include="Source\Manager\GameResult.h">
       <Filter>Source\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mission\MissionManager.h">
+      <Filter>Source\Mission</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

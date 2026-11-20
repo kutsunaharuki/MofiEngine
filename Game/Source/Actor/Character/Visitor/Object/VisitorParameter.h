@@ -36,6 +36,12 @@ namespace app
 			float talkSwitchTime;
 			/** 1人ひとりが話す確率(0 〜 1) */
 			float talkRate;
+			/** ベビーカーを、親の前にどれだけ離して置くか */
+			float strollerDistance;
+			/** ベビーカーの大きさ */
+			Vector3 strollerScale;
+			/** ベビーカーの向きを直す角度(度。モデルが横や後ろを向いている時に使う) */
+			float strollerYawDeg;
 
 
 			VisitorGroupParameter()
@@ -48,6 +54,9 @@ namespace app
 				, lookTimeMax(8.0f)
 				, talkSwitchTime(5.0f)
 				, talkRate(0.4f)
+				, strollerDistance(50.0f)
+				, strollerScale(Vector3::One)
+				, strollerYawDeg(0.0f)
 			{}
 
 
@@ -66,6 +75,9 @@ namespace app
 				lookTimeMax = file.GetFloat("lookTimeMax", lookTimeMax);
 				talkSwitchTime = file.GetFloat("talkSwitchTime", talkSwitchTime);
 				talkRate = file.GetFloat("talkRate", talkRate);
+				strollerDistance = file.GetFloat("strollerDistance", strollerDistance);
+				strollerScale = file.GetVector3("strollerScale", strollerScale);
+				strollerYawDeg = file.GetFloat("strollerYawDeg", strollerYawDeg);
 			}
 		};
 

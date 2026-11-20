@@ -7,6 +7,7 @@
 #include "Source/Util/ParameterManager.h"
 #include "Source/Util/WorldTime.h"
 #include "Object/VisitorParameter.h"
+#include <string>
 
 
 namespace app
@@ -24,12 +25,23 @@ namespace app
 			 */
 			enum class VisitorType : uint8_t
 			{
-				Karen,		// カレン
-				OfficeMan,  // サラリーマン
-				WomanAfro,  // アフロの女性
-				WomanAsian, // アジア系の女性
-				WomanEuro,	// ヨーロッパ系の女性
-				Max			// 最大数
+				Karen,			// カレン
+				OfficeMan,		// サラリーマン
+				WomanAfro,		// アフロの女性
+				WomanAsian,		// アジア系の女性
+				WomanEuro,		// ヨーロッパ系の女性
+				CoupleA,		// カップル(CouplePerson01)
+				CoupleB,		// カップル(CouplePerson02)
+				CoupleC,		// カップル(CouplePerson03)
+				CoupleD,		// カップル(CouplePerson04)
+				CoupleE,		// カップル(CouplePerson05)
+				FamilyWomanA,	// 家族の大人(HumanoWoman01)
+				FamilyWomanB,	// 家族の大人(HumanoWoman02)
+				FamilyWomanC,	// 家族の大人(HumanoWoman03)
+				FamilyWomanD,	// 家族の大人(HumanoWoman04)
+				FamilyBoy,		// 家族の子供(LittleBoy)
+				Student,		// 学生(YoungBoy)
+				Max				// 最大数
 			};
 
 			/**
@@ -58,6 +70,14 @@ namespace app
 			void Update() override;
 			/** 時間の倍率(スローモーションで遅くなる) */
 			float GetTimeScale() const override { return util::WorldTime::GetScale(); }
+
+			/**
+			 * @brief "Karen" などの名前を、見た目の種類にする(JSON で見た目を書くため)
+			 * @param name 見た目の名前(VisitorType と同じ綴り)
+			 * @param outType 見た目の種類
+			 * @return 名前が見つかれば true
+			 */
+			static bool ToVisitorType(const std::string& name, VisitorType& outType);
 
 
 		public:

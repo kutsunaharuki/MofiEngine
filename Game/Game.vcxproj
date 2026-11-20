@@ -291,7 +291,7 @@
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyState.cpp" />
     <ClCompile Include="Source\Actor\Character\Enemy\EnemyStateMachine.cpp" />
     <ClCompile Include="Source\Actor\Character\Visitor\Visitor.cpp" />
-    <ClCompile Include="Source\Actor\Character\Visitor\VisitorController.cpp" />
+    <ClCompile Include="Source\Actor\Character\Visitor\VisitorManager.cpp" />
     <ClCompile Include="Source\Actor\Character\Visitor\VisitorGroup.cpp" />
     <ClCompile Include="Source\Actor\Character\Visitor\VisitorState.cpp" />
     <ClCompile Include="Source\Actor\Character\Visitor\VisitorStateMachine.cpp" />
@@ -307,6 +307,7 @@
     <ClCompile Include="Source\Core\TransformNode.cpp" />
     <ClCompile Include="Source\DebugTool\LoadTimeWindow.cpp" />
     <ClCompile Include="Source\DebugTool\PhotoMatchDebugWindow.cpp" />
+    <ClCompile Include="Source\Mission\MissionManager.cpp" />
     <ClCompile Include="Source\Mission\PhotoSampleRenderer.cpp" />
     <ClCompile Include="Source\Mission\ShotMeasure.cpp" />
     <ClCompile Include="Source\Scene\InGameScene.cpp" />
@@ -332,7 +333,6 @@
     <ClCompile Include="Source\Util\ProfilerWindow.cpp" />
     <ClCompile Include="Source\DebugTool\NavigationDebugWindow.cpp" />
     <ClCompile Include="Source\Mission\MissionJudge.cpp" />
-    <ClCompile Include="Source\Manager\MissionManager.cpp" />
     <ClCompile Include="Source\UI\MissionMenu\MissionMenu.cpp" />
     <ClCompile Include="Source\Actor\StageObject\StageObject.cpp" />
     <ClCompile Include="Source\Stage\Stage.cpp" />
@@ -369,7 +369,7 @@
     <ClInclude Include="Source\Actor\Character\Enemy\Object\EnemyParameter.h" />
     <ClInclude Include="Source\Actor\Character\Visitor\Object\VisitorParameter.h" />
     <ClInclude Include="Source\Actor\Character\Visitor\Visitor.h" />
-    <ClInclude Include="Source\Actor\Character\Visitor\VisitorController.h" />
+    <ClInclude Include="Source\Actor\Character\Visitor\VisitorManager.h" />
     <ClInclude Include="Source\Actor\Character\Visitor\VisitorGroup.h" />
     <ClInclude Include="Source\Actor\Character\Visitor\VisitorState.h" />
     <ClInclude Include="Source\Actor\Character\Visitor\VisitorStateMachine.h" />
@@ -386,6 +386,7 @@
     <ClInclude Include="Source\Core\TransformNode.h" />
     <ClInclude Include="Source\DebugTool\LoadTimeWindow.h" />
     <ClInclude Include="Source\DebugTool\PhotoMatchDebugWindow.h" />
+    <ClInclude Include="Source\Mission\MissionManager.h" />
     <ClInclude Include="Source\Mission\PhotoSampleRenderer.h" />
     <ClInclude Include="Source\Mission\ShotMeasure.h" />
     <ClInclude Include="Source\Scene\InGameScene.h" />
@@ -419,7 +420,6 @@
     <ClInclude Include="Source\DebugTool\NavigationDebugWindow.h" />
     <ClInclude Include="Source\Mission\MissionData.h" />
     <ClInclude Include="Source\Mission\MissionJudge.h" />
-    <ClInclude Include="Source\Manager\MissionManager.h" />
     <ClInclude Include="Source\UI\MissionMenu\MissionMenu.h" />
     <ClInclude Include="..\ThirdParty\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Source\Actor\StageObject\StageObject.h" />

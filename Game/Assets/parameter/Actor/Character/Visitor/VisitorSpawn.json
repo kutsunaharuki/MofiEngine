@@ -1,0 +1,25 @@
+{
+  "comment":"一般客を何組出すか。VisitorManager がインゲームの最初に 1 回だけ読む(保存しても、作り直すまで変わらない)",
+  "spawn":[
+    {
+      "type":"Solo",
+      "count":4
+    },
+    {
+      "type":"Student",
+      "count":2
+    },
+    {
+      "type":"Couple",
+      "count":2
+    },
+    {
+      "type":"Family",
+      "count":1
+    }
+  ],
+  
+  "spawnMinDistance":300.0,
+  "spawnSearchCell":10,
+  "fallbackPosition":[0,0,-300]
+}

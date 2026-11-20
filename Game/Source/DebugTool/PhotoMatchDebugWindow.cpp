@@ -9,7 +9,7 @@
 #include "Source/Util/ScreenPosition.h"
 #include "Source/Actor/Character/Enemy/EnemyBase.h"
 #include "Source/Mission/ShotMeasure.h"
-#include "Source/Manager/MissionManager.h"
+#include "Source/Mission/MissionManager.h"
 #include <cstdio>
 
 

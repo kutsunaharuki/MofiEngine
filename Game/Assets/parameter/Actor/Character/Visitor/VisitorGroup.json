@@ -8,5 +8,8 @@
   "lookTimeMin":4.0,
   "lookTimeMax":8.0,
   "talkSwitchTime":5.0,
-  "talkRate":0.4
+  "talkRate":0.4,
+  "strollerDistance":50.0,
+  "strollerScale":[10,10,10],
+  "strollerYawDeg":0.0
 }

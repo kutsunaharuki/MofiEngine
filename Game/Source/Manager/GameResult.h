@@ -5,7 +5,7 @@
  *          Game が作って、Game と一緒に消える
  */
 #pragma once
-#include "Source/Manager/MissionManager.h"
+#include "Source/Mission/MissionManager.h"
 #include "Source/Mission/PhotoAlbum.h"
 #include <vector>
 

@@ -29,8 +29,8 @@ namespace app
 			constexpr float MIN_DISTANCE_RATE = 0.3f;
 			/** 近すぎた時に引き直す最大の回数 */
 			constexpr int MAX_RETRY = 20;
-			/** グループの人数の下限と上限 */
-			constexpr int MEMBER_COUNT_MIN = 4;
+			/** グループの人数の下限と上限(1 なら 1 人の客) */
+			constexpr int MEMBER_COUNT_MIN = 1;
 			constexpr int MEMBER_COUNT_MAX = 8;
 			/** 散らばり具合の下限(0 だと正規分布が作れない) */
 			constexpr float SCATTER_MIN = 0.01f;
@@ -45,6 +45,19 @@ namespace app
 			constexpr float FOLLOW_AMOUNT_MAX = 1.2f;
 			/** 道順が見つからなかった時に、もう一度探すまでの時間(秒) */
 			constexpr float RETRY_MOVE_TIME = 1.0f;
+
+			/** ベビーカーのモデルの場所 */
+			constexpr const char* STROLLER_MODEL_PATH = "Assets/modelData/Visitor/Family/family_models/family_models/BabyStroller/BabyStroller.tkm";
+
+			/** SetSpawn を呼ばなかった時(試し用)に選ぶ見た目(今までの 5 人) */
+			const Visitor::VisitorType DEFAULT_TYPE_LIST[] =
+			{
+					Visitor::VisitorType::Karen
+				,	Visitor::VisitorType::OfficeMan
+				,	Visitor::VisitorType::WomanAfro
+				,	Visitor::VisitorType::WomanAsian
+				,	Visitor::VisitorType::WomanEuro
+			};
 		}
 
 
@@ -57,6 +70,8 @@ namespace app
 			, m_groupState(GroupState::Look)
 			, m_lookTimer(0.0f)
 			, m_talkTimer(0.0f)
+			, m_spawnPosition(Vector3::Zero)
+			, m_hasSpawn(false)
 		{}
 
 
@@ -70,17 +85,33 @@ namespace app
 			m_parameter.Initialize(VISITOR_GROUP_PARAMETER_JSON_PATH);
 			const VisitorGroupParameter& parameter = m_parameter.Get();
 
-			// メンバーを作る(人数は 4 〜 8 に収める。見た目は 5 種類から等しい確率で選ぶ)
-			const int memberCount = TClamp<int>::Clamp(parameter.memberCount, MEMBER_COUNT_MIN, MEMBER_COUNT_MAX);
-			std::uniform_int_distribution<int> typeRange(0, static_cast<int>(Visitor::VisitorType::Max) - 1);
-			for (int i = 0; i < memberCount; ++i)
+			// メンバーを作る(人数は 1 〜 8 に収める)
+			if (m_hasSpawn)
 			{
-				const Visitor::VisitorType type = static_cast<Visitor::VisitorType>(typeRange(m_random));
-				m_memberList.push_back(std::make_unique<Visitor>(type));
+				// VisitorManager が決めた顔ぶれの順に作る(先頭が親)
+				const int memberCount = (std::min)(static_cast<int>(m_composition.memberTypeList.size()), MEMBER_COUNT_MAX);
+				for (int i = 0; i < memberCount; ++i)
+				{
+					m_memberList.push_back(std::make_unique<Visitor>(m_composition.memberTypeList[i]));
+				}
+				m_leaderIndex = 0;
+			}
+			else
+			{
+				// 試し用: JSON の人数で、今までの 5 人から等しい確率で選ぶ
+				const int memberCount = TClamp<int>::Clamp(parameter.memberCount, MEMBER_COUNT_MIN, MEMBER_COUNT_MAX);
+				constexpr int typeCount = static_cast<int>(sizeof(DEFAULT_TYPE_LIST) / sizeof(DEFAULT_TYPE_LIST[0]));
+				std::uniform_int_distribution<int> typeRange(0, typeCount - 1);
+				for (int i = 0; i < memberCount; ++i)
+				{
+					m_memberList.push_back(std::make_unique<Visitor>(DEFAULT_TYPE_LIST[typeRange(m_random)]));
+				}
+				// 真ん中の人を親にする
+				m_leaderIndex = memberCount / 2;
 			}
 
-			// 真ん中の人を親にする
-			m_leaderIndex = memberCount / 2;
+			// 顔ぶれが空でも壊れないように(誰もいない組は何もしない)
+			if (m_memberList.empty()) return;
 
 			// 立ち位置を決めて置いてから Start(キャラクターコントローラーが、置いた位置で作られる)
 			MakeSlotList();
@@ -94,11 +125,21 @@ namespace app
 
 			// 最初は立ち止まっているところから(グループごとに歩き出す時間がずれるように、見る時間をランダムに決める)
 			StartLook();
+
+			// ベビーカーがある組は、ベビーカーを作って親の前に置く
+			if (m_composition.hasStroller)
+			{
+				InitStroller();
+				UpdateStroller();
+			}
 		}
 
 
 		void VisitorGroup::Update()
 		{
+			// 誰もいない組は何もしない(親がいないため)
+			if (m_memberList.empty()) return;
+
 			const VisitorGroupParameter& parameter = m_parameter.Get();
 			const float deltaTime = util::WorldTime::GetDeltaTime();
 
@@ -119,6 +160,9 @@ namespace app
 			{
 				member->Update();
 			}
+
+			// ベビーカーは、親が動いた後に置く(先に置くと、1 フレーム遅れてずれて見える)
+			UpdateStroller();
 		}
 
 
@@ -128,6 +172,16 @@ namespace app
 			{
 				member->Render(rc);
 			}
+
+			if (m_strollerRender) m_strollerRender->Draw(rc);
+		}
+
+
+		void VisitorGroup::SetSpawn(const Vector3& position, const GroupComposition& composition)
+		{
+			m_spawnPosition = position;
+			m_composition = composition;
+			m_hasSpawn = true;
 		}
 
 
@@ -213,7 +267,7 @@ namespace app
 
 		void VisitorGroup::PlaceMembers(const bool isStarted)
 		{
-			const Vector3& center = m_parameter.Get().groupPosition;
+			const Vector3& center = GetSpawnPosition(m_parameter.Get());
 
 			for (size_t i = 0; i < m_memberList.size(); ++i)
 			{
@@ -237,7 +291,8 @@ namespace app
 			const bool isRadiusChanged = parameter.groupRadius != m_layoutParameter.groupRadius;
 			const bool isScatterChanged = parameter.scatter != m_layoutParameter.scatter;
 			const bool isSpacingChanged = parameter.minSpacing != m_layoutParameter.minSpacing;
-			const bool isPositionChanged = positionDiff.LengthSq() > 0.0f;
+			// ※ SetSpawn で場所を決めた組は、JSON の groupPosition を変えても動かさない(全部の組が同じ場所に集まるため)
+			const bool isPositionChanged = !m_hasSpawn && positionDiff.LengthSq() > 0.0f;
 
 			return isRadiusChanged || isScatterChanged || isSpacingChanged || isPositionChanged;
 		}
@@ -249,12 +304,18 @@ namespace app
 			MakeSlotList();
 
 			const Vector3 positionDiff = parameter.groupPosition - m_layoutParameter.groupPosition;
-			if (positionDiff.LengthSq() <= 0.0f) return;
+			if (m_hasSpawn || positionDiff.LengthSq() <= 0.0f) return;
 
 			// 位置が変わった時だけ、全員をワープして、立ち止まるところからやり直す
 			PlaceMembers(true);
 			m_pathFollower->Clear();
 			StartLook();
+		}
+
+
+		const Vector3& VisitorGroup::GetSpawnPosition(const VisitorGroupParameter& parameter) const
+		{
+			return m_hasSpawn ? m_spawnPosition : parameter.groupPosition;
 		}
 
 
@@ -408,6 +469,43 @@ namespace app
 			m_lookTimer = lookTimeRange(m_random);
 			m_groupState = GroupState::Look;
 			m_pathFollower->Clear();
+		}
+
+
+		void VisitorGroup::InitStroller()
+		{
+			// ベビーカーは動かないので、アニメーションは無し
+			m_strollerRender = std::make_unique<ModelRender>();
+			m_strollerRender->Init(STROLLER_MODEL_PATH, nullptr, enModelUpAxisZ, 0);
+		}
+
+
+		void VisitorGroup::UpdateStroller()
+		{
+			// ベビーカーが無い組・誰もいない組は何もしない
+			if (!m_strollerRender || m_memberList.empty()) return;
+
+			const VisitorGroupParameter& parameter = m_parameter.Get();
+			const core::TransformNode& leaderTransform = GetLeader().GetTransform();
+
+			// 親の前の向き
+			Vector3 forward = Vector3::Front;
+			leaderTransform.GetWorldRotation().Apply(forward);
+			forward.y = 0.0f;
+			forward.Normalize();
+
+			// 親の前に、少し離して置く
+			Vector3 position = leaderTransform.GetWorldPosition();
+			position += forward * parameter.strollerDistance;
+
+			// 親と同じ向き(モデルの向きがずれていたら、JSON の角度で直す)
+			Quaternion yawFix;
+			yawFix.SetRotationDegY(parameter.strollerYawDeg);
+			Quaternion rotation;
+			rotation.Multiply(leaderTransform.GetWorldRotation(), yawFix);
+
+			m_strollerRender->SetTRS(position, rotation, parameter.strollerScale);
+			m_strollerRender->Update();
 		}
 	}
 }

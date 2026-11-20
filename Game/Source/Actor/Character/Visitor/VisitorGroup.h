@@ -5,6 +5,7 @@
 #pragma once
 #include "Source/Util/ParameterManager.h"
 #include "Object/VisitorParameter.h"
+#include "Visitor.h"
 #include <memory>
 #include <vector>
 #include <random>
@@ -23,8 +24,31 @@ namespace app
 
 	namespace actor
 	{
-		/** 前方宣言 */
-		class Visitor;
+		/**
+		 * @brief 組の種類
+		 */
+		enum class GroupType : uint8_t
+		{
+			Solo,		// 1 人の客(今までの 5 人)
+			Student,	// 学生(1 人)
+			Couple,		// カップル(2 人)
+			Family,		// 家族(4 人／4 人＋ベビーカー／6 人)
+			Max
+		};
+
+
+		/**
+		 * @brief 1 組の顔ぶれ(VisitorManager が決めて、VisitorGroup に渡す)
+		 */
+		struct GroupComposition
+		{
+			/** 組の種類 */
+			GroupType type = GroupType::Solo;
+			/** メンバーの見た目(先頭が親。人数 = この数) */
+			std::vector<Visitor::VisitorType> memberTypeList;
+			/** ベビーカーを押しているか(家族だけ。先頭の親が押す) */
+			bool hasStroller = false;
+		};
 
 
 		/**
@@ -60,6 +84,23 @@ namespace app
 			 * @param targetList 美術品の位置の一覧(空なら歩かずに立っているだけ)
 			 */
 			void SetTargetList(const std::vector<Vector3>& targetList) { m_targetList = targetList; }
+			/**
+			 * @brief 出す場所と顔ぶれを設定(VisitorManager が組ごとに決める)
+			 * @param position 出す場所(親の位置)
+			 * @param composition 顔ぶれ(組の種類・メンバーの見た目・ベビーカー)
+			 * @details Initialize より前に呼ぶ。呼ばなければ JSON の groupPosition と memberCount で、今までの 5 人からランダムに作る(試し用)
+			 */
+			void SetSpawn(const Vector3& position, const GroupComposition& composition);
+			/**
+			 * @brief 人数を取得
+			 * @return メンバーの数(親も入る)
+			 */
+			int GetMemberCount() const { return static_cast<int>(m_memberList.size()); }
+			/**
+			 * @brief 顔ぶれを取得
+			 * @return 組の種類・メンバーの見た目・ベビーカー(SetSpawn を呼んでいなければ、種類は Solo のまま)
+			 */
+			const GroupComposition& GetComposition() const { return m_composition; }
 
 
 		private:
@@ -107,6 +148,12 @@ namespace app
 			 * @details 位置が変わった時だけワープする。半径などが変わった時は、新しい立ち位置へ歩いていく
 			 */
 			void ApplyLayoutChange(const VisitorGroupParameter& parameter);
+			/**
+			 * @brief 出す場所(親の位置)を取得
+			 * @param parameter 今のパラメーター
+			 * @return SetSpawn で決めた場所。決めていなければ JSON の groupPosition
+			 */
+			const Vector3& GetSpawnPosition(const VisitorGroupParameter& parameter) const;
 
 
 		private:
@@ -133,6 +180,15 @@ namespace app
 			 * @brief 立ち止まって美術品を見始める(見る時間をランダムに決める)
 			 */
 			void StartLook();
+			/**
+			 * @brief ベビーカーのモデルを作る(ベビーカーがある組だけ)
+			 */
+			void InitStroller();
+			/**
+			 * @brief ベビーカーを、親の前に置く
+			 * @details 親の向きに合わせて回し、親の前に少し離して置く(毎フレーム、親が動いた後に呼ぶ)
+			 */
+			void UpdateStroller();
 			/**
 			 * @brief 親を取得
 			 * @return 親
@@ -168,6 +224,14 @@ namespace app
 			float m_lookTimer;
 			/** 誰が話すかを選び直すまでの残りの時間(秒) */
 			float m_talkTimer;
+			/** 出す場所(SetSpawn で決めた時だけ使う) */
+			Vector3 m_spawnPosition;
+			/** 顔ぶれ(SetSpawn で決めた時だけ使う) */
+			GroupComposition m_composition;
+			/** SetSpawn で、出す場所と顔ぶれを決めたか */
+			bool m_hasSpawn;
+			/** ベビーカーのモデル(ベビーカーが無い組は nullptr) */
+			std::unique_ptr<ModelRender> m_strollerRender;
 		};
 	}
 }

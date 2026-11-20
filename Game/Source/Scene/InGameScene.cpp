@@ -10,7 +10,7 @@
 #include "Source/Actor/Character/Enemy/EnemyBase.h"
 #include "Source/Actor/Character/Enemy/EnemyStateMachine.h"
 #include "Source/Actor/Character/Boy/Boy.h"
-#include "Source/Actor/Character/Visitor/VisitorGroup.h"
+#include "Source/Actor/Character/Visitor/VisitorManager.h"
 #include "Source/UI/SoundOptionMenu/SoundOptionMenu.h"
 #include "Source/UI/MissionMenu/MissionMenu.h"
 #include "Source/Sound/SoundManager.h"
@@ -60,6 +60,8 @@ namespace app
 		constexpr const char* STAGE_MODEL_DIRECTORY = "Assets/modelData/Stage/";
 		/** ステージの構造(階・区画・階段) */
 		constexpr const char* STAGE_LAYOUT_PATH = "Assets/stage/MuseumLayout.json";
+		/** 一般客を何組出すか */
+		constexpr const char* VISITOR_SPAWN_PATH = "Assets/parameter/Actor/Character/Visitor/VisitorSpawn.json";
 	}
 
 
@@ -162,12 +164,10 @@ namespace app
 		}
 		m_loadTimeWindow.Mark("Enemy Start");
 
-		// 訪問者(一般客)のグループを作って並べる
-		m_visitorGroup = std::make_unique<actor::VisitorGroup>();
-		m_visitorGroup->SetNavigation(m_pathfinder.get(), m_navGrid.get());
-		// 見に行く美術品は 1 階の分だけ(経路探索の地図が 1 階の分しか無いため)
-		m_visitorGroup->SetTargetList(m_enemyController.MakeFloorTargetList(0));
-		m_visitorGroup->Initialize();
+		// 一般客(1 人の客とグループ)を、JSON の数だけ作って並べる
+		// ※ 見に行く美術品は 1 階の分だけ(経路探索の地図が 1 階の分しか無いため)
+		m_visitorManager = std::make_unique<actor::VisitorManager>();
+		m_visitorManager->Initialize(VISITOR_SPAWN_PATH, m_pathfinder.get(), m_navGrid.get(), m_enemyController.MakeFloorTargetList(0));
 		m_loadTimeWindow.Mark("Visitor Start");
 
 
@@ -335,8 +335,8 @@ namespace app
 			enemy->Update();
 		}
 
-		// 訪問者(一般客)の更新
-		m_visitorGroup->Update();
+		// 一般客の更新(全部の組)
+		m_visitorManager->Update();
 
 
 		/** ファインダーのオートフォーカス */
@@ -416,8 +416,8 @@ namespace app
 			enemy->Render(rc);
 		}
 
-		// 訪問者(一般客)の描画
-		m_visitorGroup->Render(rc);
+		// 一般客の描画(全部の組)
+		m_visitorManager->Render(rc);
 	}
 	
 	
