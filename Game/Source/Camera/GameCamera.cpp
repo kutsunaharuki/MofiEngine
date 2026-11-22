@@ -12,8 +12,13 @@ namespace app
 	{
 		namespace
 		{
-			/** カメラの近平面 */
-			constexpr float CAMERA_NEAR = 0.1f;
+			/**
+			 * カメラの近平面
+			 * ※ 小さすぎると、奥行きの細かさが足りなくなり、近い面どうし(床と物・壁と絵画)がちらつく。
+			 *    0.1 だと 10m 先で約 0.6cm の差が見分けられない(額縁と壁は 0.2cm しか離れていない所がある)。5 にすると 50 倍細かくなる。
+			 *    カメラの当たり判定の半径(GameCamera.json の collisionRadius = 15)より小さくしておく(壁が切れて見えないように)
+			 */
+			constexpr float CAMERA_NEAR = 5.0f;
 			/** カメラの遠平面 */
 			constexpr float CAMERA_FAR = 10000.0f;
 			/** 入力閾値 */
