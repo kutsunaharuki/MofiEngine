@@ -55,6 +55,7 @@ namespace app
 				return false;
 			}
 
+
 			/**
 			 * @brief 見た目の名前の配列を読む
 			 * @param item JSON の配列

@@ -181,12 +181,12 @@ namespace app
 			 */
 			void StartLook();
 			/**
-			 * @brief ベビーカーのモデルを作る(ベビーカーがある組だけ)
+			 * @brief ベビーカーと、乗っている赤ちゃんのモデルを作る(ベビーカーがある組だけ)
 			 */
 			void InitStroller();
 			/**
-			 * @brief ベビーカーを、親の前に置く
-			 * @details 親の向きに合わせて回し、親の前に少し離して置く(毎フレーム、親が動いた後に呼ぶ)
+			 * @brief ベビーカーを親の前に置き、赤ちゃんをベビーカーの中に置く
+			 * @details 親の向きに合わせて回す(毎フレーム、親が動いた後に呼ぶ)
 			 */
 			void UpdateStroller();
 			/**
@@ -232,6 +232,8 @@ namespace app
 			bool m_hasSpawn;
 			/** ベビーカーのモデル(ベビーカーが無い組は nullptr) */
 			std::unique_ptr<ModelRender> m_strollerRender;
+			/** ベビーカーに乗っている赤ちゃんのモデル(ベビーカーが無い組は nullptr) */
+			std::unique_ptr<ModelRender> m_babyRender;
 		};
 	}
 }

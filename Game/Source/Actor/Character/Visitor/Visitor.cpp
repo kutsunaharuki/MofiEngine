@@ -138,8 +138,8 @@ namespace app
 
 
 			/********** カップル(1) **********/
-			// ※ アニメーションがまだ無いので、VISITOR_MODEL_DATA_LIST では今あるモデルを仮に指している。
-			//    animData/Visitor/CoupleA/ に 4 つ置いたら、一覧の行を &COUPLE_A_MODEL_DATA に差し替える
+			// ※ アニメーションがまだ無いので、モデルだけ読む(動かずに立ったまま、すべるように動く)。
+			//    animData/Visitor/CoupleA/ に 4 つ置いたら、下のモデルデータの nullptr と 0 を元に戻す
 
 			/** カップル(1)のアニメーションデータ */
 			const AnimationData COUPLE_A_ANIMATION_DATA[] =
@@ -156,15 +156,15 @@ namespace app
 			const ModelData COUPLE_A_MODEL_DATA =
 			{
 				"Assets/modelData/Visitor/Couple/CouplePerson01.tkm",
-				COUPLE_A_ANIMATION_DATA,
+				nullptr,	// TODO: アニメーションが来たら COUPLE_A_ANIMATION_DATA に
 				enModelUpAxisZ,
-				VISITOR_ANIMATION_NUM
+				0			// TODO: アニメーションが来たら VISITOR_ANIMATION_NUM に
 			};
 
 
 			/********** カップル(2) **********/
-			// ※ アニメーションがまだ無いので、VISITOR_MODEL_DATA_LIST では今あるモデルを仮に指している。
-			//    animData/Visitor/CoupleB/ に 4 つ置いたら、一覧の行を &COUPLE_B_MODEL_DATA に差し替える
+			// ※ アニメーションがまだ無いので、モデルだけ読む(動かずに立ったまま、すべるように動く)。
+			//    animData/Visitor/CoupleB/ に 4 つ置いたら、下のモデルデータの nullptr と 0 を元に戻す
 
 			/** カップル(2)のアニメーションデータ */
 			const AnimationData COUPLE_B_ANIMATION_DATA[] =
@@ -181,15 +181,15 @@ namespace app
 			const ModelData COUPLE_B_MODEL_DATA =
 			{
 				"Assets/modelData/Visitor/Couple/CouplePerson02.tkm",
-				COUPLE_B_ANIMATION_DATA,
+				nullptr,	// TODO: アニメーションが来たら COUPLE_B_ANIMATION_DATA に
 				enModelUpAxisZ,
-				VISITOR_ANIMATION_NUM
+				0			// TODO: アニメーションが来たら VISITOR_ANIMATION_NUM に
 			};
 
 
 			/********** カップル(3) **********/
-			// ※ アニメーションがまだ無いので、VISITOR_MODEL_DATA_LIST では今あるモデルを仮に指している。
-			//    animData/Visitor/CoupleC/ に 4 つ置いたら、一覧の行を &COUPLE_C_MODEL_DATA に差し替える
+			// ※ アニメーションがまだ無いので、モデルだけ読む(動かずに立ったまま、すべるように動く)。
+			//    animData/Visitor/CoupleC/ に 4 つ置いたら、下のモデルデータの nullptr と 0 を元に戻す
 
 			/** カップル(3)のアニメーションデータ */
 			const AnimationData COUPLE_C_ANIMATION_DATA[] =
@@ -206,15 +206,15 @@ namespace app
 			const ModelData COUPLE_C_MODEL_DATA =
 			{
 				"Assets/modelData/Visitor/Couple/CouplePerson03.tkm",
-				COUPLE_C_ANIMATION_DATA,
+				nullptr,	// TODO: アニメーションが来たら COUPLE_C_ANIMATION_DATA に
 				enModelUpAxisZ,
-				VISITOR_ANIMATION_NUM
+				0			// TODO: アニメーションが来たら VISITOR_ANIMATION_NUM に
 			};
 
 
 			/********** カップル(4) **********/
-			// ※ アニメーションがまだ無いので、VISITOR_MODEL_DATA_LIST では今あるモデルを仮に指している。
-			//    animData/Visitor/CoupleD/ に 4 つ置いたら、一覧の行を &COUPLE_D_MODEL_DATA に差し替える
+			// ※ アニメーションがまだ無いので、モデルだけ読む(動かずに立ったまま、すべるように動く)。
+			//    animData/Visitor/CoupleD/ に 4 つ置いたら、下のモデルデータの nullptr と 0 を元に戻す
 
 			/** カップル(4)のアニメーションデータ */
 			const AnimationData COUPLE_D_ANIMATION_DATA[] =
@@ -231,15 +231,15 @@ namespace app
 			const ModelData COUPLE_D_MODEL_DATA =
 			{
 				"Assets/modelData/Visitor/Couple/CouplePerson04.tkm",
-				COUPLE_D_ANIMATION_DATA,
+				nullptr,	// TODO: アニメーションが来たら COUPLE_D_ANIMATION_DATA に
 				enModelUpAxisZ,
-				VISITOR_ANIMATION_NUM
+				0			// TODO: アニメーションが来たら VISITOR_ANIMATION_NUM に
 			};
 
 
 			/********** カップル(5) **********/
-			// ※ アニメーションがまだ無いので、VISITOR_MODEL_DATA_LIST では今あるモデルを仮に指している。
-			//    animData/Visitor/CoupleE/ に 4 つ置いたら、一覧の行を &COUPLE_E_MODEL_DATA に差し替える
+			// ※ アニメーションがまだ無いので、モデルだけ読む(動かずに立ったまま、すべるように動く)。
+			//    animData/Visitor/CoupleE/ に 4 つ置いたら、下のモデルデータの nullptr と 0 を元に戻す
 
 			/** カップル(5)のアニメーションデータ */
 			const AnimationData COUPLE_E_ANIMATION_DATA[] =
@@ -256,15 +256,15 @@ namespace app
 			const ModelData COUPLE_E_MODEL_DATA =
 			{
 				"Assets/modelData/Visitor/Couple/CouplePerson05.tkm",
-				COUPLE_E_ANIMATION_DATA,
+				nullptr,	// TODO: アニメーションが来たら COUPLE_E_ANIMATION_DATA に
 				enModelUpAxisZ,
-				VISITOR_ANIMATION_NUM
+				0			// TODO: アニメーションが来たら VISITOR_ANIMATION_NUM に
 			};
 
 
 			/********** 家族の大人(1) **********/
-			// ※ アニメーションがまだ無いので、VISITOR_MODEL_DATA_LIST では今あるモデルを仮に指している。
-			//    animData/Visitor/FamilyWomanA/ に 4 つ置いたら、一覧の行を &FAMILY_WOMAN_A_MODEL_DATA に差し替える
+			// ※ アニメーションがまだ無いので、モデルだけ読む(動かずに立ったまま、すべるように動く)。
+			//    animData/Visitor/FamilyWomanA/ に 4 つ置いたら、下のモデルデータの nullptr と 0 を元に戻す
 
 			/** 家族の大人(1)のアニメーションデータ */
 			const AnimationData FAMILY_WOMAN_A_ANIMATION_DATA[] =
@@ -281,15 +281,15 @@ namespace app
 			const ModelData FAMILY_WOMAN_A_MODEL_DATA =
 			{
 				"Assets/modelData/Visitor/Family/family_models/family_models/HumanoWoman01/HumanoWoman01.tkm",
-				FAMILY_WOMAN_A_ANIMATION_DATA,
+				nullptr,	// TODO: アニメーションが来たら FAMILY_WOMAN_A_ANIMATION_DATA に
 				enModelUpAxisZ,
-				VISITOR_ANIMATION_NUM
+				0			// TODO: アニメーションが来たら VISITOR_ANIMATION_NUM に
 			};
 
 
 			/********** 家族の大人(2) **********/
-			// ※ アニメーションがまだ無いので、VISITOR_MODEL_DATA_LIST では今あるモデルを仮に指している。
-			//    animData/Visitor/FamilyWomanB/ に 4 つ置いたら、一覧の行を &FAMILY_WOMAN_B_MODEL_DATA に差し替える
+			// ※ アニメーションがまだ無いので、モデルだけ読む(動かずに立ったまま、すべるように動く)。
+			//    animData/Visitor/FamilyWomanB/ に 4 つ置いたら、下のモデルデータの nullptr と 0 を元に戻す
 
 			/** 家族の大人(2)のアニメーションデータ */
 			const AnimationData FAMILY_WOMAN_B_ANIMATION_DATA[] =
@@ -306,15 +306,15 @@ namespace app
 			const ModelData FAMILY_WOMAN_B_MODEL_DATA =
 			{
 				"Assets/modelData/Visitor/Family/family_models/family_models/HumanoWoman02/HumanoWoman02.tkm",
-				FAMILY_WOMAN_B_ANIMATION_DATA,
+				nullptr,	// TODO: アニメーションが来たら FAMILY_WOMAN_B_ANIMATION_DATA に
 				enModelUpAxisZ,
-				VISITOR_ANIMATION_NUM
+				0			// TODO: アニメーションが来たら VISITOR_ANIMATION_NUM に
 			};
 
 
 			/********** 家族の大人(3) **********/
-			// ※ アニメーションがまだ無いので、VISITOR_MODEL_DATA_LIST では今あるモデルを仮に指している。
-			//    animData/Visitor/FamilyWomanC/ に 4 つ置いたら、一覧の行を &FAMILY_WOMAN_C_MODEL_DATA に差し替える
+			// ※ アニメーションがまだ無いので、モデルだけ読む(動かずに立ったまま、すべるように動く)。
+			//    animData/Visitor/FamilyWomanC/ に 4 つ置いたら、下のモデルデータの nullptr と 0 を元に戻す
 
 			/** 家族の大人(3)のアニメーションデータ */
 			const AnimationData FAMILY_WOMAN_C_ANIMATION_DATA[] =
@@ -331,15 +331,15 @@ namespace app
 			const ModelData FAMILY_WOMAN_C_MODEL_DATA =
 			{
 				"Assets/modelData/Visitor/Family/family_models/family_models/HumanoWoman03/HumanoWoman03.tkm",
-				FAMILY_WOMAN_C_ANIMATION_DATA,
+				nullptr,	// TODO: アニメーションが来たら FAMILY_WOMAN_C_ANIMATION_DATA に
 				enModelUpAxisZ,
-				VISITOR_ANIMATION_NUM
+				0			// TODO: アニメーションが来たら VISITOR_ANIMATION_NUM に
 			};
 
 
 			/********** 家族の大人(4) **********/
-			// ※ アニメーションがまだ無いので、VISITOR_MODEL_DATA_LIST では今あるモデルを仮に指している。
-			//    animData/Visitor/FamilyWomanD/ に 4 つ置いたら、一覧の行を &FAMILY_WOMAN_D_MODEL_DATA に差し替える
+			// ※ アニメーションがまだ無いので、モデルだけ読む(動かずに立ったまま、すべるように動く)。
+			//    animData/Visitor/FamilyWomanD/ に 4 つ置いたら、下のモデルデータの nullptr と 0 を元に戻す
 
 			/** 家族の大人(4)のアニメーションデータ */
 			const AnimationData FAMILY_WOMAN_D_ANIMATION_DATA[] =
@@ -356,15 +356,15 @@ namespace app
 			const ModelData FAMILY_WOMAN_D_MODEL_DATA =
 			{
 				"Assets/modelData/Visitor/Family/family_models/family_models/HumanoWoman04/HumanoWoman04.tkm",
-				FAMILY_WOMAN_D_ANIMATION_DATA,
+				nullptr,	// TODO: アニメーションが来たら FAMILY_WOMAN_D_ANIMATION_DATA に
 				enModelUpAxisZ,
-				VISITOR_ANIMATION_NUM
+				0			// TODO: アニメーションが来たら VISITOR_ANIMATION_NUM に
 			};
 
 
 			/********** 家族の子供 **********/
-			// ※ アニメーションがまだ無いので、VISITOR_MODEL_DATA_LIST では今あるモデルを仮に指している。
-			//    animData/Visitor/FamilyBoy/ に 4 つ置いたら、一覧の行を &FAMILY_BOY_MODEL_DATA に差し替える
+			// ※ アニメーションがまだ無いので、モデルだけ読む(動かずに立ったまま、すべるように動く)。
+			//    animData/Visitor/FamilyBoy/ に 4 つ置いたら、下のモデルデータの nullptr と 0 を元に戻す
 
 			/** 家族の子供のアニメーションデータ */
 			const AnimationData FAMILY_BOY_ANIMATION_DATA[] =
@@ -381,15 +381,15 @@ namespace app
 			const ModelData FAMILY_BOY_MODEL_DATA =
 			{
 				"Assets/modelData/Visitor/Family/family_models/family_models/LittleBoy/LittleBoy.tkm",
-				FAMILY_BOY_ANIMATION_DATA,
+				nullptr,	// TODO: アニメーションが来たら FAMILY_BOY_ANIMATION_DATA に
 				enModelUpAxisZ,
-				VISITOR_ANIMATION_NUM
+				0			// TODO: アニメーションが来たら VISITOR_ANIMATION_NUM に
 			};
 
 
 			/********** 学生 **********/
-			// ※ アニメーションがまだ無いので、VISITOR_MODEL_DATA_LIST では今あるモデルを仮に指している。
-			//    animData/Visitor/Student/ に 4 つ置いたら、一覧の行を &STUDENT_MODEL_DATA に差し替える
+			// ※ アニメーションがまだ無いので、モデルだけ読む(動かずに立ったまま、すべるように動く)。
+			//    animData/Visitor/Student/ に 4 つ置いたら、下のモデルデータの nullptr と 0 を元に戻す
 
 			/** 学生のアニメーションデータ */
 			const AnimationData STUDENT_ANIMATION_DATA[] =
@@ -406,9 +406,9 @@ namespace app
 			const ModelData STUDENT_MODEL_DATA =
 			{
 				"Assets/modelData/Visitor/Student/student_models (1)/student_models/YoungBoy/YoungBoy.tkm",
-				STUDENT_ANIMATION_DATA,
+				nullptr,	// TODO: アニメーションが来たら STUDENT_ANIMATION_DATA に
 				enModelUpAxisZ,
-				VISITOR_ANIMATION_NUM
+				0			// TODO: アニメーションが来たら VISITOR_ANIMATION_NUM に
 			};
 
 
@@ -422,17 +422,17 @@ namespace app
 				,	&WOMAN_AFRO_MODEL_DATA	// アフロの女性
 				,	&WOMAN_ASIAN_MODEL_DATA	// アジア系の女性
 				,	&WOMAN_EURO_MODEL_DATA	// ヨーロッパ系の女性
-				,	&OFFICE_MAN_MODEL_DATA	// カップル(1)  TODO: アニメーションが来たら &COUPLE_A_MODEL_DATA に
-				,	&WOMAN_EURO_MODEL_DATA	// カップル(2)  TODO: アニメーションが来たら &COUPLE_B_MODEL_DATA に
-				,	&KAREN_MODEL_DATA	// カップル(3)  TODO: アニメーションが来たら &COUPLE_C_MODEL_DATA に
-				,	&WOMAN_ASIAN_MODEL_DATA	// カップル(4)  TODO: アニメーションが来たら &COUPLE_D_MODEL_DATA に
-				,	&WOMAN_AFRO_MODEL_DATA	// カップル(5)  TODO: アニメーションが来たら &COUPLE_E_MODEL_DATA に
-				,	&WOMAN_ASIAN_MODEL_DATA	// 家族の大人(1)  TODO: アニメーションが来たら &FAMILY_WOMAN_A_MODEL_DATA に
-				,	&WOMAN_EURO_MODEL_DATA	// 家族の大人(2)  TODO: アニメーションが来たら &FAMILY_WOMAN_B_MODEL_DATA に
-				,	&WOMAN_AFRO_MODEL_DATA	// 家族の大人(3)  TODO: アニメーションが来たら &FAMILY_WOMAN_C_MODEL_DATA に
-				,	&KAREN_MODEL_DATA	// 家族の大人(4)  TODO: アニメーションが来たら &FAMILY_WOMAN_D_MODEL_DATA に
-				,	&OFFICE_MAN_MODEL_DATA	// 家族の子供  TODO: アニメーションが来たら &FAMILY_BOY_MODEL_DATA に
-				,	&OFFICE_MAN_MODEL_DATA	// 学生  TODO: アニメーションが来たら &STUDENT_MODEL_DATA に
+				,	&COUPLE_A_MODEL_DATA	// カップル(1)
+				,	&COUPLE_B_MODEL_DATA	// カップル(2)
+				,	&COUPLE_C_MODEL_DATA	// カップル(3)
+				,	&COUPLE_D_MODEL_DATA	// カップル(4)
+				,	&COUPLE_E_MODEL_DATA	// カップル(5)
+				,	&FAMILY_WOMAN_A_MODEL_DATA	// 家族の大人(1)
+				,	&FAMILY_WOMAN_B_MODEL_DATA	// 家族の大人(2)
+				,	&FAMILY_WOMAN_C_MODEL_DATA	// 家族の大人(3)
+				,	&FAMILY_WOMAN_D_MODEL_DATA	// 家族の大人(4)
+				,	&FAMILY_BOY_MODEL_DATA	// 家族の子供
+				,	&STUDENT_MODEL_DATA	// 学生
 			};
 
 			// VISITOR_MODEL_DATA_LIST の数と、VisitorType の数があっているかをコンパイル時にチェック

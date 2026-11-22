@@ -42,6 +42,12 @@ namespace app
 			Vector3 strollerScale;
 			/** ベビーカーの向きを直す角度(度。モデルが横や後ろを向いている時に使う) */
 			float strollerYawDeg;
+			/** 赤ちゃんを、ベビーカーからどれだけずらして置くか(x:右, y:上, z:前。親の向きで回す) */
+			Vector3 babyOffset;
+			/** 赤ちゃんの大きさ */
+			Vector3 babyScale;
+			/** 赤ちゃんの向きを直す角度(度。モデルが横や後ろを向いている時に使う) */
+			float babyYawDeg;
 
 
 			VisitorGroupParameter()
@@ -57,6 +63,9 @@ namespace app
 				, strollerDistance(50.0f)
 				, strollerScale(Vector3::One)
 				, strollerYawDeg(0.0f)
+				, babyOffset(Vector3::Zero)
+				, babyScale(Vector3::One)
+				, babyYawDeg(0.0f)
 			{}
 
 
@@ -78,6 +87,9 @@ namespace app
 				strollerDistance = file.GetFloat("strollerDistance", strollerDistance);
 				strollerScale = file.GetVector3("strollerScale", strollerScale);
 				strollerYawDeg = file.GetFloat("strollerYawDeg", strollerYawDeg);
+				babyOffset = file.GetVector3("babyOffset", babyOffset);
+				babyScale = file.GetVector3("babyScale", babyScale);
+				babyYawDeg = file.GetFloat("babyYawDeg", babyYawDeg);
 			}
 		};
 

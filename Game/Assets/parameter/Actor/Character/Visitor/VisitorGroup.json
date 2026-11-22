@@ -11,5 +11,8 @@
   "talkRate":0.4,
   "strollerDistance":50.0,
   "strollerScale":[10,10,10],
-  "strollerYawDeg":0.0
+  "strollerYawDeg":0.0,
+  "babyOffset":[0,40,0],
+  "babyScale":[10,10,10],
+  "babyYawDeg":0.0
 }

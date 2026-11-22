@@ -48,6 +48,8 @@ namespace app
 
 			/** ベビーカーのモデルの場所 */
 			constexpr const char* STROLLER_MODEL_PATH = "Assets/modelData/Visitor/Family/family_models/family_models/BabyStroller/BabyStroller.tkm";
+			/** 赤ちゃんのモデルの場所 */
+			constexpr const char* BABY_MODEL_PATH = "Assets/modelData/Visitor/Family/family_models/family_models/Baby/Baby.tkm";
 
 			/** SetSpawn を呼ばなかった時(試し用)に選ぶ見た目(今までの 5 人) */
 			const Visitor::VisitorType DEFAULT_TYPE_LIST[] =
@@ -174,6 +176,7 @@ namespace app
 			}
 
 			if (m_strollerRender) m_strollerRender->Draw(rc);
+			if (m_babyRender) m_babyRender->Draw(rc);
 		}
 
 
@@ -474,9 +477,12 @@ namespace app
 
 		void VisitorGroup::InitStroller()
 		{
-			// ベビーカーは動かないので、アニメーションは無し
+			// ベビーカーと赤ちゃんは動かないので、アニメーションは無し
 			m_strollerRender = std::make_unique<ModelRender>();
 			m_strollerRender->Init(STROLLER_MODEL_PATH, nullptr, enModelUpAxisZ, 0);
+
+			m_babyRender = std::make_unique<ModelRender>();
+			m_babyRender->Init(BABY_MODEL_PATH, nullptr, enModelUpAxisZ, 0);
 		}
 
 
@@ -506,6 +512,20 @@ namespace app
 
 			m_strollerRender->SetTRS(position, rotation, parameter.strollerScale);
 			m_strollerRender->Update();
+
+			// 赤ちゃんは、ベビーカーの中に置く(ずらす量は親の向きで回す。親が曲がっても、中からずれない)
+			if (!m_babyRender) return;
+
+			Vector3 babyOffset = parameter.babyOffset;
+			leaderTransform.GetWorldRotation().Apply(babyOffset);
+
+			Quaternion babyYawFix;
+			babyYawFix.SetRotationDegY(parameter.babyYawDeg);
+			Quaternion babyRotation;
+			babyRotation.Multiply(leaderTransform.GetWorldRotation(), babyYawFix);
+
+			m_babyRender->SetTRS(position + babyOffset, babyRotation, parameter.babyScale);
+			m_babyRender->Update();
 		}
 	}
 }
