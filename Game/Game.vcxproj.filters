@@ -103,6 +103,9 @@
     <Filter Include="Source\UI\JudgeMenu">
       <UniqueIdentifier>{61aac9b5-f0ba-4f2c-9cda-d6e472ccc205}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\UI\TimerMenu">
+      <UniqueIdentifier>{b997f145-3613-4ab3-b907-1703112f132e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -332,6 +335,9 @@
     </ClCompile>
     <ClCompile Include="Source\UI\JudgeMenu\JudgeMenu.cpp">
       <Filter>Source\UI\JudgeMenu</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\TimerMenu\TimerMenu.cpp">
+      <Filter>Source\UI\TimerMenu</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -577,6 +583,9 @@
     </ClInclude>
     <ClInclude Include="Source\UI\JudgeMenu\JudgeMenu.h">
       <Filter>Source\UI\JudgeMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\TimerMenu\TimerMenu.h">
+      <Filter>Source\UI\TimerMenu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
