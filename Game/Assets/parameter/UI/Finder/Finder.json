@@ -29,25 +29,6 @@
       },
       {
         "type":"UIIcon",
-        "name":"FocusBar",
-        "asset":"Assets/spriteData/UI/Finder/FinderFocusCylinder.DDS",
-        "width":95,
-        "height":1032,
-        "position":[-810,0,0],
-        "scale":[0.7,0.7,1]
-      },
-      {
-        "type":"UIIcon",
-        "name":"FocusKnob",
-        "asset":"Assets/spriteData/UI/Finder/FinderFocusKnob.DDS",
-        "width":106,
-        "height":74,
-        "position":[-805,0,0],
-        "scale":[0.6,0.6,1],
-        "rotation":0
-      },
-      {
-        "type":"UIIcon",
         "name":"ZoomBar",
         "asset":"Assets/spriteData/UI/Finder/FinderZoomSlider.DDS",
         "width":173,
@@ -103,6 +84,76 @@
         "position":[-200,-430,0],
         "color":[0.5,0.85,1.0,0.9],
         "pivot":[0,0.5]
+      },
+      {
+        "comment":"ボタンの案内: RT の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"FinderGuideIconRt",
+        "asset":"Assets/spriteData/UI/Button/xbox_rt.dds",
+        "width":56,
+        "height":56,
+        "position":[-118,-475,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: RT で何をするか",
+        "type":"UIText",
+        "name":"FinderGuideTextRt",
+        "text":"撮る",
+        "position":[-84,-475,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"ボタンの案内: LT の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"FinderGuideIconLt",
+        "asset":"Assets/spriteData/UI/Button/xbox_lt.dds",
+        "width":56,
+        "height":56,
+        "position":[33,-475,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: LT で何をするか",
+        "type":"UIText",
+        "name":"FinderGuideTextLt",
+        "text":"やめる",
+        "position":[67,-475,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"ズームの一番上: RB で寄る(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"ZoomGuideIconRb",
+        "asset":"Assets/spriteData/UI/Button/xbox_rb.dds",
+        "width":56,
+        "height":56,
+        "position":[789,405,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ズームの一番下: LB で引く(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"ZoomGuideIconLb",
+        "asset":"Assets/spriteData/UI/Button/xbox_lb.dds",
+        "width":56,
+        "height":56,
+        "position":[789,-405,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
       }
     ]
   }

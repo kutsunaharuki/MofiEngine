@@ -171,8 +171,10 @@ namespace app
 			UIText* m_rateText;
 			/** 写真の下の文 */
 			UIText* m_detailText;
-			/** 「A で続ける」の文字 */
+			/** 「続ける」の文字 */
 			UIText* m_hintText;
+			/** 「で続ける」の横の A の絵(文字と一緒に点滅させる) */
+			UIIcon* m_hintIcon;
 
 			/** 写真の枠の、JSON に書いた大きさ(動きの基準) */
 			Vector3 m_photoFrameBaseScale;

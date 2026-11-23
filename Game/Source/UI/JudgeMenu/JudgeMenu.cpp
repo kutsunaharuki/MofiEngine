@@ -26,6 +26,8 @@ namespace app
 			constexpr const char* RATE_NAME = "JudgeRate";
 			constexpr const char* DETAIL_NAME = "JudgeDetail";
 			constexpr const char* HINT_NAME = "JudgeHint";
+			/** 「で続ける」の横の A の絵の名前 */
+			constexpr const char* HINT_ICON_NAME = "JudgeHintIconA";
 
 			// チェックリスト
 			/** 四角いチェックボックスの画像(白で描いて、色はコードで付ける。仮の画像を上書きすれば差し替わる) */
@@ -146,6 +148,7 @@ namespace app
 			, m_rateText(nullptr)
 			, m_detailText(nullptr)
 			, m_hintText(nullptr)
+			, m_hintIcon(nullptr)
 			, m_photoFrameBaseScale(Vector3::One)
 			, m_photoBaseScale(Vector3::One)
 			, m_stampBaseScale(Vector3::One)
@@ -175,6 +178,7 @@ namespace app
 			m_rateText = FindUI<UIText>(RATE_NAME);
 			m_detailText = FindUI<UIText>(DETAIL_NAME);
 			m_hintText = FindUI<UIText>(HINT_NAME);
+			m_hintIcon = FindUI<UIIcon>(HINT_ICON_NAME);
 
 			// 動きの基準は JSON に書いた大きさ(作り直した直後なので、まだ動きで変わっていない)
 			if (m_photoFrame) m_photoFrameBaseScale = m_photoFrame->GetScale();
@@ -353,6 +357,17 @@ namespace app
 					Vector4 color = UIStyle::Get().subColor;
 					color.w *= 0.6f + 0.4f * (wave * 0.5f + 0.5f);
 					m_hintText->SetColor(color);
+				}
+			}
+			// A の絵も、文字と同じ時に出して、同じように点滅させる
+			if (m_hintIcon)
+			{
+				const bool canClose = CanClose();
+				m_hintIcon->SetIsDraw(canClose);
+				if (canClose)
+				{
+					const float wave = std::sin(m_timer * HINT_BLINK_SPEED * 2.0f * Math::PI);
+					m_hintIcon->SetColor(Vector4(1.0f, 1.0f, 1.0f, 0.6f + 0.4f * (wave * 0.5f + 0.5f)));
 				}
 			}
 		}

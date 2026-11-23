@@ -32,6 +32,126 @@
         "position":[-920,470,0],
         "color":[1,1,1,1],
         "pivot":[0,0.5]
+      },
+      {
+        "comment":"ボタンの案内: 左スティック の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"PlayGuideIconStickL",
+        "asset":"Assets/spriteData/UI/Button/xbox_stick_l.dds",
+        "width":56,
+        "height":56,
+        "position":[157,-490,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: 左スティック で何をするか",
+        "type":"UIText",
+        "name":"PlayGuideTextStickL",
+        "text":"移動",
+        "position":[191,-490,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"ボタンの案内: 左スティック押しこみ の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"PlayGuideIconStickSideL",
+        "asset":"Assets/spriteData/UI/Button/xbox_stick_side_l.dds",
+        "width":56,
+        "height":56,
+        "position":[308,-490,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: 左スティック押しこみ で何をするか",
+        "type":"UIText",
+        "name":"PlayGuideTextStickSideL",
+        "text":"走る",
+        "position":[342,-490,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"ボタンの案内: 右スティック の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"PlayGuideIconStickR",
+        "asset":"Assets/spriteData/UI/Button/xbox_stick_r.dds",
+        "width":56,
+        "height":56,
+        "position":[459,-490,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: 右スティック で何をするか",
+        "type":"UIText",
+        "name":"PlayGuideTextStickR",
+        "text":"視点",
+        "position":[493,-490,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"ボタンの案内: LT の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"PlayGuideIconLt",
+        "asset":"Assets/spriteData/UI/Button/xbox_lt.dds",
+        "width":56,
+        "height":56,
+        "position":[610,-490,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: LT で何をするか",
+        "type":"UIText",
+        "name":"PlayGuideTextLt",
+        "text":"構える",
+        "position":[644,-490,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"ボタンの案内: START の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"PlayGuideIconStart",
+        "asset":"Assets/spriteData/UI/Button/MenuButton.DDS",
+        "width":56,
+        "height":56,
+        "position":[787,-490,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: START で何をするか",
+        "type":"UIText",
+        "name":"PlayGuideTextStart",
+        "text":"ポーズ",
+        "position":[821,-490,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
       }
     ]
   }

@@ -42,7 +42,7 @@ namespace app
 			{
 				m_selectButtonList[i] = FindUI<UIButton>(SELECT_BUTTON_NAME_LIST[i]);
 			}
-
+			 
 			// 作り直したボタンは選んでいる形を持っていないので、入れ直す
 			ApplySelect();
 		}

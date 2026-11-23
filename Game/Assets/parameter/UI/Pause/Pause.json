@@ -60,14 +60,76 @@
         "textScale":0.8
       },
       {
-        "comment":"操作のヒント",
-        "type":"UIText",
-        "name":"PauseHint",
-        "text":"A で決める   B / START で もどる",
-        "position":[0,-220,0],
-        "scale":[0.55,0.55,1],
-        "color":[1,1,1,0.8],
+        "comment":"ボタンの案内: 十字キー上下 の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"PauseGuideIconDpadVertical",
+        "asset":"Assets/spriteData/UI/Button/xbox_dpad_vertical.dds",
+        "width":56,
+        "height":56,
+        "position":[-193,-220,0],
+        "color":[1,1,1,1],
         "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: 十字キー上下 で何をするか",
+        "type":"UIText",
+        "name":"PauseGuideTextDpadVertical",
+        "text":"選ぶ",
+        "position":[-159,-220,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"ボタンの案内: A の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"PauseGuideIconA",
+        "asset":"Assets/spriteData/UI/Button/Abutton.DDS",
+        "width":56,
+        "height":56,
+        "position":[-43,-220,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: A で何をするか",
+        "type":"UIText",
+        "name":"PauseGuideTextA",
+        "text":"決定",
+        "position":[-9,-220,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"ボタンの案内: B の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"PauseGuideIconB",
+        "asset":"Assets/spriteData/UI/Button/Bbutton.DDS",
+        "width":56,
+        "height":56,
+        "position":[108,-220,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: B で何をするか",
+        "type":"UIText",
+        "name":"PauseGuideTextB",
+        "text":"もどる",
+        "position":[142,-220,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
       }
     ]
   }

@@ -116,6 +116,54 @@
         "height":72,
         "position":[250,-450,0],
         "textScale":0.9
+      },
+      {
+        "comment":"ボタンの案内: 十字キー左右 の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"ResultGuideIconDpadHorizontal",
+        "asset":"Assets/spriteData/UI/Button/xbox_dpad_horizontal.dds",
+        "width":56,
+        "height":56,
+        "position":[662,-450,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: 十字キー左右 で何をするか",
+        "type":"UIText",
+        "name":"ResultGuideTextDpadHorizontal",
+        "text":"選ぶ",
+        "position":[696,-450,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"ボタンの案内: A の絵(画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"ResultGuideIconA",
+        "asset":"Assets/spriteData/UI/Button/Abutton.DDS",
+        "width":56,
+        "height":56,
+        "position":[813,-450,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ボタンの案内: A で何をするか",
+        "type":"UIText",
+        "name":"ResultGuideTextA",
+        "text":"決定",
+        "position":[847,-450,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
       }
     ]
   }
