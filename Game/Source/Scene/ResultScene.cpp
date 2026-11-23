@@ -8,6 +8,7 @@
 #include "InGameScene.h"
 #include "Source/Manager/GameResult.h"
 #include "Source/UI/ResultMenu/ResultMenu.h"
+#include "Source/Mission/MissionText.h"
 #include <algorithm>
 
 
@@ -31,44 +32,9 @@ namespace app
 		constexpr int FAILED_ITEM_MAX = 4;
 
 
-		/**
-		 * @brief 悪党の名前
-		 * @param type 悪党の種類
-		 * @return 名前
-		 */
-		const wchar_t* GetEnemyName(const actor::EnemyBase::EnemyType type)
-		{
-			switch (type)
-			{
-			case actor::EnemyBase::EnemyType::BigMan: return L"大男";
-			case actor::EnemyBase::EnemyType::RatMan: return L"ねずみ男";
-			default:                                  return L"";
-			}
-		}
-
-
-		/**
-		 * @brief 照合の項目の名前(NG の時に出す)
-		 * @param item 照合の項目
-		 * @return 名前
-		 */
-		const wchar_t* GetMatchItemName(const mission::MatchItem item)
-		{
-			switch (item)
-			{
-			case mission::MatchItem::Target:      return L"狙いと違う悪党";
-			case mission::MatchItem::Stealing:    return L"盗んでいない";
-			case mission::MatchItem::Focus:       return L"ピント";
-			case mission::MatchItem::FaceAngle:   return L"顔の向き";
-			case mission::MatchItem::FaceBlocked: return L"顔が隠れている";
-			case mission::MatchItem::FaceInFrame: return L"顔が枠の外";
-			case mission::MatchItem::Yaw:         return L"左右の角度";
-			case mission::MatchItem::Pitch:       return L"上下の角度";
-			case mission::MatchItem::Size:        return L"大きさ";
-			case mission::MatchItem::Position:    return L"位置";
-			default:                              return L"";
-			}
-		}
+		// 悪党の名前・照合の項目の名前は MissionText.h(ジャッジの UI と同じ名前を使う)
+		using mission::GetEnemyName;
+		using mission::GetMatchItemName;
 
 
 		/**
@@ -264,6 +230,8 @@ namespace app
 
 		// A で決める(移るのは RequestScene)
 		if (!g_pad[0]->IsTrigger(enButtonA)) return;
+		// 決めたボタンを押した形にする(見た目は View が変える)
+		if (m_resultMenu) m_resultMenu->PressSelect();
 		switch (selectType)
 		{
 		case ui::ResultMenu::SelectType::Retry: m_nextSceneId = InGameScene::ID(); break;

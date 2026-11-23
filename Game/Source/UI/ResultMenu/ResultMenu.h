@@ -109,6 +109,10 @@ namespace app
 			 * @param type 選んでいる項目
 			 */
 			void SetSelect(const SelectType type);
+			/**
+			 * @brief 選んでいる項目のボタンを押した形にする(決めた時に呼ぶ)
+			 */
+			void PressSelect();
 
 
 		private:
@@ -129,7 +133,7 @@ namespace app
 			 */
 			void CreatePhotos();
 			/**
-			 * @brief 選んでいる項目の色と大きさを変える
+			 * @brief 選んでいる項目のボタンを、選択中の形にする(ほかは通常の形)
 			 */
 			void ApplySelect();
 
@@ -166,10 +170,8 @@ namespace app
 			UIBase* m_photoBase;
 			/** 写真が無い時の文字 */
 			UIText* m_emptyText;
-			/** 選べる項目の文字(SelectType の順) */
-			std::array<UIText*, static_cast<size_t>(SelectType::Max)> m_selectTextList;
-			/** 選べる項目の文字の、JSON のスケール(選んだ時はこれより大きくする) */
-			std::array<Vector3, static_cast<size_t>(SelectType::Max)> m_selectBaseScaleList;
+			/** 選べる項目のボタン(SelectType の順。色と大きさはボタンが変える) */
+			std::array<UIButton*, static_cast<size_t>(SelectType::Max)> m_selectButtonList;
 
 			/** ここで作った UI のキー(作り直す時に消す) */
 			std::vector<uint32_t> m_createdKeyList;

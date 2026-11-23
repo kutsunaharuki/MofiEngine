@@ -100,6 +100,9 @@
     <Filter Include="Source\UI\ResultMenu">
       <UniqueIdentifier>{5d3b7a2e-8c41-4f6b-9e17-2b6c4a9f0d35}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\UI\JudgeMenu">
+      <UniqueIdentifier>{61aac9b5-f0ba-4f2c-9cda-d6e472ccc205}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -326,6 +329,9 @@
     </ClCompile>
     <ClCompile Include="Source\Mission\MissionManager.cpp">
       <Filter>Source\Mission</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\JudgeMenu\JudgeMenu.cpp">
+      <Filter>Source\UI\JudgeMenu</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -568,6 +574,9 @@
     </ClInclude>
     <ClInclude Include="Source\Mission\MissionManager.h">
       <Filter>Source\Mission</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\JudgeMenu\JudgeMenu.h">
+      <Filter>Source\UI\JudgeMenu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -135,5 +135,19 @@ namespace app
 			}
 			return failedList;
 		}
+
+
+		float MatchResult::GetSuccessRate() const
+		{
+			// 狙いと違う悪党を撮った時は、ほかの項目が合っていても意味が無いので 0
+			if (!isSuccess[static_cast<size_t>(MatchItem::Target)]) return 0.0f;
+
+			int successCount = 0;
+			for (const bool isItemSuccess : isSuccess)
+			{
+				if (isItemSuccess) ++successCount;
+			}
+			return static_cast<float>(successCount) / static_cast<float>(isSuccess.size());
+		}
 	}
 }

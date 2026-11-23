@@ -44,10 +44,6 @@ namespace app
 			/** 結果の文字のスケール */
 			const Vector3 PHOTO_LABEL_SCALE = { 0.5f,0.5f,1.0f };
 
-			// 選べる項目
-			/** 選んでいる時に、JSON のスケールに掛ける値 */
-			constexpr float SELECT_SCALE_RATE = 1.2f;
-
 			// 色
 			/** 成功・達成の色 */
 			const Vector4 COLOR_SUCCESS = Vector4(1.0f, 0.85f, 0.2f, 1.0f);
@@ -55,7 +51,7 @@ namespace app
 			const Vector4 COLOR_FAILED = Vector4(1.0f, 0.35f, 0.3f, 1.0f);
 			/** 数えなかった(失敗ではない)色 */
 			const Vector4 COLOR_NEUTRAL = Vector4(0.65f, 0.65f, 0.65f, 1.0f);
-			/** 選んでいない項目・写真そのままの色 */
+			/** 写真そのままの色 */
 			const Vector4 COLOR_WHITE = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
 			/** 左上を基準にする */
@@ -86,9 +82,7 @@ namespace app
 			, m_missionBase(nullptr)
 			, m_photoBase(nullptr)
 			, m_emptyText(nullptr)
-			, m_selectTextList{}
-			// ※ Vector3 は引数なしで作れないので、{} ではなく値を入れる(InitializeLogic で JSON のスケールに置き換わる)
-			, m_selectBaseScaleList{ Vector3::One, Vector3::One }
+			, m_selectButtonList{}
 			, m_selectType(SelectType::Retry)
 			, m_hasViewData(false)
 		{}
@@ -108,14 +102,8 @@ namespace app
 			m_missionBase = FindUI<UIBase>(MISSION_BASE_NAME);
 			m_photoBase = FindUI<UIBase>(PHOTO_BASE_NAME);
 			m_emptyText = FindUI<UIText>(EMPTY_NAME);
-			m_selectTextList[static_cast<size_t>(SelectType::Retry)] = FindUI<UIText>(RETRY_NAME);
-			m_selectTextList[static_cast<size_t>(SelectType::Title)] = FindUI<UIText>(TITLE_SELECT_NAME);
-
-			// 選んだ時に大きくするので、JSON のスケールを覚えておく
-			for (size_t i = 0; i < m_selectTextList.size(); ++i)
-			{
-				if (m_selectTextList[i]) m_selectBaseScaleList[i] = m_selectTextList[i]->GetScale();
-			}
+			m_selectButtonList[static_cast<size_t>(SelectType::Retry)] = FindUI<UIButton>(RETRY_NAME);
+			m_selectButtonList[static_cast<size_t>(SelectType::Title)] = FindUI<UIButton>(TITLE_SELECT_NAME);
 			ApplySelect();
 
 			// 値を設定した後(ホットリロード)なら、ここで作り直す
@@ -225,17 +213,22 @@ namespace app
 
 		void ResultMenu::ApplySelect()
 		{
-			for (int i = 0; i < static_cast<int>(m_selectTextList.size()); ++i)
+			for (int i = 0; i < static_cast<int>(m_selectButtonList.size()); ++i)
 			{
-				UIText* text = m_selectTextList[i];
-				if (text == nullptr) continue;
+				UIButton* button = m_selectButtonList[i];
+				if (button == nullptr) continue;
 
+				// 色と大きさは、ボタンが形に合わせて変える(全部の画面で同じ見た目)
 				const bool isSelected = i == static_cast<int>(m_selectType);
-				const Vector3& baseScale = m_selectBaseScaleList[i];
-				const float rate = isSelected ? SELECT_SCALE_RATE : 1.0f;
-				text->SetScale(Vector3(baseScale.x * rate, baseScale.y * rate, baseScale.z));
-				text->SetColor(isSelected ? COLOR_SUCCESS : COLOR_WHITE);
+				button->SetState(isSelected ? UIButton::ButtonState::Selected : UIButton::ButtonState::Normal);
 			}
+		}
+
+
+		void ResultMenu::PressSelect()
+		{
+			UIButton* button = m_selectButtonList[static_cast<size_t>(m_selectType)];
+			if (button) button->Press();
 		}
 
 

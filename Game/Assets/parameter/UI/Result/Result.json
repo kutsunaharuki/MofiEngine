@@ -2,15 +2,12 @@
   "canvas": {
     "elements": [
       {
-        "comment":"アルバムの背景(暗い板)",
-        "type":"UIIcon",
+        "comment":"アルバムの背景(共通の枠。色は UIStyle.json)",
+        "type":"UIFrame",
         "name":"ResultPanel",
-        "asset":"Assets/spriteData/UI/Common/White.DDS",
         "width":1600,
         "height":1000,
-        "position":[0,0,0],
-        "color":[0.05,0.05,0.08,0.85],
-        "pivot":[0.5,0.5]
+        "position":[0,0,0]
       },
       {
         "comment":"結果のタイトル(文字と色は ResultMenu が「ミッション成功 / 失敗」にする)",
@@ -58,30 +55,24 @@
         "pivot":[0.5,0.5]
       },
       {
-        "comment":"もう一度(インゲームへ)。選んでいる時は ResultMenu が色と大きさを変える",
-        "type":"UIText",
+        "comment":"もう一度(インゲームへ)。共通のボタン(選んでいる時・押した時の見た目はボタンが変える)",
+        "type":"UIButton",
         "name":"ResultRetry",
         "text":"もう一度",
-        "position":[-220,-430,0],
-        "scale":[0.9,0.9,1],
-        "color":[1,1,1,1],
-        "pivot":[0.5,0.5],
-        "shadow":true,
-        "shadowOffset":2,
-        "shadowColor":[0,0,0,1]
+        "width":320,
+        "height":64,
+        "position":[-220,-420,0],
+        "textScale":0.8
       },
       {
         "comment":"タイトルへ",
-        "type":"UIText",
+        "type":"UIButton",
         "name":"ResultToTitle",
         "text":"タイトルへ",
-        "position":[220,-430,0],
-        "scale":[0.9,0.9,1],
-        "color":[1,1,1,1],
-        "pivot":[0.5,0.5],
-        "shadow":true,
-        "shadowOffset":2,
-        "shadowColor":[0,0,0,1]
+        "width":320,
+        "height":64,
+        "position":[220,-420,0],
+        "textScale":0.8
       }
     ]
   }

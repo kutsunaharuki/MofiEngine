@@ -42,6 +42,8 @@ namespace app
 			actor::EnemyBase::EnemyType subjectType = actor::EnemyBase::EnemyType::Max;
 			/** 照合の結果(Counted / Failed の時だけ使う) */
 			MatchResult result;
+			/** 比べたミッションの番号(ミッションの一覧の順番。比べていなければ -1。見本の絵を出すのに使う) */
+			int missionIndex = -1;
 		};
 
 

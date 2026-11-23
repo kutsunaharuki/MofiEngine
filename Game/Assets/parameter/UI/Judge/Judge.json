@@ -1,0 +1,124 @@
+{
+  "canvas": {
+    "elements": [
+      {
+        "comment":"後ろを暗くする板(時間が止まっているのが分かるように。画面いっぱい・線なし)",
+        "type":"UIFrame",
+        "name":"JudgeBack",
+        "width":1920,
+        "height":1080,
+        "position":[0,0,0],
+        "fillColor":[0,0,0,0.55],
+        "borderWidth":0
+      },
+      {
+        "comment":"撮った写真のまわりの枠(線の色は一致度で JudgeMenu が変える)",
+        "type":"UIFrame",
+        "name":"JudgePhotoFrame",
+        "width":984,
+        "height":564,
+        "position":[-200,70,0],
+        "fillColor":[0,0,0,1],
+        "borderWidth":12
+      },
+      {
+        "comment":"撮った写真(画像は読まない。InGameScene がアルバムの写真を渡す。16:9)",
+        "type":"UIIcon",
+        "name":"JudgePhoto",
+        "asset":"",
+        "texture":true,
+        "width":960,
+        "height":540,
+        "position":[-200,70,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"チェックリストの枠(悪党が写っていない時などは消える。色は UIStyle.json)",
+        "type":"UIFrame",
+        "name":"JudgeCheckPanel",
+        "width":520,
+        "height":600,
+        "position":[620,70,0]
+      },
+      {
+        "comment":"チェックリストの見出し",
+        "type":"UIText",
+        "name":"JudgeCheckHeading",
+        "text":"チェック",
+        "position":[620,330,0],
+        "scale":[0.8,0.8,1],
+        "color":[0.95,0.93,0.88,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"チェックリストの 1 行目の印の位置(この下に JudgeMenu が行を作る)",
+        "type":"UIDummy",
+        "name":"JudgeCheckBase",
+        "position":[400,265,0]
+      },
+      {
+        "comment":"照合〇 のハンコ(写真の右下に、少し傾けて押す。文字はここで変えられる)",
+        "type":"UIText",
+        "name":"JudgeStampMatch",
+        "text":"照合〇",
+        "position":[100,-120,0],
+        "rotation":12,
+        "scale":[2.2,2.2,1],
+        "pivot":[0.5,0.5],
+        "shadow":true,
+        "shadowOffset":4,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"照合なし× のハンコ",
+        "type":"UIText",
+        "name":"JudgeStampMiss",
+        "text":"照合なし×",
+        "position":[60,-120,0],
+        "rotation":12,
+        "scale":[2.2,2.2,1],
+        "pivot":[0.5,0.5],
+        "shadow":true,
+        "shadowOffset":4,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"一致度(色は枠と同じ)",
+        "type":"UIText",
+        "name":"JudgeRate",
+        "text":"一致度 0%",
+        "position":[-680,-250,0],
+        "scale":[1.0,1.0,1],
+        "pivot":[0,1],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"写真の下の文(悪党の名前・何枚目か・数えなかった理由。InGameScene が作る)",
+        "type":"UIText",
+        "name":"JudgeDetail",
+        "text":"",
+        "position":[-680,-320,0],
+        "scale":[0.75,0.75,1],
+        "pivot":[0,1],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"閉じ方(ハンコを押し終わると、点滅して出る)",
+        "type":"UIText",
+        "name":"JudgeHint",
+        "text":"A / B で続ける",
+        "position":[620,-460,0],
+        "scale":[0.7,0.7,1],
+        "pivot":[0.5,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      }
+    ]
+  }
+}

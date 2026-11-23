@@ -86,6 +86,12 @@ namespace app
 		class PhotoSampleRenderer;
 	}
 
+	namespace ui
+	{
+		/** 照合ジャッジの表示 */
+		class JudgeMenu;
+	}
+
 
 	/**
 	 * @brief インゲームシーン
@@ -141,6 +147,15 @@ namespace app
 		 * @details 出すのは「進行中で、見本を描き終わった最初のミッション」の絵。無ければ見本の枠を消す
 		 */
 		void UpdatePhotoSample();
+		/**
+		 * @brief 最後に撮った写真の照合結果から、ジャッジの値を作って、ジャッジの UI を開く(時間が止まる)
+		 * @details MVP の Presenter の役目。撮った直後に呼ぶ
+		 */
+		void OpenJudge();
+		/**
+		 * @brief ジャッジの UI を開いている間の更新(閉じる入力を受ける)
+		 */
+		void UpdateJudge();
 
 
 	private:
@@ -209,6 +224,12 @@ namespace app
 		ui::UILayout m_sampleLayout;
 		/** 見本の絵のメニュー */
 		ui::SampleMenu* m_sampleMenu;
+		/** 照合ジャッジのUIレイアウト */
+		ui::UILayout m_judgeLayout;
+		/** 照合ジャッジのメニュー */
+		ui::JudgeMenu* m_judgeMenu;
+		/** 照合ジャッジを開いているか(開いている間は、ゲームの時間を止める) */
+		bool m_isJudgeOpen;
 
 		/** 敵の入力(ステージから美術品を探して、盗みに行く一覧を敵に渡す) */
 		actor::EnemyController m_enemyController;

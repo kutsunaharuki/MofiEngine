@@ -134,8 +134,13 @@ namespace app
 			// 進行中のミッションが無ければ、照合しない
 			record.status = ShotStatus::NoMission;
 
-			for (MissionData& mission : m_missionList)
+			// 結果を覚えたミッションの番号(ジャッジの UI で見本の絵を出すのに使う)
+			int lastMissionIndex = -1;
+
+			for (int missionIndex = 0; missionIndex < static_cast<int>(m_missionList.size()); ++missionIndex)
 			{
+				MissionData& mission = m_missionList[missionIndex];
+
 				// 終わったミッションはもう数えない
 				if (mission.state != MissionState::Progress) continue;
 
@@ -148,6 +153,7 @@ namespace app
 				{
 					m_lastMatchResult = result;
 					m_hasLastMatchResult = true;
+					lastMissionIndex = missionIndex;
 				}
 
 				// 照合した(数えるかは、この後で決まる)
@@ -155,6 +161,7 @@ namespace app
 				{
 					record.status = ShotStatus::Failed;
 					record.result = m_lastMatchResult;
+					record.missionIndex = lastMissionIndex;
 				}
 
 				// 全ての項目が成功(イメージはチェックマーク)していないなら飛ばす
@@ -163,6 +170,7 @@ namespace app
 				// 数えたミッションの結果を残す
 				record.status = ShotStatus::Counted;
 				record.result = result;
+				record.missionIndex = missionIndex;
 
 				++mission.currentCount;
 				// 必要な枚数を撮ったら達成

@@ -47,6 +47,11 @@ namespace app
 			bool IsSuccess() const;
 			/** NG の項目 */
 			std::vector<MatchItem> GetFailedItems() const;
+			/**
+			 * @brief 一致度(合っている項目の割合)
+			 * @return 0 ～ 1(狙いと違う悪党なら、ほかが合っていても 0)
+			 */
+			float GetSuccessRate() const;
 		};
 
 

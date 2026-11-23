@@ -25,6 +25,8 @@
 #include "Source/UI/SampleMenu/SampleMenu.h"
 #include "Source/Mission/PhotoSampleRenderer.h"
 #include "Source/Manager/GameResult.h"
+#include "Source/UI/JudgeMenu/JudgeMenu.h"
+#include "Source/Mission/MissionText.h"
 #include "imgui.h"
 
 
@@ -50,6 +52,8 @@ namespace app
 		constexpr const char* MISSION_LAYOUT_PATH = "Assets/parameter/UI/Mission/Mission.json";
 		/** 見本の絵のレイアウトのパス */
 		constexpr const char* SAMPLE_LAYOUT_PATH = "Assets/parameter/UI/Sample/Sample.json";
+		/** 照合ジャッジのレイアウトのパス */
+		constexpr const char* JUDGE_LAYOUT_PATH = "Assets/parameter/UI/Judge/Judge.json";
 		/** ミッションの一覧のパス */
 		constexpr const char* MISSION_LIST_PATH = "Assets/parameter/Mission/MissionList.json";
 		/** ステージの配置(エディタで保存する JSON) */
@@ -76,6 +80,8 @@ namespace app
 		, m_isFinishRequested(false)
 		, m_missionMenu(nullptr)
 		, m_sampleMenu(nullptr)
+		, m_judgeMenu(nullptr)
+		, m_isJudgeOpen(false)
 	{}
 	
 	
@@ -117,6 +123,9 @@ namespace app
 		// 見本の絵の UI(絵は PhotoSampleRenderer が描き終わってから渡す)
 		m_sampleLayout.Initialize<ui::SampleMenu>(SAMPLE_LAYOUT_PATH);
 		m_sampleMenu = m_sampleLayout.GetMenu<ui::SampleMenu>();
+		// 照合ジャッジの UI(撮った直後に開く)
+		m_judgeLayout.Initialize<ui::JudgeMenu>(JUDGE_LAYOUT_PATH);
+		m_judgeMenu = m_judgeLayout.GetMenu<ui::JudgeMenu>();
 
 		// タイトルのBGMを鳴らす
 		sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
@@ -287,6 +296,14 @@ namespace app
 		UpdatePhotoSample();
 		m_sampleLayout.Update();
 
+		// 照合ジャッジを開いている間は、ゲームの時間を止める(悪党・一般客・主人公・カメラを動かさない)
+		// ※ スタートボタンより先に見て、ジャッジの間にサウンドオプションが開かないようにする
+		if (m_isJudgeOpen)
+		{
+			UpdateJudge();
+			return;
+		}
+
 		// スタートボタンで、サウンドオプションを開く
 		// ※ メニューの更新の後に開くので、開いたフレームの入力でメニューが動くことはない
 		if (!m_soundOption.IsOpen() && g_pad[0]->IsTrigger(enButtonStart))
@@ -374,6 +391,8 @@ namespace app
 		{
 			m_isLastShotInFocus = isInFocus;
 			JudgeMissionShot(focusSubject, isInFocus);
+			// 撮った直後に、照合の結果を出す(次のフレームから時間が止まる)
+			OpenJudge();
 		}
 	}
 	
@@ -410,6 +429,12 @@ namespace app
 		// ※ ファインダーの UI より後に描画して、手前に出す
 		m_soundOption.Render(rc);
 
+		// 照合ジャッジ(開いている時だけ。一番手前に出す)
+		if (m_isJudgeOpen)
+		{
+			m_judgeLayout.Render(rc);
+		}
+
 		// 敵の描画
 		for (auto& enemy : m_enemyList)
 		{
@@ -425,6 +450,11 @@ namespace app
 	{
 		// サウンドオプションを開いている間は、Aボタンをメニューが使うので遷移しない
 		if (m_soundOption.IsOpen())
+		{
+			return false;
+		}
+		// 照合ジャッジを開いている間は移らない(最後の 1 枚で全部達成しても、照合〇 を見せてから移る)
+		if (m_isJudgeOpen)
 		{
 			return false;
 		}
@@ -595,6 +625,110 @@ namespace app
 		{
 			m_sampleMenu->SetTexture(texture);
 			m_sampleMenu->SetIsFinderActive(m_photoCapture.IsFinderActive());
+		}
+	}
+
+
+	void InGameScene::OpenJudge()
+	{
+		if (m_judgeMenu == nullptr) return;
+
+		const std::vector<mission::ShotRecord>& recordList = m_missionManager.GetShotRecordList();
+		if (recordList.empty()) return;
+		const mission::ShotRecord& record = recordList.back();
+
+		ui::JudgeViewData viewData;
+		// 撮った写真(アルバムに残した物)
+		viewData.photo = GameResult::GetInstance()->GetAlbum().GetTexture(record.photoIndex);
+
+		// 比べたミッション(比べていなければ無し)
+		const std::vector<mission::MissionData>& missionList = m_missionManager.GetMissionList();
+		const bool hasMission = record.missionIndex >= 0 && record.missionIndex < static_cast<int>(missionList.size());
+
+		// チェックリスト: 照合した時だけ、項目ごとに 〇 / × を並べる
+		const bool isMatched = record.status == mission::ShotStatus::Counted || record.status == mission::ShotStatus::Failed;
+		if (isMatched)
+		{
+			// 見本が無いミッションは、角度・大きさ・位置を見ていないので出さない
+			const bool hasSample = hasMission && missionList[record.missionIndex].hasSample;
+			for (int i = 0; i < static_cast<int>(mission::MatchItem::Max); ++i)
+			{
+				const mission::MatchItem item = static_cast<mission::MatchItem>(i);
+				const bool isSampleItem = item == mission::MatchItem::Yaw || item == mission::MatchItem::Pitch
+					|| item == mission::MatchItem::Size || item == mission::MatchItem::Position;
+				if (isSampleItem && !hasSample) continue;
+
+				ui::JudgeCheckData check;
+				check.name = mission::GetMatchItemCheckName(item);
+				check.isOk = record.result.isSuccess[i];
+				viewData.checkList.push_back(check);
+			}
+		}
+
+		const std::wstring enemyName = mission::GetEnemyName(record.subjectType);
+		switch (record.status)
+		{
+		case mission::ShotStatus::NoSubject:
+			viewData.tone = ui::JudgeTone::Miss;
+			viewData.matchRate = 0.0f;
+			viewData.detail = L"悪党が写っていない";
+			break;
+
+		case mission::ShotStatus::AlreadyCounted:
+			viewData.tone = ui::JudgeTone::Neutral;
+			viewData.detail = enemyName + L"\n同じ盗みは、もう撮った";
+			break;
+
+		case mission::ShotStatus::NoMission:
+			viewData.tone = ui::JudgeTone::Neutral;
+			viewData.detail = enemyName + L"\nミッションは、もう終わっている";
+			break;
+
+		case mission::ShotStatus::Counted:
+		{
+			viewData.tone = ui::JudgeTone::Match;
+			viewData.matchRate = 1.0f;
+			viewData.detail = enemyName + L"  ミッションに数えた";
+			// 何枚目か(例: 2 / 3)
+			if (hasMission)
+			{
+				const mission::MissionData& missionData = missionList[record.missionIndex];
+				viewData.detail += L"  " + std::to_wstring(missionData.currentCount) + L" / " + std::to_wstring(missionData.requiredCount);
+			}
+			break;
+		}
+
+		default:
+		{
+			// 照合して NG(どこがダメだったかは、チェックリストの × で分かる)
+			viewData.tone = ui::JudgeTone::Miss;
+			viewData.matchRate = record.result.GetSuccessRate();
+			viewData.detail = enemyName + L"  × の項目を合わせて、もう一度";
+			break;
+		}
+		}
+
+		m_judgeMenu->Show(viewData);
+		m_isJudgeOpen = true;
+	}
+
+
+	void InGameScene::UpdateJudge()
+	{
+		if (m_judgeMenu == nullptr)
+		{
+			m_isJudgeOpen = false;
+			return;
+		}
+
+		// 出てくる動き
+		m_judgeLayout.Update();
+
+		// ハンコを押し終わったら、A か B で閉じる(B は撮影と同じボタンなので、続けて撮りやすい)
+		if (!m_judgeMenu->CanClose()) return;
+		if (g_pad[0]->IsTrigger(enButtonA) || g_pad[0]->IsTrigger(enButtonB))
+		{
+			m_isJudgeOpen = false;
 		}
 	}
 }
