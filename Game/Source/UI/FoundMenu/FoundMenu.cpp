@@ -60,7 +60,7 @@ namespace app
 			 * @param value 値
 			 * @return 0〜1 におさめた値
 			 */
-			float Clamp01(const float value)
+			float ClampRate(const float value)
 			{
 				return (std::min)((std::max)(value, 0.0f), 1.0f);
 			}
@@ -152,7 +152,7 @@ namespace app
 			// 「！」: ポンと大きく出て、元の大きさにもどり、少しゆれる。暗くし始めたら消えていく
 			if (m_markIcon)
 			{
-				const float fadeRate = m_isGameOver ? 1.0f - Clamp01(m_gameOverTimer / MARK_FADE_TIME) : 1.0f;
+				const float fadeRate = m_isGameOver ? 1.0f - ClampRate(m_gameOverTimer / MARK_FADE_TIME) : 1.0f;
 				m_markIcon->SetIsDraw(m_isMarkShown && m_isMarkVisible && fadeRate > 0.0f);
 
 				float scale = 1.0f;
@@ -168,7 +168,7 @@ namespace app
 				m_markIcon->SetScale(Vector3(m_markBaseScale.x * scale, m_markBaseScale.y * scale, m_markBaseScale.z));
 
 				// ゆれはだんだん小さくなって止まる
-				const float shakeRate = 1.0f - Clamp01(m_markTimer / MARK_SHAKE_TIME);
+				const float shakeRate = 1.0f - ClampRate(m_markTimer / MARK_SHAKE_TIME);
 				const float shakeDeg = std::sin(m_markTimer * MARK_SHAKE_SPEED * 2.0f * Math::PI) * MARK_SHAKE_DEG * shakeRate;
 				Quaternion rotation = Quaternion::Identity;
 				rotation.SetRotationDegZ(shakeDeg);
@@ -181,14 +181,14 @@ namespace app
 			if (m_backFrame)
 			{
 				m_backFrame->SetIsDraw(m_isGameOver);
-				const float rate = Clamp01(m_gameOverTimer / BACK_FADE_TIME);
+				const float rate = ClampRate(m_gameOverTimer / BACK_FADE_TIME);
 				m_backFrame->SetFillColor(Vector4(0.0f, 0.0f, 0.0f, BACK_MAX_ALPHA * rate));
 			}
 
 			// 「見つかってしまった...」: 少し遅れて、下から上がりながら出てくる
 			if (m_messageText)
 			{
-				const float rate = Clamp01((m_gameOverTimer - MESSAGE_DELAY) / MESSAGE_FADE_TIME);
+				const float rate = ClampRate((m_gameOverTimer - MESSAGE_DELAY) / MESSAGE_FADE_TIME);
 				m_messageText->SetIsDraw(m_isGameOver && rate > 0.0f);
 
 				const Vector4& baseColor = m_messageText->GetColor();

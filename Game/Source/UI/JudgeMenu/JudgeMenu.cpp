@@ -91,7 +91,7 @@ namespace app
 			 * @param value 値
 			 * @return 0 ～ 1 にした値
 			 */
-			float Clamp01(const float value)
+			float ClampRate(const float value)
 			{
 				return (std::max)(0.0f, (std::min)(1.0f, value));
 			}
@@ -131,7 +131,7 @@ namespace app
 			 */
 			float GetInScale(const float time, const float inTime, const float startScale)
 			{
-				const float rate = Clamp01(time / inTime);
+				const float rate = ClampRate(time / inTime);
 				return startScale + (1.0f - startScale) * rate;
 			}
 		}
@@ -243,7 +243,7 @@ namespace app
 			// 一致度(数えなかった時は、比べていないので出さない)
 			if (m_rateText)
 			{
-				const int percent = static_cast<int>(Clamp01(m_viewData.matchRate) * 100.0f + 0.5f);
+				const int percent = static_cast<int>(ClampRate(m_viewData.matchRate) * 100.0f + 0.5f);
 				const std::wstring rateText = L"一致度 " + std::to_wstring(percent) + L"%";
 				m_rateText->SetText(rateText.c_str());
 				m_rateText->SetColor(rateColor);
@@ -392,7 +392,7 @@ namespace app
 			}
 
 			// NG: 一致度が低いほど赤、高いほど黄色(惜しい)
-			const float rate = Clamp01(m_viewData.matchRate / NEAR_RATE);
+			const float rate = ClampRate(m_viewData.matchRate / NEAR_RATE);
 			return MixColor(COLOR_MISS, COLOR_NEAR, rate);
 		}
 
