@@ -118,5 +118,36 @@ namespace app
 			void Exit() override;
 		};
 
+
+
+
+		/*******************************************/
+
+
+		/**
+		 * @brief 敵の見つけたステート
+		 * @details 主人公を見つけたら、少しの間止まって主人公の方を向き(頭の上に「！」が出る)、
+		 *          その後、主人公の方へ走っていく。近づいたら(または走る時間が終わったら)止まる
+		 */
+		class EnemyFoundState : public EnemyState
+		{
+			appState(EnemyFoundState);
+
+		public:
+			explicit EnemyFoundState(EnemyStateMachine& stateMachine) : EnemyState(stateMachine), m_timer(0.0f), m_isRunning(false) {}
+			~EnemyFoundState() override = default;
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+
+
+		private:
+			/** 見つけてからの時間(秒) */
+			float m_timer;
+			/** 走り出したか */
+			bool m_isRunning;
+		};
+
 	}
 }

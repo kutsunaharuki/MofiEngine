@@ -151,6 +151,21 @@ namespace app
 			 */
 			void EndAlert();
 			/**
+			 * @brief 主人公を見つけた(見つけたステートになり、主人公の方へ走っていく)
+			 * @details 警戒・盗み・道順はやめる。一度見つけたら、もどらない。Start 前に呼ばれた時は何もしない
+			 */
+			void StartFound();
+			/**
+			 * @brief 主人公を見つけたか
+			 * @return 見つけたなら true
+			 */
+			bool IsFound() const { return m_isFound; }
+			/**
+			 * @brief 主人公のところまで走り終わったか
+			 * @return 走り終わったなら true
+			 */
+			bool IsCaught();
+			/**
 			 * @brief 見る相手(主人公)を設定
 			 * @param player 主人公
 			 */
@@ -230,6 +245,8 @@ namespace app
 
 			/** 頭のボーンの番号(それ以外は -1) */
 			int m_headBoneNo;
+			/** 主人公を見つけたか */
+			bool m_isFound;
 		};
 	}
 }

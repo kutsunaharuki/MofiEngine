@@ -1,0 +1,37 @@
+{
+  "canvas": {
+    "elements": [
+      {
+        "comment":"画面をうっすら暗くする板(画面いっぱい・線なし。濃さは FoundMenu が 0 からだんだん濃くする)",
+        "type":"UIFrame",
+        "name":"FoundBack",
+        "width":1920,
+        "height":1080,
+        "position":[0,0,0],
+        "fillColor":[0,0,0,0],
+        "borderWidth":0
+      },
+      {
+        "comment":"悪党の頭の上の「！」(下の真ん中を基準にする。場所は FoundMenu が頭の上に合わせる。画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"FoundMark",
+        "asset":"Assets/spriteData/UI/Found/Exclamation.DDS",
+        "width":56,
+        "height":112,
+        "position":[0,0,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0]
+      },
+      {
+        "comment":"見つかった時の文字(暗くなってから、下から上がりながら出てくる)",
+        "type":"UIText",
+        "name":"FoundMessage",
+        "text":"見つかってしまった...",
+        "position":[0,40,0],
+        "scale":[1.6,1.6,1],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      }
+    ]
+  }
+}

@@ -92,6 +92,7 @@ namespace app
 			, m_navGrid(nullptr)
 			, m_player(nullptr)
 			, m_headBoneNo(-1)
+			, m_isFound(false)
 		{}
 
 
@@ -151,6 +152,14 @@ namespace app
 			// 世界の時間で進める(スローモーションで遅くなる)
 			const float deltaTime = util::WorldTime::GetDeltaTime();
 
+
+			// 主人公を見つけた後は、目的地・警戒・道順は使わず、見つけたステートが主人公の方へ走らせる
+			if (m_isFound)
+			{
+				if (m_player) GetEnemyStateMachine()->SetFoundTarget(m_player->GetTransform().GetWorldPosition());
+				CharacterBase::Update();
+				return;
+			}
 
 			// SetSetting は値をコピーしているだけなので目的地モードをやり直したりはしない
 			m_destinationMode->SetSetting(parameter.destinationMode);
@@ -239,6 +248,28 @@ namespace app
 		}
 
 
+		void EnemyBase::StartFound()
+		{
+			if (m_isFound || m_characterStateMachine == nullptr) return;
+
+			m_isFound = true;
+			// 警戒・盗み・道順は全部やめる(見つけたステートだけで動かす)
+			EndAlert();
+			EnemyStateMachine* stateMachine = GetEnemyStateMachine();
+			stateMachine->SetStealing(false);
+			stateMachine->StopPathFollow();
+			if (m_player) stateMachine->SetFoundTarget(m_player->GetTransform().GetWorldPosition());
+			stateMachine->StartFound();
+		}
+
+
+		bool EnemyBase::IsCaught()
+		{
+			if (!m_isFound || m_characterStateMachine == nullptr) return false;
+			return GetEnemyStateMachine()->IsCaught();
+		}
+
+
 		bool EnemyBase::GetHead(Vector3& outPosition, Vector3& outForward)
 		{
 			return mission::CalcHead(m_modelRender, m_headBoneNo, GetParameter().headForwardLocal, outPosition, outForward);
@@ -279,7 +310,9 @@ namespace app
 			if (m_vision.Update(deltaTime, eyePosition, forward, targetPosition,
 				GetCollisionObject(), m_player->GetCollisionObject(), m_player->GetNoticeScale()))
 			{
-				StartAlert();
+				// 見えている時間が気づく時間を超えたら、見つけた(ゲームオーバーへ)
+				// ※ 前は警戒モードに入っていた。警戒モードは、デバッグの窓からは今も入れる
+				StartFound();
 			}
 		}
 

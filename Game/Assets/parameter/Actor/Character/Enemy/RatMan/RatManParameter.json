@@ -35,5 +35,12 @@
   "headBone":"head",
   "headForwardLocal":[0,0,1],
   "leftHandBone":"hand_l",
-  "rightHandBone":"hand_r"
+  "rightHandBone":"hand_r",
+
+  "comment_found":"主人公を見つけた時(「！」で止まる時間 → 走る速さ・アニメの速さ → つかまえる距離 → 走る時間の上限)",
+  "foundReactTime":0.8,
+  "foundRunSpeed":450.0,
+  "foundRunAnimationSpeed":1.8,
+  "foundCatchDistance":120.0,
+  "foundMaxRunTime":3.0
 }

@@ -65,7 +65,7 @@
         "comment":"照合できなかった枚数(文字と色は ResultMenu が入れる)",
         "type":"UIText",
         "name":"ResultCountMiss",
-        "text":"照合なし×  0 枚",
+        "text":"照合なし  0 枚",
         "position":[500,275,0],
         "scale":[0.8,0.8,1],
         "color":[1,1,1,1],

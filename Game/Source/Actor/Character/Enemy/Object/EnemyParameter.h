@@ -45,6 +45,18 @@ namespace app
 			/** 右手のボーンの名前 */
 			std::string rightHandBone;
 
+			// 主人公を見つけた時
+			/** 見つけてから走り出すまでの時間(秒。「！」を出して、びっくりして止まる) */
+			float foundReactTime;
+			/** 主人公の方へ走る速さ */
+			float foundRunSpeed;
+			/** 走る時のアニメーションの速さ(倍。走るアニメーションが無いので、歩くアニメーションを速く回す) */
+			float foundRunAnimationSpeed;
+			/** 主人公にこれより近づいたら止まる(つかまえた) */
+			float foundCatchDistance;
+			/** 走る時間の上限(秒。壁に引っかかって近づけない時も、これで止まる) */
+			float foundMaxRunTime;
+
 
 			EnemyParameter()
 				: moveSpeed(150.0f)
@@ -56,6 +68,11 @@ namespace app
 				, alertMode(AlertModeSetting())
 				, vision(ai::VisionSetting())
 				, headForwardLocal(Vector3(0.0f,0.0f,1.0f))
+				, foundReactTime(0.8f)
+				, foundRunSpeed(450.0f)
+				, foundRunAnimationSpeed(1.8f)
+				, foundCatchDistance(120.0f)
+				, foundMaxRunTime(3.0f)
 			{}
 
 			/**
@@ -105,6 +122,13 @@ namespace app
 				// 手のボーンの名前(見本の絵で、絵画を持たせる)
 				leftHandBone = file.GetString("leftHandBone", leftHandBone);
 				rightHandBone = file.GetString("rightHandBone", rightHandBone);
+
+				// 主人公を見つけた時
+				foundReactTime = file.GetFloat("foundReactTime", foundReactTime);
+				foundRunSpeed = file.GetFloat("foundRunSpeed", foundRunSpeed);
+				foundRunAnimationSpeed = file.GetFloat("foundRunAnimationSpeed", foundRunAnimationSpeed);
+				foundCatchDistance = file.GetFloat("foundCatchDistance", foundCatchDistance);
+				foundMaxRunTime = file.GetFloat("foundMaxRunTime", foundMaxRunTime);
 			}
 		};
 	}

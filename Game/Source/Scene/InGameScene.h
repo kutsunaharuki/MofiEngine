@@ -94,6 +94,8 @@ namespace app
 		class TimerMenu;
 		/** ポーズ画面の表示 */
 		class PauseMenu;
+		/** 悪党に見つかった時の表示 */
+		class FoundMenu;
 	}
 
 
@@ -183,6 +185,16 @@ namespace app
 		 * @brief 読み込みを 1 段階だけ進める(1 フレームに 1 つずつ作る)
 		 */
 		void UpdateLoading();
+		/**
+		 * @brief 主人公を見つけた悪党を探す(見つけていたら「！」を出す)
+		 * @details 悪党の更新の後に呼ぶ
+		 */
+		void CheckFound();
+		/**
+		 * @brief 見つかった後の更新(悪党が走ってきて、走り終わったら画面を暗くする)
+		 * @details MVP の Presenter の役目。主人公は動かさない。ポーズも開かない
+		 */
+		void UpdateFound();
 
 
 	private:
@@ -297,6 +309,12 @@ namespace app
 		bool m_isTitleRequested;
 		/** 今の読み込みの段階 */
 		LoadStep m_loadStep;
+		/** 悪党に見つかった時のUIレイアウト */
+		ui::UILayout m_foundLayout;
+		/** 悪党に見つかった時のメニュー */
+		ui::FoundMenu* m_foundMenu;
+		/** 主人公を見つけた悪党(見つかっていなければ nullptr。見つかったら、ゲームオーバーの演出になる) */
+		actor::EnemyBase* m_foundEnemy;
 
 		/** 敵の入力(ステージから美術品を探して、盗みに行く一覧を敵に渡す) */
 		actor::EnemyController m_enemyController;

@@ -316,6 +316,7 @@
     <ClCompile Include="Source\Scene\SceneManager.cpp" />
     <ClCompile Include="Source\Scene\TitleScene.cpp" />
     <ClCompile Include="Source\UI\Animation\UIAnimation.cpp" />
+    <ClCompile Include="Source\UI\FoundMenu\FoundMenu.cpp" />
     <ClCompile Include="Source\UI\JudgeMenu\JudgeMenu.cpp" />
     <ClCompile Include="Source\UI\LoadingMenu\LoadingMenu.cpp" />
     <ClCompile Include="Source\UI\PauseMenu\PauseMenu.cpp" />
@@ -404,6 +405,7 @@
     <ClInclude Include="Source\UI\Animation\UIAnimationTypes.h" />
     <ClInclude Include="Source\UI\Animation\UIAnimationFactory.h" />
     <ClInclude Include="Source\UI\Animation\UIAnimationParameter.h" />
+    <ClInclude Include="Source\UI\FoundMenu\FoundMenu.h" />
     <ClInclude Include="Source\UI\JudgeMenu\JudgeMenu.h" />
     <ClInclude Include="Source\UI\LoadingMenu\LoadingMenu.h" />
     <ClInclude Include="Source\UI\PauseMenu\PauseMenu.h" />

@@ -29,6 +29,8 @@
 #include "Source/UI/JudgeMenu/JudgeMenu.h"
 #include "Source/UI/TimerMenu/TimerMenu.h"
 #include "Source/UI/PauseMenu/PauseMenu.h"
+#include "Source/UI/FoundMenu/FoundMenu.h"
+#include "Source/Util/ScreenPosition.h"
 #include "Source/Mission/MissionText.h"
 #include "imgui.h"
 
@@ -61,6 +63,10 @@ namespace app
 		constexpr const char* TIMER_LAYOUT_PATH = "Assets/parameter/UI/Timer/Timer.json";
 		/** ポーズ画面のレイアウトのパス */
 		constexpr const char* PAUSE_LAYOUT_PATH = "Assets/parameter/UI/Pause/Pause.json";
+		/** 悪党に見つかった時のレイアウトのパス */
+		constexpr const char* FOUND_LAYOUT_PATH = "Assets/parameter/UI/Found/Found.json";
+		/** 「！」を出す高さ(悪党の頭から上へ) */
+		constexpr float FOUND_MARK_HEIGHT = 35.0f;
 		/** ミッションの一覧のパス */
 		constexpr const char* MISSION_LIST_PATH = "Assets/parameter/Mission/MissionList.json";
 		/** ステージの配置(エディタで保存する JSON) */
@@ -97,6 +103,8 @@ namespace app
 		, m_isPauseOpen(false)
 		, m_isTitleRequested(false)
 		, m_loadStep(LoadStep::UI)
+		, m_foundMenu(nullptr)
+		, m_foundEnemy(nullptr)
 	{}
 	
 	
@@ -164,6 +172,9 @@ namespace app
 			// ポーズ画面の UI(START で開く)
 			m_pauseLayout.Initialize<ui::PauseMenu>(PAUSE_LAYOUT_PATH);
 			m_pauseMenu = m_pauseLayout.GetMenu<ui::PauseMenu>();
+			// 悪党に見つかった時の UI(見つかってから出す)
+			m_foundLayout.Initialize<ui::FoundMenu>(FOUND_LAYOUT_PATH);
+			m_foundMenu = m_foundLayout.GetMenu<ui::FoundMenu>();
 
 			m_loadTimeWindow.Mark("UI / Mission");
 			break;
@@ -398,6 +409,13 @@ namespace app
 			return;
 		}
 
+		// 見つかった後は、ゲームオーバーの演出だけ進める(主人公は動かさない。ポーズも開かない)
+		if (m_foundEnemy != nullptr)
+		{
+			UpdateFound();
+			return;
+		}
+
 		// ポーズを開いている間は、ゲームの時間を止める(サウンドオプションも、ポーズから開く)
 		if (m_isPauseOpen)
 		{
@@ -427,7 +445,7 @@ namespace app
 		// のこり時間を減らす(ジャッジ・サウンドオプションの間は、ここまで来ないので止まる)
 		UpdateTimeLimit();
 
-		// ファインダーの操作(覗く・十字の上下でピント・RB1/LB1)でズーム・Bで撮影
+		// ファインダーの操作(覗く・十字の上下でピント・RB1/LB1)でズーム・RT で撮影
 		const bool isShot = m_finderController.Update();
 
 		// 主人公の更新(ファインダーを覗いている間は、撮影ステートになる)
@@ -463,6 +481,9 @@ namespace app
 
 		// 一般客の更新(全部の組)
 		m_visitorManager->Update();
+
+		// 主人公を見つけた悪党がいれば、「！」を出す(次のフレームから、見つかった後の更新になる)
+		CheckFound();
 
 
 		/** ファインダーのオートフォーカス */
@@ -549,6 +570,12 @@ namespace app
 		}
 		m_soundOption.Render(rc);
 
+		// 悪党に見つかった時(「！」と、暗くする板・文字)
+		if (m_foundEnemy != nullptr)
+		{
+			m_foundLayout.Render(rc);
+		}
+
 		// 照合ジャッジ(開いている時だけ。一番手前に出す)
 		if (m_isJudgeOpen)
 		{
@@ -594,6 +621,17 @@ namespace app
 		if (m_isPauseOpen)
 		{
 			return false;
+		}
+		// 見つかった時：演出が終わるまで待って、ゲームオーバーとしてリザルトへ
+		if (m_foundEnemy != nullptr)
+		{
+			if (m_foundMenu != nullptr && !m_foundMenu->IsFinished()) return false;
+
+			m_missionManager.Finish();
+			GameResult::GetInstance()->SetResult(m_missionManager, FinishReason::GameOver);
+			id = app::ResultScene::ID();
+			waitTime = 1.0f;
+			return true;
 		}
 
 
@@ -847,7 +885,7 @@ namespace app
 			// 照合して NG(どこがダメだったかは、チェックリストの × で分かる)
 			viewData.tone = ui::JudgeTone::Miss;
 			viewData.matchRate = record.result.GetSuccessRate();
-			viewData.detail = enemyName + L"  × の項目を合わせて、もう一度";
+			viewData.detail = enemyName + L"  チェックが無い項目を合わせて、もう一度";
 			break;
 		}
 		}
@@ -868,9 +906,10 @@ namespace app
 		// 出てくる動き
 		m_judgeLayout.Update();
 
-		// ハンコを押し終わったら、A か B で閉じる(B は撮影と同じボタンなので、続けて撮りやすい)
+		// ハンコを押し終わったら、A か RT で閉じる(RT は撮影と同じボタンなので、続けて撮りやすい)
+		// ※ 前に撮影だった B でも閉じられるように残しておく
 		if (!m_judgeMenu->CanClose()) return;
-		if (g_pad[0]->IsTrigger(enButtonA) || g_pad[0]->IsTrigger(enButtonB))
+		if (g_pad[0]->IsTrigger(enButtonA) || g_pad[0]->IsTrigger(enButtonRB2) || g_pad[0]->IsTrigger(enButtonB))
 		{
 			m_isJudgeOpen = false;
 		}
@@ -891,6 +930,58 @@ namespace app
 
 		// のこり時間を UI に渡す(数字は 1 秒変わった時だけ書きかわる)
 		if (m_timerMenu) m_timerMenu->SetRemainTime(m_remainTime);
+	}
+
+
+	void InGameScene::CheckFound()
+	{
+		if (m_foundEnemy != nullptr) return;
+
+		for (auto& enemy : m_enemyList)
+		{
+			if (!enemy->IsFound()) continue;
+
+			// 最初に見つけた悪党だけを見る(ほかの悪党が後で見つけても、演出は 1 回)
+			m_foundEnemy = enemy.get();
+			if (m_foundMenu) m_foundMenu->ShowMark();
+			return;
+		}
+	}
+
+
+	void InGameScene::UpdateFound()
+	{
+		// 悪党と一般客は動かし続ける(悪党が主人公の方へ走ってくる)
+		// ※ 主人公は動かさない(入力でにげられないように)。時間も減らさない
+		// ※ カメラも動かさない(更新を呼ぶと、スティックで視点が回ってしまう)。見つかった瞬間の視点のまま止める
+		for (auto& enemy : m_enemyList)
+		{
+			enemy->Update();
+		}
+		m_visitorManager->Update();
+		m_lightController.Update();
+
+		if (m_foundMenu)
+		{
+			// 「！」を悪党の頭の上に出す(頭のボーンが無ければ、ピントの位置を使う)
+			Vector3 headPosition;
+			Vector3 headForward;
+			if (!m_foundEnemy->GetHead(headPosition, headForward))
+			{
+				headPosition = m_foundEnemy->GetFocusPosition();
+			}
+			headPosition.y += FOUND_MARK_HEIGHT;
+			Vector2 screenPosition;
+			const bool isVisible = util::CalcScreenPosition(*g_camera3D, headPosition, screenPosition);
+			m_foundMenu->SetMarkPosition(screenPosition, isVisible);
+
+			// 主人公のところまで走り終わったら、画面をうっすら暗くして「見つかってしまった...」を出す
+			if (!m_foundMenu->IsGameOverStarted() && m_foundEnemy->IsCaught())
+			{
+				m_foundMenu->StartGameOver();
+			}
+		}
+		m_foundLayout.Update();
 	}
 
 

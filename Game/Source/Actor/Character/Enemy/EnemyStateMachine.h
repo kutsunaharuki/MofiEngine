@@ -83,6 +83,36 @@ namespace app
 			inline void SetMoveAmount(const float amount) { m_moveAmount = amount; }
 
 			/**
+			 * @brief 主人公を見つけた(見つけたステートになる。一度見つけたら、もどらない)
+			 */
+			inline void StartFound() { m_isFound = true; }
+			/**
+			 * @brief 主人公を見つけたか
+			 * @return 見つけたなら true
+			 */
+			inline bool IsFound() const { return m_isFound; }
+			/**
+			 * @brief 走っていく先(主人公の位置)を設定
+			 * @param position 主人公の位置(毎フレーム入れる)
+			 */
+			inline void SetFoundTarget(const Vector3& position) { m_foundTarget = position; }
+			/**
+			 * @brief 走っていく先(主人公の位置)を取得
+			 * @return 主人公の位置
+			 */
+			inline const Vector3& GetFoundTarget() const { return m_foundTarget; }
+			/**
+			 * @brief 主人公のところまで走り終わったかを設定
+			 * @param isCaught 走り終わったなら true
+			 */
+			inline void SetCaught(const bool isCaught) { m_isCaught = isCaught; }
+			/**
+			 * @brief 主人公のところまで走り終わったか
+			 * @return 走り終わったなら true
+			 */
+			inline bool IsCaught() const { return m_isCaught; }
+
+			/**
 			 * @brief 移動制御
 			 */
 			void Move(const float speed);
@@ -186,6 +216,12 @@ namespace app
 			Quaternion m_rotation;
 			/** 盗み始めた回数 */
 			int m_stealCount;
+			/** 主人公を見つけたか */
+			bool m_isFound;
+			/** 主人公のところまで走り終わったか */
+			bool m_isCaught;
+			/** 走っていく先(主人公の位置) */
+			Vector3 m_foundTarget;
 
 
 			/** 道順を求める */

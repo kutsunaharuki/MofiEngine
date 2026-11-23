@@ -98,5 +98,74 @@ namespace app
 
 		void EnemyStealState::Exit()
 		{}
+
+
+
+
+		/************************************************/
+
+
+		void EnemyFoundState::Enter()
+		{
+			m_timer = 0.0f;
+			m_isRunning = false;
+			m_stateMachine.StopMove();
+			// びっくりして止まる(警戒のアニメーションを使う)
+			m_stateMachine.SetAnimationSpeed(1.0f);
+			m_stateMachine.PlayAnimation(EnemyBase::EnemyAnimation::Alert, 0.1f);
+		}
+
+
+		void EnemyFoundState::Update()
+		{
+			const EnemyParameter& parameter = m_stateMachine.GetParameter();
+			m_timer += util::WorldTime::GetDeltaTime();
+
+			// 主人公への向き(高さは見ない)
+			Vector3 toTarget = m_stateMachine.GetFoundTarget() - m_stateMachine.GetTransform().GetWorldPosition();
+			toTarget.y = 0.0f;
+			const float distance = toTarget.Length();
+
+			// ① びっくりして止まる間は、その場で主人公の方を向くだけ
+			if (m_timer < parameter.foundReactTime)
+			{
+				m_stateMachine.StopMove();
+				if (distance > 0.0f) m_stateMachine.RotateToward(toTarget);
+				return;
+			}
+
+			// ③ 近づいた(または走る時間が終わった)ら、止まって主人公の方を向いたままにする
+			const bool isRunTimeOver = m_timer >= parameter.foundReactTime + parameter.foundMaxRunTime;
+			if (m_stateMachine.IsCaught() || distance <= parameter.foundCatchDistance || isRunTimeOver)
+			{
+				m_stateMachine.StopMove();
+				if (distance > 0.0f) m_stateMachine.RotateToward(toTarget);
+				if (!m_stateMachine.IsCaught())
+				{
+					m_stateMachine.SetCaught(true);
+					m_stateMachine.SetAnimationSpeed(1.0f);
+					m_stateMachine.PlayAnimation(EnemyBase::EnemyAnimation::Idle, 0.15f);
+				}
+				return;
+			}
+
+			// ② 主人公の方へまっすぐ走る(走るアニメーションが無いので、歩くアニメーションを速く回す)
+			if (!m_isRunning)
+			{
+				m_isRunning = true;
+				m_stateMachine.PlayAnimation(EnemyBase::EnemyAnimation::Walk, 0.15f);
+				m_stateMachine.SetAnimationSpeed(parameter.foundRunAnimationSpeed);
+			}
+			m_stateMachine.SetMoveDirection(toTarget);
+			m_stateMachine.SetMoveAmount(1.0f);
+			m_stateMachine.Move(parameter.foundRunSpeed);
+		}
+
+
+		void EnemyFoundState::Exit()
+		{
+			// アニメーションの速さを元にもどす
+			m_stateMachine.SetAnimationSpeed(1.0f);
+		}
 	}
 }

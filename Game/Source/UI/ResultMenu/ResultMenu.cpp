@@ -80,16 +80,34 @@ namespace app
 			constexpr float STAMP_ROTATION_DEG = 12.0f;
 			/** ハンコの文字 */
 			constexpr const wchar_t* STAMP_MATCH_TEXT = L"照合〇";
-			constexpr const wchar_t* STAMP_MISS_TEXT = L"照合なし×";
+			constexpr const wchar_t* STAMP_MISS_TEXT = L"照合なし";	// ※ × はフォントに無くて ? になるので付けない
 			constexpr const wchar_t* STAMP_NEUTRAL_TEXT = L"対象外";
 
 			// 出てくる動き
-			/** 1 枚目が出るまでの時間(秒) */
-			constexpr float PHOTO_START_TIME = 0.3f;
-			/** 次の写真が出るまでの時間(秒) */
-			constexpr float PHOTO_INTERVAL = 0.15f;
-			/** 写真が出てから、ハンコを押すまでの時間(秒) */
-			constexpr float STAMP_DELAY = 0.1f;
+			/** 1 枚目が出るまでの待ち時間(秒。画面が出てから、ひと呼吸おく) */
+			constexpr float PHOTO_START_TIME = 0.8f;
+			/** 次の写真が出るまでの時間(秒。前の写真の画びょうとハンコが終わってから、少し待つ) */
+			constexpr float PHOTO_INTERVAL = 1.2f;
+			/** 写真が出てから、画びょうが出るまでの待ち時間(秒) */
+			constexpr float PIN_DELAY = 0.25f;
+			/** 画びょうが手前で止まって、ねらいを付けている時間(秒。ここで待つと「さす」感じが出る) */
+			constexpr float PIN_HOLD_TIME = 0.3f;
+			/** 画びょうが手前からコルクまで落ちる時間(秒) */
+			constexpr float PIN_DROP_TIME = 0.15f;
+			/** 画びょうがささって、少しもどるまでの時間(秒) */
+			constexpr float PIN_SETTLE_TIME = 0.12f;
+			/** 画びょうの最初の大きさ(倍。大きいほど手前=カメラの近くにいるように見える) */
+			constexpr float PIN_DROP_SCALE = 2.4f;
+			/** ささった時の大きさ(倍。1 より少し小さくして、コルクに押しこんだように見せる) */
+			constexpr float PIN_PRESS_SCALE = 0.9f;
+			/** 落ちはじめの、止まった時からの傾きのずれ(度。落ちながら少し回る) */
+			constexpr float PIN_DROP_ROTATION_DEG = 35.0f;
+			/** 画びょうが一番高い時、かげをどれだけ遠くにずらすか(倍) */
+			constexpr float PIN_SHADOW_FAR_RATE = 4.0f;
+			/** 画びょうが一番高い時の、かげのこさ(止まった時を 1 とした割合) */
+			constexpr float PIN_SHADOW_FAR_ALPHA_RATE = 0.3f;
+			/** 写真が出てから、ハンコを押すまでの時間(秒。画びょうがささった後) */
+			constexpr float STAMP_DELAY = PIN_DELAY + PIN_HOLD_TIME + PIN_DROP_TIME + PIN_SETTLE_TIME + 0.2f;
 			/** ハンコが押し終わるまでの時間(秒) */
 			constexpr float STAMP_IN_TIME = 0.12f;
 			/** ハンコの最初の大きさ(倍。ここから元の大きさまで小さくなる) */
@@ -347,16 +365,17 @@ namespace app
 
 				// 画びょうのかげ(同じ画像を黒く半分すけさせて、右下にずらして先に描く)
 				// ※ 画像にかげを描きこむと、傾けた時にかげの向きもばらばらになるので、コードで付ける
-				UIIcon* pinShadow = CreateIcon("ResultPinShadow" + number, pinAsset, PIN_SIZE,
+				// ※ 画びょうとかげは、落ちてくる動きを付けるので partList に入れず、別に持つ
+				group.pinShadow = CreateIcon("ResultPinShadow" + number, pinAsset, PIN_SIZE,
 					Vector3(pinPosition.x + PIN_SHADOW_OFFSET.x, pinPosition.y + PIN_SHADOW_OFFSET.y, pinPosition.z),
 					COLOR_PIN_SHADOW, PIVOT_CENTER);
-				pinShadow->SetRotation(pinRotation);
-				group.partList.push_back(pinShadow);
+				group.pinShadow->SetRotation(pinRotation);
 
-				UIIcon* pin = CreateIcon("ResultPin" + number, pinAsset, PIN_SIZE, pinPosition,
+				group.pin = CreateIcon("ResultPin" + number, pinAsset, PIN_SIZE, pinPosition,
 					photoData.tone == ResultTone::Neutral ? COLOR_PIN_NEUTRAL : COLOR_WHITE, PIVOT_CENTER);
-				pin->SetRotation(pinRotation);
-				group.partList.push_back(pin);
+				group.pin->SetRotation(pinRotation);
+				group.pinPosition = pinPosition;
+				group.pinRotationDeg = PIN_ROTATION_DEG_LIST[i % pinRotationCount];
 
 				// 結果の文字(写真の下の、白いふちに書く)
 				const Vector3 labelPosition(photoPosition.x, photoPosition.y - PHOTO_SIZE.y - PHOTO_LABEL_OFFSET_Y, photoPosition.z);
@@ -412,6 +431,9 @@ namespace app
 					part->SetIsDraw(isPhotoShown);
 				}
 
+				// 画びょうは写真の少し後に、手前から落ちてきてささる
+				ApplyPinAnimation(group, photoTime - PIN_DELAY);
+
 				// ハンコは写真の少し後に、大きい所から押し付ける
 				if (group.stamp == nullptr) continue;
 				const float stampTime = photoTime - STAMP_DELAY;
@@ -420,6 +442,57 @@ namespace app
 				const float scale = STAMP_IN_SCALE + (1.0f - STAMP_IN_SCALE) * rate;
 				group.stamp->SetScale(Vector3(STAMP_SCALE.x * scale, STAMP_SCALE.y * scale, STAMP_SCALE.z));
 			}
+		}
+
+
+		void ResultMenu::ApplyPinAnimation(PhotoGroup& group, const float pinTime)
+		{
+			if (group.pin == nullptr || group.pinShadow == nullptr) return;
+
+			const bool isPinShown = pinTime >= 0.0f;
+			group.pin->SetIsDraw(isPinShown);
+			group.pinShadow->SetIsDraw(isPinShown);
+			if (!isPinShown) return;
+
+			// 大きさ = 高さ の代わり(大きいほど手前にいる)
+			// 手前で止まっている間は、落ちはじめの大きさのまま
+			// ※ 止まっている時間を引いて、落ちはじめを 0 にする
+			const float dropTime = (std::max)(pinTime - PIN_HOLD_TIME, 0.0f);
+			float scale = 1.0f;
+			if (dropTime < PIN_DROP_TIME)
+			{
+				// 落ちる: だんだん速くなる(rate * rate)。最後はコルクに少し押しこむ大きさまで行く
+				const float rate = dropTime / PIN_DROP_TIME;
+				scale = PIN_DROP_SCALE + (PIN_PRESS_SCALE - PIN_DROP_SCALE) * rate * rate;
+			}
+			else if (dropTime < PIN_DROP_TIME + PIN_SETTLE_TIME)
+			{
+				// ささった後: 押しこんだ大きさから、元の大きさにもどる
+				const float rate = (dropTime - PIN_DROP_TIME) / PIN_SETTLE_TIME;
+				scale = PIN_PRESS_SCALE + (1.0f - PIN_PRESS_SCALE) * rate;
+			}
+
+			// 高さ(止まった時 0、落ちはじめ 1。押しこんでいる間は少しマイナス)
+			const float height = (scale - 1.0f) / (PIN_DROP_SCALE - 1.0f);
+
+			// 画びょう: 大きさと、落ちながら回る傾き
+			Quaternion rotation = Quaternion::Identity;
+			rotation.SetRotationDegZ(group.pinRotationDeg + PIN_DROP_ROTATION_DEG * (std::max)(height, 0.0f));
+			group.pin->SetScale(Vector3(scale, scale, 1.0f));
+			group.pin->SetRotation(rotation);
+
+			// かげ: 高い所にいる間は、遠くにうすく落ちる。止まると元のずれ・こさになる
+			// ※ かげはコルクの上にあるので、大きさは画びょうほど変えない
+			const float shadowFar = 1.0f + (PIN_SHADOW_FAR_RATE - 1.0f) * height;
+			const float shadowScale = 1.0f + (scale - 1.0f) * 0.5f;
+			const float alphaRate = 1.0f + (PIN_SHADOW_FAR_ALPHA_RATE - 1.0f) * (std::max)(height, 0.0f);
+			group.pinShadow->SetPosition(Vector3(
+				group.pinPosition.x + PIN_SHADOW_OFFSET.x * shadowFar,
+				group.pinPosition.y + PIN_SHADOW_OFFSET.y * shadowFar,
+				group.pinPosition.z));
+			group.pinShadow->SetScale(Vector3(shadowScale, shadowScale, 1.0f));
+			group.pinShadow->SetRotation(rotation);
+			group.pinShadow->SetColor(Vector4(COLOR_PIN_SHADOW.x, COLOR_PIN_SHADOW.y, COLOR_PIN_SHADOW.z, COLOR_PIN_SHADOW.w * alphaRate));
 		}
 
 

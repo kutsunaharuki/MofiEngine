@@ -96,8 +96,8 @@ namespace app
 				m_photoCapture->FinderZoom(-parameter.zoomSpeed);
 			}
 
-			// 撮影(クールタイム中は撮れない)
-			if (g_pad[0]->IsTrigger(enButtonB) && CanShot())
+			// 撮影(RT で撮る。クールタイム中は撮れない)
+			if (g_pad[0]->IsTrigger(enButtonRB2) && CanShot())
 			{
 				m_photoCapture->Shot();
 				m_coolTimer = parameter.shotCoolTime;

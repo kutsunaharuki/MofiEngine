@@ -200,7 +200,23 @@ namespace app
 				std::vector<UIBase*> partList;
 				/** 照合のハンコ(少し遅れて押す) */
 				UIText* stamp = nullptr;
+				/** 画びょう(手前から落ちてきて、コルクにささる) */
+				UIIcon* pin = nullptr;
+				/** 画びょうのかげ(画びょうが高い所にある間は、遠くにうすく落ちる) */
+				UIIcon* pinShadow = nullptr;
+				/** 画びょうが止まる場所 */
+				Vector3 pinPosition = Vector3::Zero;
+				/** 画びょうが止まった時の傾き(度) */
+				float pinRotationDeg = 0.0f;
 			};
+
+
+			/**
+			 * @brief 画びょうが手前から落ちてきて、コルクにささる動きを、今の時間で決める
+			 * @param group 写真 1 枚分の UI
+			 * @param pinTime 画びょうが落ちはじめてからの時間(秒。マイナスの間は出さない)
+			 */
+			void ApplyPinAnimation(PhotoGroup& group, const float pinTime);
 
 
 		private:

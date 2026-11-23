@@ -35,6 +35,9 @@ namespace app
 			, m_isAlert(false)
 			, m_isStealing(false)
 			, m_stealCount(0)
+			, m_isFound(false)
+			, m_isCaught(false)
+			, m_foundTarget(Vector3::Zero)
 			, m_rotation(Quaternion::Identity)
 			, m_pathfinder(nullptr)
 			, m_navGrid(nullptr)
@@ -46,6 +49,7 @@ namespace app
 			AddState<EnemyWalkState>(*this);
 			AddState<EnemyAlertState>(*this);
 			AddState<EnemyStealState>(*this);
+			AddState<EnemyFoundState>(*this);
 		}
 		
 		
@@ -189,6 +193,9 @@ namespace app
 		core::IState* EnemyStateMachine::GetChangeState()
 		{
 			// 上になるほど優先度が高い
+			// 主人公を見つけたら、ほかのことはやめて、ずっと見つけたステートのまま
+			if (m_isFound) return FindState(EnemyFoundState::ID());
+
 			if (m_isAlert)
 			{
 				// 警戒中でも隠れ場所へ向かっている間は歩く
