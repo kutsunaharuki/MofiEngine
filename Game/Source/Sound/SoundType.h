@@ -43,6 +43,10 @@ namespace app
 		{
 			/** 決定 */
 			constexpr const char* DECIDE = "Assets/sound/SE/AS_805112_Decide.wav";
+			/** カメラのシャッター */
+			constexpr const char* SHUTTER = "Assets/sound/SE/AS_1083733_Shutter.wav";
+			/** 革靴の足音(1 歩分。元の長い足音から 1 歩だけ切り出した) */
+			constexpr const char* FOOTSTEP = "Assets/sound/SE/AS_369829_Footstep.wav";
 		}
 
 

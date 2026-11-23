@@ -16,6 +16,11 @@ namespace app
 	{
 		namespace
 		{
+			/** 悪党の 1 歩の長さ(足音を鳴らす間かく) */
+			constexpr float ENEMY_FOOTSTEP_STRIDE = 90.0f;
+			/** 主人公とこの長さより近い時だけ、悪党の足音を鳴らす */
+			constexpr float ENEMY_FOOTSTEP_HEAR_DISTANCE = 1200.0f;
+
 			// 大男のアニメーションデータ
 			const AnimationData BIG_MAN_ANIMATION_DATA[] =
 			{
@@ -324,6 +329,21 @@ namespace app
 
 			// ピントを合わせる位置を返す
 			return Vector3(worldPos.x, worldPos.y + m_focusHeight, worldPos.z);
+		}
+
+
+		float EnemyBase::GetFootstepStride() const
+		{
+			return ENEMY_FOOTSTEP_STRIDE;
+		}
+
+
+		bool EnemyBase::CanPlayFootstep() const
+		{
+			if (m_player == nullptr) return false;
+
+			const Vector3 diff = m_player->GetTransform().GetWorldPosition() - m_transform.GetWorldPosition();
+			return diff.LengthSq() < ENEMY_FOOTSTEP_HEAR_DISTANCE * ENEMY_FOOTSTEP_HEAR_DISTANCE;
 		}
 	}
 }

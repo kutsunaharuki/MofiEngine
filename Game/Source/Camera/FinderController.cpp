@@ -7,6 +7,7 @@
 #include "Source/UI/FinderMenu/FinderMenu.h"
 #include "Source/Util/ScreenPosition.h"
 #include "Source/Util/RayCast.h"
+#include "Source/Sound/SoundManager.h"
 #include <algorithm>
 #include <cmath>
 
@@ -100,6 +101,7 @@ namespace app
 			if (g_pad[0]->IsTrigger(enButtonRB2) && CanShot())
 			{
 				m_photoCapture->Shot();
+				sound::SoundManager::GetInstance()->Play(sound::EnSoundType::SE, sound::se::SHUTTER);
 				m_coolTimer = parameter.shotCoolTime;
 				return true;
 			}

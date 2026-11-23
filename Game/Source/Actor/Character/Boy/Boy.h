@@ -101,6 +101,11 @@ namespace app
 			float GetNoticeScale() const override { return m_noticeScale; }
 
 
+		protected:
+			/** 足音を 1 回鳴らすまでに歩く長さ(走ると速く進むので、足音も速くなる) */
+			float GetFootstepStride() const override;
+
+
 		private:
 			/** 調整用パラメーター */
 			util::Parameter<BoyParameter> m_parameter;

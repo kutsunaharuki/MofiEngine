@@ -74,6 +74,13 @@ namespace app
 			float GetTimeScale() const override { return util::WorldTime::GetScale(); }
 
 
+		protected:
+			/** 足音を 1 回鳴らすまでに歩く長さ */
+			float GetFootstepStride() const override;
+			/** 主人公の近くにいる時だけ、足音を鳴らす(遠くの悪党の足音まで聞こえるとうるさいので) */
+			bool CanPlayFootstep() const override;
+
+
 		public:
 			/**
 			 * @brief 敵の種類を取得

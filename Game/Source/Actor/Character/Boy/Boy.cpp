@@ -14,6 +14,9 @@ namespace app
 	{
 		namespace
 		{
+			/** 主人公の 1 歩の長さ(足音を鳴らす間かく) */
+			constexpr float BOY_FOOTSTEP_STRIDE = 80.0f;
+
 			// 主人公のアニメーションデータ
 			const AnimationData BOY_ANIMATION_DATA[] =
 			{
@@ -110,6 +113,12 @@ namespace app
 		{
 			if (m_characterStateMachine == nullptr) return false;
 			return m_characterStateMachine->IsEqualState(stateId);
+		}
+
+
+		float Boy::GetFootstepStride() const
+		{
+			return BOY_FOOTSTEP_STRIDE;
 		}
 	}
 }

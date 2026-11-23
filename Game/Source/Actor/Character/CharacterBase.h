@@ -132,6 +132,27 @@ namespace app
 
 
 		protected:
+			/**
+			 * @brief 足音を 1 回鳴らすまでに歩く長さ(1 歩の長さ)
+			 * @return 0 なら足音を鳴らさない(客など)
+			 */
+			virtual float GetFootstepStride() const { return 0.0f; }
+			/**
+			 * @brief 今、足音を鳴らしてよいか
+			 * @return 普段は true(悪党は、主人公の近くにいる時だけ true にする)
+			 */
+			virtual bool CanPlayFootstep() const { return true; }
+
+
+		private:
+			/**
+			 * @brief 歩いた長さを足していき、1 歩分になったら足音を鳴らす
+			 * @param prevPosition 動く前の位置
+			 */
+			void UpdateFootstep(const Vector3& prevPosition);
+
+
+		protected:
 			/** キャラクターステートマシン */
 			std::unique_ptr<CharacterStateMachine> m_characterStateMachine;
 			/** アニメーションクリップ */
@@ -145,6 +166,11 @@ namespace app
 
 			/** 移動速度 */
 			Vector3 m_moveSpeed;
+
+
+		private:
+			/** 前に足音を鳴らしてから歩いた長さ */
+			float m_footstepDistance;
 		};
 	}
 }

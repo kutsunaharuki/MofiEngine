@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "CharacterBase.h"
 #include "CharacterStateMachine.h"
+#include "Source/Sound/SoundManager.h"
 
 
 namespace app
@@ -23,6 +24,8 @@ namespace app
 			 *    美術館の階段は 1 段 19.5 なので、初期値(高さの 0.1 倍 = 7.5、上れるのは約 17.8 まで)では上れない
 			 */
 			constexpr float CHARACTER_CONTROLLER_STEP_HEIGHT = 20.0f;
+			/** 1 フレームでこれより大きく動いたら、ワープとして足音の長さに入れない */
+			constexpr float FOOTSTEP_WARP_DISTANCE = 100.0f;
 		}
 
 
@@ -31,6 +34,7 @@ namespace app
 			, m_upAxis(enModelUpAxisZ)
 			, m_characterStateMachine(nullptr)
 			, m_moveSpeed(Vector3::Zero)
+			, m_footstepDistance(0.0f)
 		{}
 		
 		
@@ -82,8 +86,14 @@ namespace app
 			// 時間の倍率(スローモーション。主人公は 1.0)
 			const float timeScale = GetTimeScale();
 
+			// 足音のために、動く前の位置を覚えておく
+			const Vector3 prevPosition = m_characterController.GetPosition();
+
 			// キャラクターコントローラーを実行して、移動量を反映する
 			m_characterController.Execute(m_moveSpeed, g_gameTime->GetFrameDeltaTime() * timeScale);
+
+			// 歩いた長さで足音を鳴らす
+			UpdateFootstep(prevPosition);
 
 			// 位置をトランスフォームに書き込んで、ワールド値を更新する
 			m_transform.SetLocalPosition(m_characterController.GetPosition());
@@ -105,6 +115,32 @@ namespace app
 		}
 		
 		
+		void CharacterBase::UpdateFootstep(const Vector3& prevPosition)
+		{
+			const float stride = GetFootstepStride();
+			if (stride <= 0.0f) return;
+
+			// 横に動いた長さだけを見る(落ちたり、上ったりした分は入れない)
+			Vector3 moved = m_characterController.GetPosition() - prevPosition;
+			moved.y = 0.0f;
+			const float distance = moved.Length();
+
+			// ワープした時のような大きな動きは、歩いたことにしない
+			if (distance > FOOTSTEP_WARP_DISTANCE) return;
+			// 空中では鳴らさない
+			if (!m_characterController.IsOnGround()) return;
+
+			m_footstepDistance += distance;
+			if (m_footstepDistance < stride) return;
+
+			m_footstepDistance = 0.0f;
+			if (CanPlayFootstep())
+			{
+				sound::SoundManager::GetInstance()->Play(sound::EnSoundType::SE, sound::se::FOOTSTEP);
+			}
+		}
+
+
 		void CharacterBase::Render(RenderContext & rc)
 		{
 			// モデルの描画
