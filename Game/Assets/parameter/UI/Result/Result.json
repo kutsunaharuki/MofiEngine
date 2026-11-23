@@ -2,20 +2,33 @@
   "canvas": {
     "elements": [
       {
-        "comment":"アルバムの背景(共通の枠。色は UIStyle.json)",
-        "type":"UIFrame",
-        "name":"ResultPanel",
-        "width":1600,
-        "height":1000,
-        "position":[0,0,0]
+        "comment":"コルクボード(画面いっぱい。後ろのエンジンの背景色(空色)も隠す。画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"ResultBack",
+        "asset":"Assets/spriteData/UI/Result/CorkBoard.DDS",
+        "width":1920,
+        "height":1080,
+        "position":[0,0,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
       },
       {
-        "comment":"結果のタイトル(文字と色は ResultMenu が「ミッション成功 / 失敗」にする)",
+        "comment":"上の文字(タイトル・ミッション・枚数)の後ろの、うすい暗い帯(コルクの上だと文字が読みにくいため)",
+        "type":"UIFrame",
+        "name":"ResultInfoBack",
+        "width":1816,
+        "height":250,
+        "position":[0,360,0],
+        "fillColor":[0,0,0,0.45],
+        "borderWidth":0
+      },
+      {
+        "comment":"結果のタイトル(文字と色は ResultMenu が「ミッション成功 / 失敗 / 時間切れ」にする)",
         "type":"UIText",
         "name":"ResultTitle",
         "text":"リザルト",
-        "position":[0,440,0],
-        "scale":[1.4,1.4,1],
+        "position":[0,450,0],
+        "scale":[1.7,1.7,1],
         "color":[1,1,1,1],
         "pivot":[0.5,0.5],
         "shadow":true,
@@ -26,23 +39,53 @@
         "comment":"ミッションの行の基準(1 行目の左端。この下に ResultMenu が行を作る)",
         "type":"UIDummy",
         "name":"ResultMissionBase",
-        "position":[-720,370,0]
+        "position":[-850,375,0]
+      },
+      {
+        "comment":"撮った枚数(文字は ResultMenu が入れる)",
+        "type":"UIText",
+        "name":"ResultCountShot",
+        "text":"撮った写真  0 枚",
+        "position":[500,375,0],
+        "scale":[0.8,0.8,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5]
+      },
+      {
+        "comment":"照合できた枚数(文字と色は ResultMenu が入れる)",
+        "type":"UIText",
+        "name":"ResultCountMatch",
+        "text":"照合〇  0 枚",
+        "position":[500,325,0],
+        "scale":[0.8,0.8,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5]
+      },
+      {
+        "comment":"照合できなかった枚数(文字と色は ResultMenu が入れる)",
+        "type":"UIText",
+        "name":"ResultCountMiss",
+        "text":"照合なし×  0 枚",
+        "position":[500,275,0],
+        "scale":[0.8,0.8,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5]
       },
       {
         "comment":"写真の見出し",
         "type":"UIText",
         "name":"ResultPhotoHeading",
         "text":"撮った写真(新しい順)",
-        "position":[-720,280,0],
-        "scale":[0.6,0.6,1],
+        "position":[-850,275,0],
+        "scale":[0.7,0.7,1],
         "color":[0.8,0.8,0.8,1],
         "pivot":[0,0.5]
       },
       {
-        "comment":"写真を並べる基準(1 枚目の写真の左上。横に 4 枚 × 2 段を ResultMenu が作る)",
+        "comment":"写真を並べる基準(1 枚目の写真の左上。横に 4 枚 × 2 段を ResultMenu が作る。白いふちは、この外側に付く)",
         "type":"UIDummy",
         "name":"ResultPhotoBase",
-        "position":[-700,240,0]
+        "position":[-835,225,0]
       },
       {
         "comment":"写真を 1 枚も撮らなかった時の文字",
@@ -59,20 +102,20 @@
         "type":"UIButton",
         "name":"ResultRetry",
         "text":"もう一度",
-        "width":320,
-        "height":64,
-        "position":[-220,-420,0],
-        "textScale":0.8
+        "width":380,
+        "height":72,
+        "position":[-250,-450,0],
+        "textScale":0.9
       },
       {
         "comment":"タイトルへ",
         "type":"UIButton",
         "name":"ResultToTitle",
         "text":"タイトルへ",
-        "width":320,
-        "height":64,
-        "position":[220,-420,0],
-        "textScale":0.8
+        "width":380,
+        "height":72,
+        "position":[250,-450,0],
+        "textScale":0.9
       }
     ]
   }

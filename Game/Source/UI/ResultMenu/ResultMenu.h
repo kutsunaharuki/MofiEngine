@@ -3,7 +3,8 @@
  * @brief リザルトの UI(写真アルバム風)
  * @details MVP の View。渡された表示用の値(ResultViewData)を出すだけで、ゲームの結果(Model)も入力も知らない。
  *          値を作るのと、入力を受けるのは Presenter(ResultScene)の役目。
- *          上にミッションの結果、真ん中に撮った写真と照合の結果、下に「もう一度」「タイトルへ」を出す。
+ *          上にミッションの結果と、照合できた / できなかった枚数、真ん中に撮った写真、下に「もう一度」「タイトルへ」を出す。
+ *          写真はプリントした写真のように白いふちを付け、照合のハンコを押す。左上から順に 1 枚ずつ出てくる。
  *          ミッションの行と写真は JSON ではなく、渡された数だけ、ここで作る。
  *          JSON : Assets/parameter/UI/Result/Result.json
  */
@@ -56,6 +57,20 @@ namespace app
 
 
 		/**
+		 * @brief 撮った写真の枚数
+		 */
+		struct ResultCountData
+		{
+			/** 撮った枚数 */
+			int shotCount = 0;
+			/** 照合できた枚数(ミッションに数えた) */
+			int matchCount = 0;
+			/** 照合できなかった枚数(項目が NG・悪党が写っていない) */
+			int missCount = 0;
+		};
+
+
+		/**
 		 * @brief リザルトに出す値をまとめたもの(Presenter が作って View に渡す)
 		 */
 		struct ResultViewData
@@ -66,6 +81,8 @@ namespace app
 			std::vector<ResultTextData> missionRowList;
 			/** 写真(左上から順) */
 			std::vector<ResultPhotoData> photoList;
+			/** 撮った写真の枚数 */
+			ResultCountData count;
 		};
 
 
@@ -95,6 +112,8 @@ namespace app
 
 			/** 初期化処理(ホットリロードのたびにも呼ばれる) */
 			void InitializeLogic() override;
+			/** 更新処理(写真が順に出てくる動きを進める) */
+			void Update() override;
 
 
 		public:
@@ -129,9 +148,17 @@ namespace app
 			 */
 			void CreateMissionRows();
 			/**
-			 * @brief 写真と、写真ごとの文字を作る
+			 * @brief 写真と、写真ごとの文字とハンコを作る
 			 */
 			void CreatePhotos();
+			/**
+			 * @brief 枚数の文字を入れる
+			 */
+			void ApplyCount();
+			/**
+			 * @brief 写真が順に出てくる動きを、今の時間で決める
+			 */
+			void ApplyAnimation();
 			/**
 			 * @brief 選んでいる項目のボタンを、選択中の形にする(ほかは通常の形)
 			 */
@@ -145,9 +172,11 @@ namespace app
 			 * @param scale スケール
 			 * @param color 色
 			 * @param pivot 基底軸
+			 * @param rotation 回転(ハンコを少し傾ける時に使う)
 			 * @return 作った文字
 			 */
-			UIText* CreateText(const std::string& name, const std::wstring& text, const Vector3& position, const Vector3& scale, const Vector4& color, const Vector2& pivot);
+			UIText* CreateText(const std::string& name, const std::wstring& text, const Vector3& position, const Vector3& scale, const Vector4& color, const Vector2& pivot,
+				const Quaternion& rotation = Quaternion::Identity);
 			/**
 			 * @brief 画像を作って、作った一覧に入れる
 			 * @param name UI の名前
@@ -162,8 +191,31 @@ namespace app
 
 
 		private:
+			/**
+			 * @brief 写真 1 枚分の UI(出てくる時に、まとめて出す)
+			 */
+			struct PhotoGroup
+			{
+				/** ふち・写真・文字 */
+				std::vector<UIBase*> partList;
+				/** 照合のハンコ(少し遅れて押す) */
+				UIText* stamp = nullptr;
+			};
+
+
+		private:
 			/** 結果のタイトル */
 			UIText* m_titleText;
+			/** 撮った枚数の文字 */
+			UIText* m_countShotText;
+			/** 照合できた枚数の文字 */
+			UIText* m_countMatchText;
+			/** 照合できなかった枚数の文字 */
+			UIText* m_countMissText;
+			/** 写真 1 枚分の UI(左上から順) */
+			std::vector<PhotoGroup> m_photoGroupList;
+			/** 出てからの時間(秒) */
+			float m_timer;
 			/** ミッションの行を並べる基準 */
 			UIBase* m_missionBase;
 			/** 写真を並べる基準(1 枚目の写真の左上) */

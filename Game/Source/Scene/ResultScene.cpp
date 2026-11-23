@@ -19,10 +19,8 @@ namespace app
 		/** リザルトの UI のレイアウトのパス */
 		constexpr const char* RESULT_LAYOUT_PATH = "Assets/parameter/UI/Result/Result.json";
 
-		/** タイトルの文字 */
-		constexpr const wchar_t* TITLE_CLEAR = L"ミッション成功";
-		constexpr const wchar_t* TITLE_FAILED = L"ミッション失敗";
-		constexpr const wchar_t* TITLE_TIME_UP = L"時間切れ";
+		/** タイトルの文字(どんな終わり方でも、いつも「リザルト」) */
+		constexpr const wchar_t* TITLE_TEXT = L"リザルト";
 		/** ミッションの行のマーク(● ○ はフォントに無いので 〇 を使う) */
 		constexpr const wchar_t* MISSION_MARK = L"〇";
 		/** 出す写真の枚数(新しい順) */
@@ -126,10 +124,10 @@ namespace app
 		{
 			ui::ResultViewData viewData;
 
-			// タイトル: 全部達成したら成功。時間が 0 になって終わった時は「時間切れ」
+			// タイトル: どんな終わり方(全部達成・時間切れ・見つかった)でも、文字は「リザルト」のまま変えない
+			// ※ 色だけは、全部達成したら成功の色、それ以外は失敗の色にする
 			const bool isClear = gameResult.IsClear();
-			const bool isTimeUp = !isClear && gameResult.GetFinishReason() == FinishReason::TimeUp;
-			viewData.title.text = isClear ? TITLE_CLEAR : (isTimeUp ? TITLE_TIME_UP : TITLE_FAILED);
+			viewData.title.text = TITLE_TEXT;
 			viewData.title.tone = isClear ? ui::ResultTone::Success : ui::ResultTone::Failed;
 
 			// ミッションの行
@@ -141,6 +139,15 @@ namespace app
 			// 写真: 新しい順に PHOTO_SHOW_COUNT 枚
 			const std::vector<mission::ShotRecord>& recordList = gameResult.GetShotRecordList();
 			const int recordCount = static_cast<int>(recordList.size());
+
+			// 枚数: 撮った全部の枚数と、照合できた / できなかった枚数(撮影済み・ミッションが終わっている写真は、どちらにも入れない)
+			viewData.count.shotCount = recordCount;
+			for (const mission::ShotRecord& record : recordList)
+			{
+				if (record.status == mission::ShotStatus::Counted) ++viewData.count.matchCount;
+				if (record.status == mission::ShotStatus::Failed || record.status == mission::ShotStatus::NoSubject) ++viewData.count.missCount;
+			}
+
 			const int showCount = (std::min)(recordCount, PHOTO_SHOW_COUNT);
 			for (int i = 0; i < showCount; ++i)
 			{
