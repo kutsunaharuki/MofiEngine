@@ -1,0 +1,37 @@
+{
+  "canvas": {
+    "elements": [
+      {
+        "comment":"のこり時間の枠(共通の枠。色は UIStyle.json。のこりが少なくなると、線の色を TimerMenu が変える)",
+        "type":"UIFrame",
+        "name":"TimerPanel",
+        "width":260,
+        "height":110,
+        "position":[0,470,0]
+      },
+      {
+        "comment":"「のこり時間」の文字",
+        "type":"UIText",
+        "name":"TimerLabel",
+        "text":"のこり時間",
+        "position":[0,500,0],
+        "scale":[0.5,0.5,1],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"のこり時間の数字(文字と色と大きさは TimerMenu が変える)",
+        "type":"UIText",
+        "name":"TimerText",
+        "text":"0:00",
+        "position":[0,455,0],
+        "scale":[1.2,1.2,1],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5],
+        "shadow":true,
+        "shadowOffset":2,
+        "shadowColor":[0,0,0,1]
+      }
+    ]
+  }
+}

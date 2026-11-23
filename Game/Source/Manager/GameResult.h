@@ -13,6 +13,17 @@
 namespace app
 {
 	/**
+	 * @brief プレイがどう終わったか
+	 */
+	enum class FinishReason : uint8_t
+	{
+		Clear,		// 全てのミッションを達成した
+		TimeUp,		// 制限時間が 0 になった
+		Other		// それ以外(デバッグで終わらせた時など)
+	};
+
+
+	/**
 	 * @brief 1 回のプレイの結果
 	 */
 	class GameResult : public Noncopyable
@@ -59,8 +70,9 @@ namespace app
 		/**
 		 * @brief プレイの結果を入れる(インゲームを抜ける時に呼ぶ)
 		 * @param missionManager ミッションの管理(Finish を呼んだ後のもの)
+		 * @param reason どう終わったか
 		 */
-		void SetResult(const mission::MissionManager& missionManager);
+		void SetResult(const mission::MissionManager& missionManager, const FinishReason reason);
 
 
 	public:
@@ -84,6 +96,11 @@ namespace app
 		 * @return 達成していれば true
 		 */
 		bool IsClear() const { return m_isClear; }
+		/**
+		 * @brief どう終わったかを取得
+		 * @return どう終わったか
+		 */
+		FinishReason GetFinishReason() const { return m_finishReason; }
 
 
 	private:
@@ -103,5 +120,7 @@ namespace app
 		std::vector<mission::ShotRecord> m_shotRecordList;
 		/** 全てのミッションを達成したか */
 		bool m_isClear;
+		/** どう終わったか */
+		FinishReason m_finishReason;
 	};
 }

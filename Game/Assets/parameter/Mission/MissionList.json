@@ -1,4 +1,7 @@
 {
+  "comment_timeLimit":"制限時間(秒)。0 になったらリザルトへ",
+  "timeLimit":180.0,
+
   "tolerance":{
     "faceAngleMax":70.0,
     "screenMargin":40.0,

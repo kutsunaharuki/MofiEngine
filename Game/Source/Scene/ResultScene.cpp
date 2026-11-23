@@ -22,6 +22,7 @@ namespace app
 		/** タイトルの文字 */
 		constexpr const wchar_t* TITLE_CLEAR = L"ミッション成功";
 		constexpr const wchar_t* TITLE_FAILED = L"ミッション失敗";
+		constexpr const wchar_t* TITLE_TIME_UP = L"時間切れ";
 		/** ミッションの行のマーク(● ○ はフォントに無いので 〇 を使う) */
 		constexpr const wchar_t* MISSION_MARK = L"〇";
 		/** 出す写真の枚数(新しい順) */
@@ -125,9 +126,10 @@ namespace app
 		{
 			ui::ResultViewData viewData;
 
-			// タイトル: 全部達成したら成功
+			// タイトル: 全部達成したら成功。時間が 0 になって終わった時は「時間切れ」
 			const bool isClear = gameResult.IsClear();
-			viewData.title.text = isClear ? TITLE_CLEAR : TITLE_FAILED;
+			const bool isTimeUp = !isClear && gameResult.GetFinishReason() == FinishReason::TimeUp;
+			viewData.title.text = isClear ? TITLE_CLEAR : (isTimeUp ? TITLE_TIME_UP : TITLE_FAILED);
 			viewData.title.tone = isClear ? ui::ResultTone::Success : ui::ResultTone::Failed;
 
 			// ミッションの行

@@ -26,6 +26,7 @@
 #include "Source/Mission/PhotoSampleRenderer.h"
 #include "Source/Manager/GameResult.h"
 #include "Source/UI/JudgeMenu/JudgeMenu.h"
+#include "Source/UI/TimerMenu/TimerMenu.h"
 #include "Source/Mission/MissionText.h"
 #include "imgui.h"
 
@@ -54,6 +55,8 @@ namespace app
 		constexpr const char* SAMPLE_LAYOUT_PATH = "Assets/parameter/UI/Sample/Sample.json";
 		/** 照合ジャッジのレイアウトのパス */
 		constexpr const char* JUDGE_LAYOUT_PATH = "Assets/parameter/UI/Judge/Judge.json";
+		/** 制限時間のレイアウトのパス */
+		constexpr const char* TIMER_LAYOUT_PATH = "Assets/parameter/UI/Timer/Timer.json";
 		/** ミッションの一覧のパス */
 		constexpr const char* MISSION_LIST_PATH = "Assets/parameter/Mission/MissionList.json";
 		/** ステージの配置(エディタで保存する JSON) */
@@ -82,6 +85,9 @@ namespace app
 		, m_sampleMenu(nullptr)
 		, m_judgeMenu(nullptr)
 		, m_isJudgeOpen(false)
+		, m_timerMenu(nullptr)
+		, m_remainTime(0.0f)
+		, m_isTimeUp(false)
 	{}
 	
 	
@@ -126,6 +132,12 @@ namespace app
 		// 照合ジャッジの UI(撮った直後に開く)
 		m_judgeLayout.Initialize<ui::JudgeMenu>(JUDGE_LAYOUT_PATH);
 		m_judgeMenu = m_judgeLayout.GetMenu<ui::JudgeMenu>();
+		// 制限時間の UI(のこり時間はミッションの JSON から決める)
+		m_timerLayout.Initialize<ui::TimerMenu>(TIMER_LAYOUT_PATH);
+		m_timerMenu = m_timerLayout.GetMenu<ui::TimerMenu>();
+		m_remainTime = m_missionManager.GetTimeLimit();
+		m_isTimeUp = false;
+		if (m_timerMenu) m_timerMenu->SetRemainTime(m_remainTime);
 
 		// タイトルのBGMを鳴らす
 		sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
@@ -292,6 +304,8 @@ namespace app
 		m_soundOption.Update();
 		// ミッションの UI の更新(入力は使わないので、サウンドオプションを開いていても呼ぶ)
 		m_missionLayout.Update();
+		// 制限時間の UI の更新(点滅などの動き。時間を減らすのは UpdateTimeLimit)
+		m_timerLayout.Update();
 		// 見本の絵を描き進めて、UI に渡す
 		UpdatePhotoSample();
 		m_sampleLayout.Update();
@@ -317,6 +331,9 @@ namespace app
 		{
 			return;
 		}
+
+		// のこり時間を減らす(ジャッジ・サウンドオプションの間は、ここまで来ないので止まる)
+		UpdateTimeLimit();
 
 		// ファインダーの操作(覗く・十字の上下でピント・RB1/LB1)でズーム・Bで撮影
 		const bool isShot = m_finderController.Update();
@@ -420,6 +437,9 @@ namespace app
 			m_missionLayout.Render(rc);
 		}
 
+		// 制限時間(覗いている間も、のこり時間が分かるように出す)
+		m_timerLayout.Render(rc);
+
 		// 見本の絵(覗いている時と、いない時で、出す場所が変わる)
 		// ※ ファインダーの UI より後に描画して、手前に出す
 		m_sampleLayout.Render(rc);
@@ -462,11 +482,18 @@ namespace app
 
 		// TODO : ゲームオーバーの条件を作る
 		// ゴール：全てのミッションを達成したら、すぐにリザルトへ
-		if (m_missionManager.IsAllAchieved() || m_isFinishRequested)
+		// 時間切れ：のこり時間が 0 になったら、リザルトへ
+		const bool isAllAchieved = m_missionManager.IsAllAchieved();
+		if (isAllAchieved || m_isTimeUp || m_isFinishRequested)
 		{
+			// どう終わったか(全部達成が先。最後の 1 枚と時間切れが同じフレームなら、達成にする)
+			FinishReason reason = FinishReason::Other;
+			if (isAllAchieved)   reason = FinishReason::Clear;
+			else if (m_isTimeUp) reason = FinishReason::TimeUp;
+
 			// 達成していないミッションを失敗にして、結果をリザルトに渡す(インゲームはこの後に消える)
 			m_missionManager.Finish();
-			GameResult::GetInstance()->SetResult(m_missionManager);
+			GameResult::GetInstance()->SetResult(m_missionManager, reason);
 
 			id = app::ResultScene::ID();
 			waitTime = 1.0f;
@@ -730,5 +757,22 @@ namespace app
 		{
 			m_isJudgeOpen = false;
 		}
+	}
+
+
+	void InGameScene::UpdateTimeLimit()
+	{
+		// 時間切れの後と、全部達成した後は減らさない(リザルトに移るのを待つ)
+		if (m_isTimeUp || m_missionManager.IsAllAchieved()) return;
+
+		m_remainTime -= g_gameTime->GetFrameDeltaTime();
+		if (m_remainTime <= 0.0f)
+		{
+			m_remainTime = 0.0f;
+			m_isTimeUp = true;
+		}
+
+		// のこり時間を UI に渡す(数字は 1 秒変わった時だけ書きかわる)
+		if (m_timerMenu) m_timerMenu->SetRemainTime(m_remainTime);
 	}
 }

@@ -90,6 +90,8 @@ namespace app
 	{
 		/** 照合ジャッジの表示 */
 		class JudgeMenu;
+		/** 制限時間の表示 */
+		class TimerMenu;
 	}
 
 
@@ -156,6 +158,11 @@ namespace app
 		 * @brief ジャッジの UI を開いている間の更新(閉じる入力を受ける)
 		 */
 		void UpdateJudge();
+		/**
+		 * @brief のこり時間を減らして、UI に渡す(0 になったら、次の RequestScene でリザルトへ)
+		 * @details MVP の Presenter の役目。ゲームの時間が動いている時だけ呼ぶ(ジャッジ・サウンドオプションの間は止まる)
+		 */
+		void UpdateTimeLimit();
 
 
 	private:
@@ -230,6 +237,14 @@ namespace app
 		ui::JudgeMenu* m_judgeMenu;
 		/** 照合ジャッジを開いているか(開いている間は、ゲームの時間を止める) */
 		bool m_isJudgeOpen;
+		/** 制限時間のUIレイアウト */
+		ui::UILayout m_timerLayout;
+		/** 制限時間のメニュー */
+		ui::TimerMenu* m_timerMenu;
+		/** のこり時間(秒) */
+		float m_remainTime;
+		/** 時間切れになったか */
+		bool m_isTimeUp;
 
 		/** 敵の入力(ステージから美術品を探して、盗みに行く一覧を敵に渡す) */
 		actor::EnemyController m_enemyController;

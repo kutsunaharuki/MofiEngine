@@ -101,6 +101,11 @@ namespace app
 		 	 * @brief 見本を取得
 			 */
 			const MatchTolerance GetMatchTolerance() const { return m_commonTolerance; }
+			/**
+			 * @brief 制限時間を取得
+			 * @return 制限時間(秒。JSON の "timeLimit")
+			 */
+			float GetTimeLimit() const { return m_timeLimit; }
 
 			/**
 			 * @brief 状態ごとのミッションの一覧を取得
@@ -157,6 +162,8 @@ namespace app
 			MatchResult m_lastMatchResult;
 			/** 照合の許容値をまとめた情報 */
 			MatchTolerance m_commonTolerance;
+			/** 制限時間(秒) */
+			float m_timeLimit;
 			/** 最後に撮った写真の照合結果があるか */
 			bool m_hasLastMatchResult;
 		};

@@ -13,6 +13,10 @@ namespace app
 	{
 		namespace
 		{
+			/** 制限時間(秒。JSON に "timeLimit" が無い時に使う) */
+			constexpr float DEFAULT_TIME_LIMIT = 180.0f;
+
+
 			/**
 			 * @brief 許容値を読む
 			 * @param parent "tolerance" を持っている JSON
@@ -37,7 +41,8 @@ namespace app
 
 
 		MissionManager::MissionManager()
-			: m_hasLastMatchResult(false)
+			: m_timeLimit(DEFAULT_TIME_LIMIT)
+			, m_hasLastMatchResult(false)
 		{}
 		
 		
@@ -58,6 +63,8 @@ namespace app
 
 			// 全部のミッションに共通の許容値
 			m_commonTolerance = ReadTolerance(json, MatchTolerance());
+			// 制限時間(書いていなければ、決めておいた時間)
+			m_timeLimit = util::JsonConverter::ToFloat(json, "timeLimit", DEFAULT_TIME_LIMIT);
 
 			// ないなら読まない
 			if (!json.contains("missions") || !json["missions"].is_array()) return;

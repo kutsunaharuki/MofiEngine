@@ -13,6 +13,7 @@ namespace app
 
 	GameResult::GameResult()
 		: m_isClear(false)
+		, m_finishReason(FinishReason::Other)
 	{}
 
 
@@ -29,14 +30,16 @@ namespace app
 		m_missionList.clear();
 		m_shotRecordList.clear();
 		m_isClear = false;
+		m_finishReason = FinishReason::Other;
 	}
 
 
-	void GameResult::SetResult(const mission::MissionManager& missionManager)
+	void GameResult::SetResult(const mission::MissionManager& missionManager, const FinishReason reason)
 	{
 		// インゲームが消えても読めるように、コピーして持つ
 		m_missionList = missionManager.GetMissionList();
 		m_shotRecordList = missionManager.GetShotRecordList();
 		m_isClear = missionManager.IsAllAchieved();
+		m_finishReason = reason;
 	}
 }
