@@ -1,0 +1,26 @@
+{
+  "canvas": {
+    "elements": [
+      {
+        "comment":"読み込み中の文字(右下。後ろの点は LoadingMenu が増やす。左端をそろえて、点が増えても文字が動かないようにする)",
+        "type":"UIText",
+        "name":"LoadingText",
+        "text":"読み込み中",
+        "position":[620,-450,0],
+        "scale":[0.9,0.9,1],
+        "color":[1,1,1,1],
+        "pivot":[0,0.5]
+      },
+      {
+        "comment":"ヒント(真ん中の下)",
+        "type":"UIText",
+        "name":"LoadingHint",
+        "text":"ヒント：悪党が盗む瞬間を、見本と同じ向き・大きさで撮ろう",
+        "position":[0,-300,0],
+        "scale":[0.6,0.6,1],
+        "color":[1,1,1,0.8],
+        "pivot":[0.5,0.5]
+      }
+    ]
+  }
+}

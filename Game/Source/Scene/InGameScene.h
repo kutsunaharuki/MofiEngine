@@ -92,6 +92,8 @@ namespace app
 		class JudgeMenu;
 		/** 制限時間の表示 */
 		class TimerMenu;
+		/** ポーズ画面の表示 */
+		class PauseMenu;
 	}
 
 
@@ -110,6 +112,11 @@ namespace app
 		bool Start() override;
 		void Update() override;
 		void Render(RenderContext& rc) override;
+		/**
+		 * @brief ゲームに要る物を全部作り終わったか
+		 * @return 作り終わったら true(SceneManager はそれまでロード画面を出す)
+		 */
+		bool IsLoaded() const override { return m_loadStep == LoadStep::Done; }
 
 		/**
 		 * @brief シーンの移行を要求する
@@ -163,6 +170,39 @@ namespace app
 		 * @details MVP の Presenter の役目。ゲームの時間が動いている時だけ呼ぶ(ジャッジ・サウンドオプションの間は止まる)
 		 */
 		void UpdateTimeLimit();
+		/**
+		 * @brief ポーズ画面を開く(時間が止まる)
+		 */
+		void OpenPause();
+		/**
+		 * @brief ポーズ画面の入力を受ける(上下で選ぶ・A で決める・B / START で閉じる)
+		 * @details MVP の Presenter の役目
+		 */
+		void UpdatePause();
+		/**
+		 * @brief 読み込みを 1 段階だけ進める(1 フレームに 1 つずつ作る)
+		 */
+		void UpdateLoading();
+
+
+	private:
+		/**
+		 * @brief 読み込みの段階(上から順に作る)
+		 */
+		enum class LoadStep : uint8_t
+		{
+			UI,				// UI とミッション
+			Stage,			// ステージの置物
+			NavGrid,		// 経路探索の地図
+			StageLayout,	// 敵を作る・ステージの構造・盗みに行く美術品
+			Enemy,			// 敵の Start
+			Visitor,		// 一般客
+			Boy,			// ステージエディタと主人公
+			Finder,			// 写真撮影・ファインダー・明かり
+			PhotoSample,	// ミッションの見本の絵
+			Camera,			// 最初のフレームとカメラ
+			Done			// 全部作り終わった
+		};
 
 
 	private:
@@ -245,6 +285,18 @@ namespace app
 		float m_remainTime;
 		/** 時間切れになったか */
 		bool m_isTimeUp;
+		/** ポーズ画面のUIレイアウト */
+		ui::UILayout m_pauseLayout;
+		/** ポーズ画面のメニュー */
+		ui::PauseMenu* m_pauseMenu;
+		/** ポーズ画面で選んでいる項目の番号 */
+		int m_pauseSelectIndex;
+		/** ポーズ画面を開いているか(開いている間は、ゲームの時間を止める) */
+		bool m_isPauseOpen;
+		/** ポーズの「タイトルへ」を選んだか */
+		bool m_isTitleRequested;
+		/** 今の読み込みの段階 */
+		LoadStep m_loadStep;
 
 		/** 敵の入力(ステージから美術品を探して、盗みに行く一覧を敵に渡す) */
 		actor::EnemyController m_enemyController;

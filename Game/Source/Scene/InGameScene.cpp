@@ -6,6 +6,7 @@
 #include "SceneManager.h"
 #include "InGameScene.h"
 #include "ResultScene.h"
+#include "TitleScene.h"
 #include "Source/Camera/GameCamera.h"
 #include "Source/Actor/Character/Enemy/EnemyBase.h"
 #include "Source/Actor/Character/Enemy/EnemyStateMachine.h"
@@ -27,6 +28,7 @@
 #include "Source/Manager/GameResult.h"
 #include "Source/UI/JudgeMenu/JudgeMenu.h"
 #include "Source/UI/TimerMenu/TimerMenu.h"
+#include "Source/UI/PauseMenu/PauseMenu.h"
 #include "Source/Mission/MissionText.h"
 #include "imgui.h"
 
@@ -57,6 +59,8 @@ namespace app
 		constexpr const char* JUDGE_LAYOUT_PATH = "Assets/parameter/UI/Judge/Judge.json";
 		/** 制限時間のレイアウトのパス */
 		constexpr const char* TIMER_LAYOUT_PATH = "Assets/parameter/UI/Timer/Timer.json";
+		/** ポーズ画面のレイアウトのパス */
+		constexpr const char* PAUSE_LAYOUT_PATH = "Assets/parameter/UI/Pause/Pause.json";
 		/** ミッションの一覧のパス */
 		constexpr const char* MISSION_LIST_PATH = "Assets/parameter/Mission/MissionList.json";
 		/** ステージの配置(エディタで保存する JSON) */
@@ -88,6 +92,11 @@ namespace app
 		, m_timerMenu(nullptr)
 		, m_remainTime(0.0f)
 		, m_isTimeUp(false)
+		, m_pauseMenu(nullptr)
+		, m_pauseSelectIndex(0)
+		, m_isPauseOpen(false)
+		, m_isTitleRequested(false)
+		, m_loadStep(LoadStep::UI)
 	{}
 	
 	
@@ -115,169 +124,238 @@ namespace app
 		// 読み込み時間を区間ごとに計る(結果は Load Time ウィンドウと出力ウィンドウに出る)
 		m_loadTimeWindow.Begin("InGameScene::Start");
 
-		// サウンドオプションのUIを作る(最初は閉じている)
-		m_soundOption.Initialize(SOUND_OPTION_LAYOUT_PATH);
-
-		// ミッションを読み込んでから、ミッションの UI に渡す(渡した時に行が作られる)
-		m_missionManager.Initialize(MISSION_LIST_PATH);
-		// 新しいプレイを始める(前のプレイの結果と写真を空にする。リトライでもここを通る)
-		GameResult::GetInstance()->Reset();
-		m_missionLayout.Initialize<ui::MissionMenu>(MISSION_LAYOUT_PATH);
-		m_missionMenu = m_missionLayout.GetMenu<ui::MissionMenu>();
-		// ミッション(Model)から行を作って、ミッションの UI(View)に渡す
-		UpdateMissionMenu();
-		// 見本の絵の UI(絵は PhotoSampleRenderer が描き終わってから渡す)
-		m_sampleLayout.Initialize<ui::SampleMenu>(SAMPLE_LAYOUT_PATH);
-		m_sampleMenu = m_sampleLayout.GetMenu<ui::SampleMenu>();
-		// 照合ジャッジの UI(撮った直後に開く)
-		m_judgeLayout.Initialize<ui::JudgeMenu>(JUDGE_LAYOUT_PATH);
-		m_judgeMenu = m_judgeLayout.GetMenu<ui::JudgeMenu>();
-		// 制限時間の UI(のこり時間はミッションの JSON から決める)
-		m_timerLayout.Initialize<ui::TimerMenu>(TIMER_LAYOUT_PATH);
-		m_timerMenu = m_timerLayout.GetMenu<ui::TimerMenu>();
-		m_remainTime = m_missionManager.GetTimeLimit();
-		m_isTimeUp = false;
-		if (m_timerMenu) m_timerMenu->SetRemainTime(m_remainTime);
-
-		// タイトルのBGMを鳴らす
-		sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
-		m_loadTimeWindow.Mark("UI / Mission / BGM");
-
-		// ステージの置物を作る。エディタで保存した JSON が無ければ、3dsMax の tkl から作る
-		m_stage = std::make_unique<stage::Stage>();
-		if (!m_stage->Load(STAGE_FILE_PATH))
-		{
-			m_stage->ImportTkl(STAGE_TKL_PATH, STAGE_MODEL_DIRECTORY);
-		}
-		m_loadTimeWindow.Mark("Stage Load");
-
-		// 経路探索の地図を作る
-		m_navGrid = std::make_unique<ai::NavGrid>();
-		m_navGrid->Build(*m_stage);
-
-		// 経路探索の地図ができてから作る
-		m_pathfinder = std::make_unique<ai::Pathfinder>(*m_navGrid);
-		m_loadTimeWindow.Mark("NavGrid Build");
-
-		// 敵の一覧に大男を追加する
-		m_enemyList.push_back(std::make_unique<actor::EnemyBase>(actor::EnemyBase::EnemyType::BigMan));
-		// 敵の一覧にねずみ男を追加する
-		m_enemyList.push_back(std::make_unique<actor::EnemyBase>(actor::EnemyBase::EnemyType::RatMan));
-
-		// ステージの構造(階・区画・階段)を読み込む
-		m_stageLayout = std::make_unique<stage::StageLayout>();
-		m_stageLayout->Load(STAGE_LAYOUT_PATH);
-
-		// ステージの置物から、盗みに行く美術品を探しておく(階を決めるので、構造を先に渡す)
-		m_enemyController.SetLayout(m_stageLayout.get());
-		m_enemyController.CollectArtTargets(*m_stage);
-		m_enemyController.CollectHidePoints(*m_stage);
-		m_loadTimeWindow.Mark("StageLayout / Targets");
-
-
-		// 敵の一覧の敵に経路探索の地図を設定して
-		for (auto& enemy : m_enemyList)
-		{
-			enemy->SetNavigation(m_pathfinder.get(), m_navGrid.get());
-			// 敵の入力に登録する(美術品の一覧が渡される)
-			m_enemyController.RegisterEnemy(enemy.get());
-			enemy->Start();
-		}
-		m_loadTimeWindow.Mark("Enemy Start");
-
-		// 一般客(1 人の客とグループ)を、JSON の数だけ作って並べる
-		// ※ 見に行く美術品は 1 階の分だけ(経路探索の地図が 1 階の分しか無いため)
-		m_visitorManager = std::make_unique<actor::VisitorManager>();
-		m_visitorManager->Initialize(VISITOR_SPAWN_PATH, m_pathfinder.get(), m_navGrid.get(), m_enemyController.MakeFloorTargetList(0));
-		m_loadTimeWindow.Mark("Visitor Start");
-
-
-#ifdef APP_ENABLE_PARAMETER_HOTRELOAD
-		// ステージエディタは Debug の時だけ
-		m_stageEditor = std::make_unique<stage::StageEditor>(m_stage.get(), STAGE_FILE_PATH, STAGE_TKL_PATH, STAGE_MODEL_DIRECTORY);
-		m_loadTimeWindow.Mark("StageEditor");
-#endif
-
-		// 主人公を作る
-		m_boy = std::make_unique<app::actor::Boy>();
-		m_boy->Start();
-		m_loadTimeWindow.Mark("Boy Start");
-
-		// 大男とねずみ男に見る相手を設定する
-		for (auto& enemy : m_enemyList)
-		{
-			enemy->SetPlayer(m_boy.get());
-		}
-
-		// 写真撮影クラスの初期化
-		m_photoCapture.Init();
-
-		// RenderingEngineにPhotoCaptureを登録
-		RenderingEngine::GetInstance().SetPhotoCapture(&m_photoCapture);
-		
-		// ファインダーの操作(覗く・ピント・ズーム・撮影)を FinderController に任せる
-		m_finderController.Initialize(&m_photoCapture);
-		// ピントのレイが主人公に当たらないように設定
-		m_finderController.SetPhotographerCollisionObject(m_boy->GetCollisionObject());
-		// 明かり(影は階ごとに作るので、ステージの構造を渡す)
-		m_lightController.Initialize(m_stageLayout.get());
-
-		// ファインダーコントローラーに敵を登録する
-		for (auto& enemy : m_enemyList)
-		{
-			m_finderController.RegisterSubject(enemy.get());
-		}
-		m_loadTimeWindow.Mark("PhotoCapture / Finder");
-
-		// ミッションの見本の絵(見本のあるミッションだけ人形を作る。描くのは人形のポーズが止まってから)
-		// ※ ミッションの一覧と同じ順番にする(見本の無いミッションは nullptr)
-		for (const mission::MissionData& mission : m_missionManager.GetMissionList())
-		{
-			if (!mission.hasSample)
-			{
-				m_photoSampleList.push_back(nullptr);
-				continue;
-			}
-			auto photoSample = std::make_unique<mission::PhotoSampleRenderer>();
-			photoSample->Initialize(mission);
-			m_photoSampleList.push_back(std::move(photoSample));
-		}
-		m_loadTimeWindow.Mark("Photo Sample");
-
-		// 行き先は目的地モードが自動で決める
-		for (auto& enemy : m_enemyList)
-		{
-			// 最初のフレームの位置と向きを決めておく(ファインダーが顔の位置を計算するため)
-			enemy->Update();
-		}
-
-		// 主人公に追従するカメラを作成
-		m_gameCamera = std::make_unique<app::camera::GameCamera>();
-		m_gameCamera->Start();
-
-		// カメラは主人公を追いかけて、主人公はカメラの向きを基準に動く
-		m_gameCamera->SetTarget(&m_boy->GetTransform());
-		m_boy->SetGameCamera(m_gameCamera.get());
-		m_gameCamera->Update();
-
-		// 経路探索のデバッグ表示に、見せるものを渡す(全部作り終わってから渡す)
-		debug::NavigationDebugWindow::Target navigationDebugTarget;
-		navigationDebugTarget.boy = m_boy.get();
-		navigationDebugTarget.enemyList = &m_enemyList;
-		navigationDebugTarget.navGrid = m_navGrid.get();
-		navigationDebugTarget.stage = m_stage.get();
-		navigationDebugTarget.stageLayout = m_stageLayout.get();
-		navigationDebugTarget.enemyController = &m_enemyController;
-		m_navigationDebugWindow.Initialize(navigationDebugTarget);
-		m_loadTimeWindow.Mark("First Update / Camera");
-
-		m_loadTimeWindow.End();
+		// ここでは作らない。Update で 1 フレームに 1 つずつ作っていき、全部作り終わったら IsLoaded が true になる
+		// ※ 1 回で全部作ると、その間ロード画面も止まってしまうため
+		m_loadStep = LoadStep::UI;
 		return true;
 	}
-	
-	
+
+
+	void InGameScene::UpdateLoading()
+	{
+		switch (m_loadStep)
+		{
+		case LoadStep::UI:
+		{
+			// UI とミッション
+			// サウンドオプションのUIを作る(最初は閉じている)
+			m_soundOption.Initialize(SOUND_OPTION_LAYOUT_PATH);
+
+			// ミッションを読み込んでから、ミッションの UI に渡す(渡した時に行が作られる)
+			m_missionManager.Initialize(MISSION_LIST_PATH);
+			// 新しいプレイを始める(前のプレイの結果と写真を空にする。リトライでもここを通る)
+			GameResult::GetInstance()->Reset();
+			m_missionLayout.Initialize<ui::MissionMenu>(MISSION_LAYOUT_PATH);
+			m_missionMenu = m_missionLayout.GetMenu<ui::MissionMenu>();
+			// ミッション(Model)から行を作って、ミッションの UI(View)に渡す
+			UpdateMissionMenu();
+			// 見本の絵の UI(絵は PhotoSampleRenderer が描き終わってから渡す)
+			m_sampleLayout.Initialize<ui::SampleMenu>(SAMPLE_LAYOUT_PATH);
+			m_sampleMenu = m_sampleLayout.GetMenu<ui::SampleMenu>();
+			// 照合ジャッジの UI(撮った直後に開く)
+			m_judgeLayout.Initialize<ui::JudgeMenu>(JUDGE_LAYOUT_PATH);
+			m_judgeMenu = m_judgeLayout.GetMenu<ui::JudgeMenu>();
+			// 制限時間の UI(のこり時間はミッションの JSON から決める)
+			m_timerLayout.Initialize<ui::TimerMenu>(TIMER_LAYOUT_PATH);
+			m_timerMenu = m_timerLayout.GetMenu<ui::TimerMenu>();
+			m_remainTime = m_missionManager.GetTimeLimit();
+			m_isTimeUp = false;
+			if (m_timerMenu) m_timerMenu->SetRemainTime(m_remainTime);
+			// ポーズ画面の UI(START で開く)
+			m_pauseLayout.Initialize<ui::PauseMenu>(PAUSE_LAYOUT_PATH);
+			m_pauseMenu = m_pauseLayout.GetMenu<ui::PauseMenu>();
+
+			m_loadTimeWindow.Mark("UI / Mission");
+			break;
+		}
+		case LoadStep::Stage:
+		{
+			// ステージの置物
+			// ステージの置物を作る。エディタで保存した JSON が無ければ、3dsMax の tkl から作る
+			m_stage = std::make_unique<stage::Stage>();
+			if (!m_stage->Load(STAGE_FILE_PATH))
+			{
+				m_stage->ImportTkl(STAGE_TKL_PATH, STAGE_MODEL_DIRECTORY);
+			}
+			m_loadTimeWindow.Mark("Stage Load");
+			break;
+		}
+		case LoadStep::NavGrid:
+		{
+			// 経路探索の地図
+			// 経路探索の地図を作る
+			m_navGrid = std::make_unique<ai::NavGrid>();
+			m_navGrid->Build(*m_stage);
+
+			// 経路探索の地図ができてから作る
+			m_pathfinder = std::make_unique<ai::Pathfinder>(*m_navGrid);
+			m_loadTimeWindow.Mark("NavGrid Build");
+			break;
+		}
+		case LoadStep::StageLayout:
+		{
+			// 敵を作る・ステージの構造・盗みに行く美術品
+			// 敵の一覧に大男を追加する
+			m_enemyList.push_back(std::make_unique<actor::EnemyBase>(actor::EnemyBase::EnemyType::BigMan));
+			// 敵の一覧にねずみ男を追加する
+			m_enemyList.push_back(std::make_unique<actor::EnemyBase>(actor::EnemyBase::EnemyType::RatMan));
+
+			// ステージの構造(階・区画・階段)を読み込む
+			m_stageLayout = std::make_unique<stage::StageLayout>();
+			m_stageLayout->Load(STAGE_LAYOUT_PATH);
+
+			// ステージの置物から、盗みに行く美術品を探しておく(階を決めるので、構造を先に渡す)
+			m_enemyController.SetLayout(m_stageLayout.get());
+			m_enemyController.CollectArtTargets(*m_stage);
+			m_enemyController.CollectHidePoints(*m_stage);
+			m_loadTimeWindow.Mark("StageLayout / Targets");
+			break;
+		}
+		case LoadStep::Enemy:
+		{
+			// 敵の Start
+			// 敵の一覧の敵に経路探索の地図を設定して
+			for (auto& enemy : m_enemyList)
+			{
+				enemy->SetNavigation(m_pathfinder.get(), m_navGrid.get());
+				// 敵の入力に登録する(美術品の一覧が渡される)
+				m_enemyController.RegisterEnemy(enemy.get());
+				enemy->Start();
+			}
+			m_loadTimeWindow.Mark("Enemy Start");
+			break;
+		}
+		case LoadStep::Visitor:
+		{
+			// 一般客
+			// 一般客(1 人の客とグループ)を、JSON の数だけ作って並べる
+			// ※ 見に行く美術品は 1 階の分だけ(経路探索の地図が 1 階の分しか無いため)
+			m_visitorManager = std::make_unique<actor::VisitorManager>();
+			m_visitorManager->Initialize(VISITOR_SPAWN_PATH, m_pathfinder.get(), m_navGrid.get(), m_enemyController.MakeFloorTargetList(0));
+			m_loadTimeWindow.Mark("Visitor Start");
+			break;
+		}
+		case LoadStep::Boy:
+		{
+			// ステージエディタ(Debug の時だけ)と主人公
+#ifdef APP_ENABLE_PARAMETER_HOTRELOAD
+			// ステージエディタは Debug の時だけ
+			m_stageEditor = std::make_unique<stage::StageEditor>(m_stage.get(), STAGE_FILE_PATH, STAGE_TKL_PATH, STAGE_MODEL_DIRECTORY);
+			m_loadTimeWindow.Mark("StageEditor");
+#endif
+
+			// 主人公を作る
+			m_boy = std::make_unique<app::actor::Boy>();
+			m_boy->Start();
+			m_loadTimeWindow.Mark("Boy Start");
+			break;
+		}
+		case LoadStep::Finder:
+		{
+			// 写真撮影・ファインダー・明かり
+			// 大男とねずみ男に見る相手を設定する
+			for (auto& enemy : m_enemyList)
+			{
+				enemy->SetPlayer(m_boy.get());
+			}
+
+			// 写真撮影クラスの初期化
+			m_photoCapture.Init();
+
+			// RenderingEngineにPhotoCaptureを登録
+			RenderingEngine::GetInstance().SetPhotoCapture(&m_photoCapture);
+		
+			// ファインダーの操作(覗く・ピント・ズーム・撮影)を FinderController に任せる
+			m_finderController.Initialize(&m_photoCapture);
+			// ピントのレイが主人公に当たらないように設定
+			m_finderController.SetPhotographerCollisionObject(m_boy->GetCollisionObject());
+			// 明かり(影は階ごとに作るので、ステージの構造を渡す)
+			m_lightController.Initialize(m_stageLayout.get());
+
+			// ファインダーコントローラーに敵を登録する
+			for (auto& enemy : m_enemyList)
+			{
+				m_finderController.RegisterSubject(enemy.get());
+			}
+			m_loadTimeWindow.Mark("PhotoCapture / Finder");
+			break;
+		}
+		case LoadStep::PhotoSample:
+		{
+			// ミッションの見本の絵
+			// ミッションの見本の絵(見本のあるミッションだけ人形を作る。描くのは人形のポーズが止まってから)
+			// ※ ミッションの一覧と同じ順番にする(見本の無いミッションは nullptr)
+			for (const mission::MissionData& mission : m_missionManager.GetMissionList())
+			{
+				if (!mission.hasSample)
+				{
+					m_photoSampleList.push_back(nullptr);
+					continue;
+				}
+				auto photoSample = std::make_unique<mission::PhotoSampleRenderer>();
+				photoSample->Initialize(mission);
+				m_photoSampleList.push_back(std::move(photoSample));
+			}
+			m_loadTimeWindow.Mark("Photo Sample");
+			break;
+		}
+		case LoadStep::Camera:
+		{
+			// 最初のフレームとカメラ
+			// 行き先は目的地モードが自動で決める
+			for (auto& enemy : m_enemyList)
+			{
+				// 最初のフレームの位置と向きを決めておく(ファインダーが顔の位置を計算するため)
+				enemy->Update();
+			}
+
+			// 主人公に追従するカメラを作成
+			m_gameCamera = std::make_unique<app::camera::GameCamera>();
+			m_gameCamera->Start();
+
+			// カメラは主人公を追いかけて、主人公はカメラの向きを基準に動く
+			m_gameCamera->SetTarget(&m_boy->GetTransform());
+			m_boy->SetGameCamera(m_gameCamera.get());
+			m_gameCamera->Update();
+
+			// 経路探索のデバッグ表示に、見せるものを渡す(全部作り終わってから渡す)
+			debug::NavigationDebugWindow::Target navigationDebugTarget;
+			navigationDebugTarget.boy = m_boy.get();
+			navigationDebugTarget.enemyList = &m_enemyList;
+			navigationDebugTarget.navGrid = m_navGrid.get();
+			navigationDebugTarget.stage = m_stage.get();
+			navigationDebugTarget.stageLayout = m_stageLayout.get();
+			navigationDebugTarget.enemyController = &m_enemyController;
+			m_navigationDebugWindow.Initialize(navigationDebugTarget);
+			m_loadTimeWindow.Mark("First Update / Camera");
+			break;
+		}
+		default:
+			break;
+		}
+
+		// 次の段階へ進む
+		m_loadStep = static_cast<LoadStep>(static_cast<int>(m_loadStep) + 1);
+
+		// 全部作り終わった
+		if (m_loadStep == LoadStep::Done)
+		{
+			m_loadTimeWindow.End();
+			// タイトルのBGMを鳴らす(読み込みが全部終わってから)
+			sound::SoundManager::GetInstance()->Play(sound::EnSoundType::BGM, sound::bgm::TITLE);
+		}
+	}
+
+
 	void InGameScene::Update()
 	{
+		// 読み込みが終わるまでは、作るだけ(ゲームはまだ動かさない)
+		if (!IsLoaded())
+		{
+			UpdateLoading();
+			return;
+		}
+
 		// ステージの更新と、エディタ(Debug の時だけ)
 		// ※ サウンドオプションを開いている間も編集できるように、一番先に呼ぶ
 		{
@@ -301,6 +379,8 @@ namespace app
 		DrawGameLoopDebug();
 
 		// サウンドオプションの更新(開いているときだけ、中で入力を受け付ける)
+		// ※ 更新の前に開いていたかを残す(B で閉じたフレームに、同じ B でポーズまで閉じないようにする)
+		const bool wasSoundOptionOpen = m_soundOption.IsOpen();
 		m_soundOption.Update();
 		// ミッションの UI の更新(入力は使わないので、サウンドオプションを開いていても呼ぶ)
 		m_missionLayout.Update();
@@ -318,11 +398,23 @@ namespace app
 			return;
 		}
 
-		// スタートボタンで、サウンドオプションを開く
-		// ※ メニューの更新の後に開くので、開いたフレームの入力でメニューが動くことはない
-		if (!m_soundOption.IsOpen() && g_pad[0]->IsTrigger(enButtonStart))
+		// ポーズを開いている間は、ゲームの時間を止める(サウンドオプションも、ポーズから開く)
+		if (m_isPauseOpen)
 		{
-			m_soundOption.Open();
+			// サウンドオプションを開いている間(と、閉じたフレーム)は、ポーズの入力を受けない
+			if (!wasSoundOptionOpen && !m_soundOption.IsOpen())
+			{
+				UpdatePause();
+			}
+			m_pauseLayout.Update();
+			return;
+		}
+
+		// スタートボタンで、ポーズを開く
+		if (g_pad[0]->IsTrigger(enButtonStart))
+		{
+			OpenPause();
+			return;
 		}
 
 		// サウンドオプションを開いている間は、ゲームを止める
@@ -416,6 +508,9 @@ namespace app
 	
 	void InGameScene::Render(RenderContext& rc)
 	{
+		// 読み込みが終わるまでは、まだ作っていない物があるので描画しない
+		if (!IsLoaded()) return;
+
 		// ファインダーを覗いていない時だけ描画する
 		if (!m_photoCapture.IsFinderActive())
 		{
@@ -447,6 +542,11 @@ namespace app
 		// サウンドオプションは毎フレーム描画を呼ぶ(閉じているときは、メニューの中で何も描画されない)
 		// ※ IsTrigger の中で呼ぶと、ボタンを押した1フレームしか描画されない
 		// ※ ファインダーの UI より後に描画して、手前に出す
+		// ポーズ画面(開いている時だけ。サウンドオプションはこの上に出す)
+		if (m_isPauseOpen)
+		{
+			m_pauseLayout.Render(rc);
+		}
 		m_soundOption.Render(rc);
 
 		// 照合ジャッジ(開いている時だけ。一番手前に出す)
@@ -468,6 +568,11 @@ namespace app
 	
 	bool InGameScene::RequestScene(uint32_t& id, float& waitTime)
 	{
+		// 読み込みが終わるまでは移らない
+		if (!IsLoaded())
+		{
+			return false;
+		}
 		// サウンドオプションを開いている間は、Aボタンをメニューが使うので遷移しない
 		if (m_soundOption.IsOpen())
 		{
@@ -475,6 +580,18 @@ namespace app
 		}
 		// 照合ジャッジを開いている間は移らない(最後の 1 枚で全部達成しても、照合〇 を見せてから移る)
 		if (m_isJudgeOpen)
+		{
+			return false;
+		}
+		// ポーズの「タイトルへ」：リザルトを通らずにタイトルへ
+		if (m_isTitleRequested)
+		{
+			id = TitleScene::ID();
+			waitTime = 1.0f;
+			return true;
+		}
+		// ポーズを開いている間は、ほかの理由では移らない
+		if (m_isPauseOpen)
 		{
 			return false;
 		}
@@ -774,5 +891,52 @@ namespace app
 
 		// のこり時間を UI に渡す(数字は 1 秒変わった時だけ書きかわる)
 		if (m_timerMenu) m_timerMenu->SetRemainTime(m_remainTime);
+	}
+
+
+	void InGameScene::OpenPause()
+	{
+		m_isPauseOpen = true;
+		// 開くたびに「つづける」から選ぶ(すぐに戻れるように)
+		m_pauseSelectIndex = static_cast<int>(ui::PauseMenu::SelectType::Resume);
+		if (m_pauseMenu) m_pauseMenu->SetSelect(ui::PauseMenu::SelectType::Resume);
+	}
+
+
+	void InGameScene::UpdatePause()
+	{
+		using SelectType = ui::PauseMenu::SelectType;
+		constexpr int itemCount = static_cast<int>(SelectType::Max);
+
+		// B か START で閉じる(ゲームに戻る)
+		if (g_pad[0]->IsTrigger(enButtonB) || g_pad[0]->IsTrigger(enButtonStart))
+		{
+			m_isPauseOpen = false;
+			return;
+		}
+
+		// 上と下の入力で選ぶ項目を変える(端まで行ったら反対側に戻る)
+		const int prevIndex = m_pauseSelectIndex;
+		if (g_pad[0]->IsTrigger(enButtonDown)) m_pauseSelectIndex = (m_pauseSelectIndex + 1) % itemCount;
+		if (g_pad[0]->IsTrigger(enButtonUp))   m_pauseSelectIndex = (m_pauseSelectIndex + itemCount - 1) % itemCount;
+
+		// 変わった時だけ、View に選んでいる項目を伝える
+		const SelectType selectType = static_cast<SelectType>(m_pauseSelectIndex);
+		if (m_pauseSelectIndex != prevIndex && m_pauseMenu)
+		{
+			m_pauseMenu->SetSelect(selectType);
+		}
+
+		// A で決める
+		if (!g_pad[0]->IsTrigger(enButtonA)) return;
+		// 決めたボタンを押した形にする(見た目は View が変える)
+		if (m_pauseMenu) m_pauseMenu->PressSelect();
+		switch (selectType)
+		{
+		case SelectType::Resume: m_isPauseOpen = false;     break;
+		case SelectType::Sound:  m_soundOption.Open();      break;
+		case SelectType::Title:  m_isTitleRequested = true; break;
+		default: break;
+		}
 	}
 }

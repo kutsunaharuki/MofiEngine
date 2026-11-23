@@ -317,6 +317,8 @@
     <ClCompile Include="Source\Scene\TitleScene.cpp" />
     <ClCompile Include="Source\UI\Animation\UIAnimation.cpp" />
     <ClCompile Include="Source\UI\JudgeMenu\JudgeMenu.cpp" />
+    <ClCompile Include="Source\UI\LoadingMenu\LoadingMenu.cpp" />
+    <ClCompile Include="Source\UI\PauseMenu\PauseMenu.cpp" />
     <ClCompile Include="Source\UI\SampleMenu\SampleMenu.cpp" />
     <ClCompile Include="Source\UI\ResultMenu\ResultMenu.cpp" />
     <ClCompile Include="Source\Mission\PhotoAlbum.cpp" />
@@ -403,6 +405,8 @@
     <ClInclude Include="Source\UI\Animation\UIAnimationFactory.h" />
     <ClInclude Include="Source\UI\Animation\UIAnimationParameter.h" />
     <ClInclude Include="Source\UI\JudgeMenu\JudgeMenu.h" />
+    <ClInclude Include="Source\UI\LoadingMenu\LoadingMenu.h" />
+    <ClInclude Include="Source\UI\PauseMenu\PauseMenu.h" />
     <ClInclude Include="Source\UI\SampleMenu\SampleMenu.h" />
     <ClInclude Include="Source\UI\ResultMenu\ResultMenu.h" />
     <ClInclude Include="Source\Mission\PhotoAlbum.h" />

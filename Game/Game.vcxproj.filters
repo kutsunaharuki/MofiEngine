@@ -106,6 +106,12 @@
     <Filter Include="Source\UI\TimerMenu">
       <UniqueIdentifier>{b997f145-3613-4ab3-b907-1703112f132e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\UI\LoadingMenu">
+      <UniqueIdentifier>{bc94834f-83f7-4f74-accd-85a4185c90e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\UI\PauseMenu">
+      <UniqueIdentifier>{9b69e84d-653b-4d11-ac2f-3710ee7d9a2f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -338,6 +344,12 @@
     </ClCompile>
     <ClCompile Include="Source\UI\TimerMenu\TimerMenu.cpp">
       <Filter>Source\UI\TimerMenu</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\LoadingMenu\LoadingMenu.cpp">
+      <Filter>Source\UI\LoadingMenu</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\PauseMenu\PauseMenu.cpp">
+      <Filter>Source\UI\PauseMenu</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -586,6 +598,12 @@
     </ClInclude>
     <ClInclude Include="Source\UI\TimerMenu\TimerMenu.h">
       <Filter>Source\UI\TimerMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\LoadingMenu\LoadingMenu.h">
+      <Filter>Source\UI\LoadingMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\PauseMenu\PauseMenu.h">
+      <Filter>Source\UI\PauseMenu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

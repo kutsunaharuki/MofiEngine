@@ -4,6 +4,7 @@
  */
 #pragma once
 #include "Source/Scene/IScene.h"
+#include "Source/UI/UILayout.h"
 #include <map>
 #include <functional>
 #include <memory>
@@ -11,6 +12,12 @@
 
 namespace app
 {
+	namespace ui
+	{
+		class LoadingMenu;
+	}
+
+
 	/**
 	 * @brief シーンを一元管理するクラス
 	 */
@@ -143,5 +150,9 @@ namespace app
 		float m_fadeElapsedTimer = 0.0f;
 		/** 画面の暗さ(0 ~ 1) */
 		float m_fadeAlpha = 0.0f;
+		/** ロード画面のUIレイアウト */
+		ui::UILayout m_loadingLayout;
+		/** ロード画面のメニュー */
+		ui::LoadingMenu* m_loadingMenu = nullptr;
 	};
 }

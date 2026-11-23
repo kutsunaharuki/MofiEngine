@@ -7,6 +7,7 @@
 #include "InGameScene.h"
 #include "ResultScene.h"
 #include "TitleScene.h"
+#include "Source/UI/LoadingMenu/LoadingMenu.h"
 
 
 namespace app
@@ -22,6 +23,8 @@ namespace app
         constexpr float TITLE_SCENE_WIDTH = 1920.0f;
         /** タイトルシーンの高さ */
         constexpr float TITLE_SCENE_HEIGHT = 1080.0f;
+        /** ロード画面のレイアウトのパス */
+        constexpr const char* LOADING_LAYOUT_PATH = "Assets/parameter/UI/Loading/Loading.json";
     }
 
 
@@ -40,6 +43,10 @@ namespace app
             TITLE_SCENE_FILE_PATH,
             TITLE_SCENE_WIDTH, TITLE_SCENE_HEIGHT
         );
+
+        // ロード画面の UI を作る(シーンを読み込む前の、暗い画面の時だけ出す)
+        m_loadingLayout.Initialize<ui::LoadingMenu>(LOADING_LAYOUT_PATH);
+        m_loadingMenu = m_loadingLayout.GetMenu<ui::LoadingMenu>();
 
         // 最初のシーンを作成
         CreateScene(TitleScene::ID());
@@ -84,8 +91,9 @@ namespace app
             {
                 // 真っ暗になったので古いシーンを破棄
                 m_currentScene.reset();
-                // ロード画面に遷移
+                // ロード画面に遷移(ロード画面の動きを最初から)
                 m_transitionState = TransitionState::Loading;
+                if (m_loadingMenu) m_loadingMenu->Restart();
             }
             break;
         }
@@ -93,7 +101,11 @@ namespace app
         // シーンのロード中
         case TransitionState::Loading:
         {
+            // ロード画面の動き(読み込みの段階の合間に進む)
+            m_loadingLayout.Update();
+
             // 画面が真っ暗な状態で次のシーンを作成する
+            // ※ 時間では決めない。シーンが要る物を全部作り終わる(IsLoaded が true になる)まで、ロード画面のまま
             if (!m_currentScene && m_nextSceneId != INVALID_SCENE_ID)
             {
                 // 次のシーンを作成
@@ -149,6 +161,12 @@ namespace app
 
         // フェードの黒い絵を重ねる
         RenderFade(rc);
+
+        // ロード画面(次のシーンを読み込む前の、真っ暗な時だけ)
+        if (m_transitionState == TransitionState::Loading)
+        {
+            m_loadingLayout.Render(rc);
+        }
     }
     
     
