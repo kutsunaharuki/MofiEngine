@@ -153,6 +153,10 @@ void InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, in
 	// 1. imgui本体
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
+#ifndef K2_DEBUG
+	// Release ではデバッグの窓を使わないので、窓の場所を覚えるファイル(imgui.ini)を作らない
+	ImGui::GetIO().IniFilename = nullptr;
+#endif
 	// 見た目のテーマ
 	ImGui::StyleColorsLight();
 
