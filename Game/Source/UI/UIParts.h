@@ -7,6 +7,7 @@
 #include "Source/Core/TransformNode.h"
 #include "Source/UI/Animation/UIAnimation.h"
 #include <algorithm>
+#include <array>
 #include <functional>
 #include <memory>
 #include <string>
@@ -536,6 +537,273 @@ namespace app
 		private:
 			/** フォントレンダー */
 			FontRender m_fontRender;
+		};
+
+
+
+
+		/*******************************************/
+
+
+		/**
+		 * @brief 全部の画面で使い回す色と大きさ
+		 * @details JSON : Assets/parameter/UI/Common/UIStyle.json
+		 *          色は 3 つだけ(main:濃い色 / sub:明るい色 / accent:目立たせる色)。
+		 *          UIButton と UIFrame は、色を書かなければここの色を使う(画面ごとに色がばらばらにならないように)
+		 */
+		struct UIStyle
+		{
+			/** 濃い色(枠の中・ボタンの中) */
+			Vector4 mainColor;
+			/** 明るい色(文字・枠の線) */
+			Vector4 subColor;
+			/** 目立たせる色(選んでいるボタン・大事な文字) */
+			Vector4 accentColor;
+			/** 枠の線の太さ(ピクセル) */
+			float frameBorderWidth;
+			/** 選んでいるボタンの大きさ(1.0 が元の大きさ) */
+			float buttonSelectedScale;
+			/** 押した時のボタンの大きさ */
+			float buttonPressedScale;
+			/** 押した時の形でいる時間(秒) */
+			float buttonPressedTime;
+			/** ボタンの色や大きさが変わるのにかける時間(秒。0 ならすぐ変わる) */
+			float buttonBlendTime;
+
+
+			UIStyle();
+
+			/**
+			 * @brief 今の色と大きさを取得(初めて呼んだ時に JSON を読む)
+			 * @return 色と大きさ
+			 */
+			static const UIStyle& Get();
+			/**
+			 * @brief JSON を読み直す
+			 * @return 読めたら true(読めない時は、今の値のまま)
+			 */
+			static bool Reload();
+			/**
+			 * @brief JSON のパスを取得
+			 * @return JSON のパス(UILayout が、保存されたかを調べるのに使う)
+			 */
+			static const char* GetFilePath();
+		};
+
+
+
+
+		/*******************************************/
+
+
+		/**
+		 * @brief 枠(パネル)のUI
+		 * @details 中を塗る四角と、まわりの線 4 本でできている(画像は白い四角 1 枚だけ使う)。
+		 *          基底軸は真ん中で固定(position が枠の真ん中)
+		 */
+		class UIFrame : public UIBase
+		{
+		public:
+			UIFrame();
+			~UIFrame() override;
+
+			/** 更新処理 */
+			void Update() override;
+			/** 描画処理 */
+			void Render(RenderContext& rc) override;
+
+
+		public:
+			/**
+			 * @brief 初期化
+			 * @param width 横
+			 * @param height 縦
+			 * @param position 位置(枠の真ん中)
+			 * @param scale スケール
+			 * @param rotation 回転
+			 * @param fillColor 中の色
+			 * @param borderColor 線の色
+			 * @param borderWidth 線の太さ(0 なら線を出さない)
+			 */
+			void Initialize(
+				const float width
+				, const float height
+				, const Vector3& position
+				, const Vector3& scale
+				, const Quaternion& rotation
+				, const Vector4& fillColor
+				, const Vector4& borderColor
+				, const float borderWidth
+			);
+
+			/**
+			 * @brief 中の色を設定
+			 * @param color 中の色
+			 */
+			void SetFillColor(const Vector4& color) { m_fillColor = color; }
+			/**
+			 * @brief 線の色を設定
+			 * @param color 線の色
+			 */
+			void SetBorderColor(const Vector4& color) { m_borderColor = color; }
+
+			/**
+			 * @brief 枠の大きさを取得(スケール適用前)
+			 * @return 横幅(x)と縦幅(y)
+			 */
+			Vector2 GetSize() const override { return m_size; }
+
+
+		private:
+			/** 線の場所 */
+			enum class BorderSide : uint8_t
+			{
+				Top,
+				Bottom,
+				Left,
+				Right,
+				Max
+			};
+
+			/**
+			 * @brief 位置・色をスプライトに反映する
+			 */
+			void ApplyToSprite();
+
+
+		private:
+			/** 中を塗る四角 */
+			SpriteRender m_fillRender;
+			/** まわりの線(BorderSide の順) */
+			std::array<SpriteRender, static_cast<size_t>(BorderSide::Max)> m_borderRenderList;
+			/** 枠の大きさ */
+			Vector2 m_size;
+			/** 中の色 */
+			Vector4 m_fillColor;
+			/** 線の色 */
+			Vector4 m_borderColor;
+			/** 線の太さ */
+			float m_borderWidth;
+			/** 初期化済みかどうか */
+			bool m_isInitialized;
+		};
+
+
+
+
+		/*******************************************/
+
+
+		/**
+		 * @brief ボタンのUI(枠 + 文字)
+		 * @details 形は 3 つ : 通常 / 選択中 / 押した。
+		 *          メニューは SetState で選んでいるかを渡し、決定した時に Press を呼ぶだけでよい(色と大きさはボタンが変える)。
+		 *          色は UIStyle から取る(全部の画面でボタンの見た目がそろう)
+		 */
+		class UIButton : public UIBase
+		{
+		public:
+			/** ボタンの形 */
+			enum class ButtonState : uint8_t
+			{
+				Normal,		// 通常
+				Selected,	// 選択中
+				Pressed,	// 押した(少しの間だけ。終わると選択中に戻る)
+			};
+
+
+		public:
+			UIButton();
+			~UIButton() override;
+
+			/** 更新処理 */
+			void Update() override;
+			/** 描画処理 */
+			void Render(RenderContext& rc) override;
+
+
+		public:
+			/**
+			 * @brief 初期化
+			 * @param text ボタンの文字
+			 * @param width 横
+			 * @param height 縦
+			 * @param position 位置(ボタンの真ん中)
+			 * @param scale スケール
+			 * @param rotation 回転
+			 * @param textScale 文字の大きさ(1.0 がフォントの元の大きさ)
+			 */
+			void Initialize(
+				const wchar_t* text
+				, const float width
+				, const float height
+				, const Vector3& position
+				, const Vector3& scale
+				, const Quaternion& rotation
+				, const float textScale
+			);
+
+			/**
+			 * @brief 形を設定(通常 / 選択中)
+			 * @param state 形
+			 * @details 押している間(Pressed)は、押し終わるまで形を変えない
+			 */
+			void SetState(const ButtonState state);
+			/**
+			 * @brief 押す(少しの間だけ押した形になり、そのあと選択中に戻る)
+			 */
+			void Press();
+			/**
+			 * @brief 今の形を取得
+			 * @return 形
+			 */
+			ButtonState GetState() const { return m_state; }
+			/**
+			 * @brief 選んでいるか(選択中か、押した形)
+			 * @return 選んでいれば true
+			 */
+			bool IsSelected() const { return m_state != ButtonState::Normal; }
+
+			/**
+			 * @brief 文字を設定
+			 * @param text 文字
+			 */
+			void SetText(const wchar_t* text) { m_label.SetText(text); }
+
+			/**
+			 * @brief ボタンの大きさを取得(スケール適用前)
+			 * @return 横幅(x)と縦幅(y)
+			 */
+			Vector2 GetSize() const override { return m_frame.GetSize(); }
+
+
+		private:
+			/**
+			 * @brief 形に合わせた、目標の色と大きさを決める
+			 * @param outFill 中の色
+			 * @param outBorder 線の色
+			 * @param outText 文字の色
+			 * @param outScale 大きさ
+			 */
+			void GetTargetLook(Vector4& outFill, Vector4& outBorder, Vector4& outText, float& outScale) const;
+
+
+		private:
+			/** 見た目の枠 */
+			UIFrame m_frame;
+			/** 文字 */
+			UIText m_label;
+			/** JSON のスケール(選んだ時は、これに倍率をかける) */
+			Vector3 m_baseScale;
+			/** 今の形 */
+			ButtonState m_state;
+			/** 押した形の残り時間(秒) */
+			float m_pressTimer;
+			/** 今の色と大きさ(目標に向かって少しずつ近づける) */
+			Vector4 m_currentFill;
+			Vector4 m_currentBorder;
+			Vector4 m_currentText;
+			float m_currentScale;
 		};
 
 

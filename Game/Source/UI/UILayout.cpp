@@ -146,6 +146,47 @@ namespace
 			}
 			return ui;
 		}
+		if (type == "UIFrame")
+		{
+			// 色を書かなければ、全部の画面で同じ色(UIStyle)を使う
+			const UIStyle& style = UIStyle::Get();
+			const UICommonParameter parameter = ReadCommonParameter(item);
+
+			UIFrame* ui = canvas->CreateUI<UIFrame>(key);
+			ui->Initialize(
+				JsonConverter::ToFloat(item, "width"),
+				JsonConverter::ToFloat(item, "height"),
+				parameter.position,
+				parameter.scale,
+				parameter.rotation,
+				JsonConverter::ToVector4(item, "fillColor", style.mainColor),
+				JsonConverter::ToVector4(item, "borderColor", style.subColor),
+				JsonConverter::ToFloat(item, "borderWidth", style.frameBorderWidth)
+			);
+			ui->SetColor(parameter.color);
+			ui->SetIsDraw(parameter.isDraw);
+			return ui;
+		}
+		if (type == "UIButton")
+		{
+			// 色は UIStyle から取る(通常 / 選択中 / 押した、の色はボタンが変える)
+			const UICommonParameter parameter = ReadCommonParameter(item);
+			const std::wstring text = JsonConverter::ToWString(item, "text");
+
+			UIButton* ui = canvas->CreateUI<UIButton>(key);
+			ui->Initialize(
+				text.c_str(),
+				JsonConverter::ToFloat(item, "width", 320.0f),
+				JsonConverter::ToFloat(item, "height", 72.0f),
+				parameter.position,
+				parameter.scale,
+				parameter.rotation,
+				JsonConverter::ToFloat(item, "textScale", 1.0f)
+			);
+			ui->SetColor(parameter.color);
+			ui->SetIsDraw(parameter.isDraw);
+			return ui;
+		}
 		if (type == "UIDummy")
 		{
 			const UICommonParameter parameter = ReadCommonParameter(item);
@@ -168,7 +209,7 @@ namespace
 		message += "\" (";
 		message += filePath;
 		message += ")\n";
-		message += "            使える type : UIImage / UIIcon / UIGauge / UIDigit / UIText / UIDummy\n";
+		message += "            使える type : UIImage / UIIcon / UIGauge / UIDigit / UIText / UIFrame / UIButton / UIDummy\n";
 		OutputDebugStringA(message.c_str());
 		return nullptr;
 	}
@@ -182,6 +223,7 @@ namespace app
 		UILayout::UILayout()
 #ifdef APP_ENABLE_LAYOUT_HOTRELOAD
 			: m_lastWriteTime(0)
+			, m_lastStyleWriteTime(0)
 #endif
 		{}
 
@@ -201,6 +243,20 @@ namespace app
 			{
 				m_lastWriteTime = writeTime;
 				Reload();
+			}
+
+			// 全部の画面で使う色(UIStyle.json)を保存した時も、読み直して作り直す
+			const time_t styleWriteTime = util::JsonConverter::GetFileLastWriteTime(UIStyle::GetFilePath());
+			if (styleWriteTime != 0 && styleWriteTime != m_lastStyleWriteTime)
+			{
+				// 最初の 1 回は覚えるだけ(起動した直後に作り直さないように)
+				const bool isFirst = m_lastStyleWriteTime == 0;
+				m_lastStyleWriteTime = styleWriteTime;
+				if (!isFirst)
+				{
+					UIStyle::Reload();
+					Reload();
+				}
 			}
 #endif
 

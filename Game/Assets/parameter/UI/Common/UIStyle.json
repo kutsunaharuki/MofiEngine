@@ -1,0 +1,19 @@
+{
+  "comment":"全部の画面で使い回す色と大きさ。色は 3 つだけ使う(保存すると、ゲームを止めずに全部の画面が作り直される)",
+  "mainColor":[0.08,0.08,0.10,0.85],
+  "comment_mainColor":"濃い色。枠の中・ボタンの中(4 つ目は透明度)",
+  "subColor":[0.95,0.93,0.88,1.0],
+  "comment_subColor":"明るい色。文字・枠の線",
+  "accentColor":[0.85,0.20,0.25,1.0],
+  "comment_accentColor":"目立たせる色。選んでいるボタン・大事な文字",
+  "frameBorderWidth":3.0,
+  "comment_frameBorderWidth":"枠の線の太さ(ピクセル)",
+  "buttonSelectedScale":1.08,
+  "comment_buttonSelectedScale":"選んでいるボタンの大きさ(1.0 が元の大きさ)",
+  "buttonPressedScale":0.94,
+  "comment_buttonPressedScale":"押した時のボタンの大きさ",
+  "buttonPressedTime":0.12,
+  "comment_buttonPressedTime":"押した形でいる時間(秒)",
+  "buttonBlendTime":0.08,
+  "comment_buttonBlendTime":"色や大きさが変わるのにかける時間(秒。0 ならすぐ変わる)"
+}

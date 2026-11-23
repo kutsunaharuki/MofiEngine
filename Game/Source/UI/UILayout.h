@@ -15,7 +15,15 @@
  *     ]
  *   }
  * }
- * type は UIImage / UIIcon / UIGauge / UIDigit / UIText / UIDummy
+ * type は UIImage / UIIcon / UIGauge / UIDigit / UIText / UIFrame / UIButton / UIDummy
+ *
+ * UIFrame の書き方(色を書かなければ UIStyle.json の色。線の太さも同じ)
+ *       { "type": "UIFrame", "name": "Panel", "width": 800, "height": 400,
+ *         "position": [0, 0, 0], "fillColor": [0, 0, 0, 0.8], "borderColor": [1, 1, 1, 1], "borderWidth": 3 }
+ *
+ * UIButton の書き方(色は UIStyle.json。通常 / 選択中 / 押した、で変わる)
+ *       { "type": "UIButton", "name": "Retry", "text": "もう一度",
+ *         "width": 320, "height": 72, "position": [0, -300, 0], "textScale": 1.0 }
  *
  * UIText の書き方(asset / width / height はいらない)
  *       { "type": "UIText", "name": "MasterLabel", "text": "マスター",
@@ -101,6 +109,8 @@ namespace app
 #ifdef APP_ENABLE_LAYOUT_HOTRELOAD
 			/** JSON ファイルの最終更新日時 */
 			time_t m_lastWriteTime;
+			/** 全部の画面で使う色(UIStyle.json)の最終更新日時 */
+			time_t m_lastStyleWriteTime;
 #endif
 		};
 	}
