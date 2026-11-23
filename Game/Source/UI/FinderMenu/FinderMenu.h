@@ -88,6 +88,22 @@ namespace app
 			 * @details 一気に白くなって、すぐに消えていく
 			 */
 			void PlayShotFlash() { m_shotFlashTimer = 0.0f; }
+			/**
+			 * @brief チェック欄の項目
+			 */
+			enum class CheckItem : uint8_t
+			{
+				FaceVisible,	// 顔が見える
+				Stealing,		// 盗んでいる
+				InFocus,		// ピントが合っている
+				Max
+			};
+			/**
+			 * @brief チェック欄に、今の写り方で合っているかを入れる
+			 * @param item 項目
+			 * @param isChecked 合っていれば true(チェックが入る)
+			 */
+			void SetCheck(const CheckItem item, const bool isChecked);
 
 
 		private:
@@ -114,6 +130,10 @@ namespace app
 			 * @brief 撮った時のフラッシュを、時間に合わせて薄くしていく
 			 */
 			void ApplyShotFlash();
+			/**
+			 * @brief チェック欄の見た目を、合っているかに合わせる(入った時は印がポンと出る)
+			 */
+			void ApplyCheckList();
 
 
 		private:
@@ -156,6 +176,23 @@ namespace app
 			UIFrame* m_shotFlash;
 			/** 撮った時のフラッシュを始めてからの時間(マイナスなら光っていない) */
 			float m_shotFlashTimer;
+
+			/** チェック欄の 1 行 */
+			struct CheckRow
+			{
+				/** チェックの印 */
+				UIIcon* mark = nullptr;
+				/** 項目の文字 */
+				UIText* text = nullptr;
+				/** 合っているか */
+				bool isChecked = false;
+				/** チェックが入ってからの時間(印がポンと出る動きに使う) */
+				float checkTimer = 0.0f;
+				/** 印の JSON の大きさ */
+				Vector3 markBaseScale = Vector3::One;
+			};
+			/** チェック欄(上から 顔が見える・盗んでいる・ピントが合っている) */
+			CheckRow m_checkRowList[static_cast<int>(CheckItem::Max)];
 			/** 開いているか */
 			bool m_isOpen;
 		};

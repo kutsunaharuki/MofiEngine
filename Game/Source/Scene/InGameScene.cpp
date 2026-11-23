@@ -516,6 +516,9 @@ namespace app
 			isInFocus = m_photoCapture.IsInFocus(toSubject.Length());
 		}
 
+		// ファインダーのチェック欄を、今の写り方で入れる(覗いている時だけ)
+		UpdateFinderCheck(focusSubject, isInFocus);
+
 		// 撮影できたフレームだけ、この瞬間のピントの判定を記録
 		if (isShot)
 		{
@@ -673,13 +676,47 @@ namespace app
 
 	void InGameScene::JudgeMissionShot(const camera::IPhotoSubject* focusSubject, const bool isInFocus)
 	{
-		mission::ShotInfo shot;
-		shot.isInFocus = isInFocus;
+		mission::ShotInfo shot = MakeShotInfo(focusSubject, isInFocus);
 
 		// 撮った写真をアルバムにも残す(写真用のRTは次に撮ると上書きされ、インゲームと一緒に消えるため)
 		// ※ 撮影は、このフレームの描画(RenderOffscreen)で行われるので、それより前に描き先を渡す
 		RenderTarget* saveTarget = GameResult::GetInstance()->GetAlbum().Reserve(shot.photoIndex);
 		m_photoCapture.SetSaveTarget(saveTarget);
+
+		// 枚数が増えた時だけ、UI の文と色を変える
+		if (m_missionManager.OnShot(shot))
+		{
+			UpdateMissionMenu();
+		}
+	}
+
+
+	void InGameScene::UpdateFinderCheck(const camera::IPhotoSubject* focusSubject, const bool isInFocus)
+	{
+		// 覗いていない時は、測らない(重いレイを毎フレーム飛ばさない)
+		if (m_boy == nullptr || !m_boy->IsFinderActive()) return;
+
+		const mission::ShotInfo shot = MakeShotInfo(focusSubject, isInFocus);
+		const mission::MatchResult result = m_missionManager.PreviewShot(shot);
+		auto isOk = [&result](const mission::MatchItem item)
+			{
+				return result.isSuccess[static_cast<size_t>(item)];
+			};
+
+		// 顔が見える = こちらを向いている・隠れていない・枠の中
+		const bool isFaceVisible = isOk(mission::MatchItem::FaceAngle)
+			&& isOk(mission::MatchItem::FaceBlocked)
+			&& isOk(mission::MatchItem::FaceInFrame);
+		// 盗んでいる = 狙いの悪党が盗んでいる
+		const bool isStealing = isOk(mission::MatchItem::Target) && isOk(mission::MatchItem::Stealing);
+		m_finderController.SetMatchCheck(isFaceVisible, isStealing, isOk(mission::MatchItem::Focus));
+	}
+
+
+	mission::ShotInfo InGameScene::MakeShotInfo(const camera::IPhotoSubject* focusSubject, const bool isInFocus)
+	{
+		mission::ShotInfo shot;
+		shot.isInFocus = isInFocus;
 
 		// 被写体が敵なら、盗んでいるかと、何回目の盗みかを入れる
 		// ※ 被写体は const なので、敵の一覧から同じ敵を探して、ステートマシンを見る
@@ -700,12 +737,7 @@ namespace app
 			}
 			break;
 		}
-
-		// 枚数が増えた時だけ、UI の文と色を変える
-		if (m_missionManager.OnShot(shot))
-		{
-			UpdateMissionMenu();
-		}
+		return shot;
 	}
 
 

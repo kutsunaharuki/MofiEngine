@@ -134,6 +134,12 @@ namespace app
 			 * @return 撮った順の記録(リザルトのアルバムに出す)
 			 */
 			const std::vector<ShotRecord>& GetShotRecordList() const { return m_shotRecordList; }
+			/**
+			 * @brief 今撮ったらどうなるかを、数えずに照合だけする(ファインダーのチェック欄に使う)
+			 * @param shot 今の写り方
+			 * @return 進行中のミッションとの照合の結果(狙いの悪党のミッションを優先。無ければ全部 NG)
+			 */
+			MatchResult PreviewShot(const ShotInfo& shot) const;
 
 
 		private:

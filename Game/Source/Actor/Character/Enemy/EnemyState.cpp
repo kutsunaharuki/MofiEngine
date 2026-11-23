@@ -110,9 +110,9 @@ namespace app
 			m_timer = 0.0f;
 			m_isRunning = false;
 			m_stateMachine.StopMove();
-			// びっくりして止まる(警戒のアニメーションを使う)
+			// 止まって、主人公を指さす
 			m_stateMachine.SetAnimationSpeed(1.0f);
-			m_stateMachine.PlayAnimation(EnemyBase::EnemyAnimation::Alert, 0.1f);
+			m_stateMachine.PlayAnimation(EnemyBase::EnemyAnimation::Point, 0.1f);
 		}
 
 
@@ -126,7 +126,7 @@ namespace app
 			toTarget.y = 0.0f;
 			const float distance = toTarget.Length();
 
-			// ① びっくりして止まる間は、その場で主人公の方を向くだけ
+			// ① 指さしている間は、その場で主人公の方を向くだけ
 			if (m_timer < parameter.foundReactTime)
 			{
 				m_stateMachine.StopMove();
@@ -144,7 +144,8 @@ namespace app
 				{
 					m_stateMachine.SetCaught(true);
 					m_stateMachine.SetAnimationSpeed(1.0f);
-					m_stateMachine.PlayAnimation(EnemyBase::EnemyAnimation::Idle, 0.15f);
+					// 追いついたら、もう一度主人公を指さして、そのまま止まる
+					m_stateMachine.PlayAnimation(EnemyBase::EnemyAnimation::Point, 0.15f);
 				}
 				return;
 			}

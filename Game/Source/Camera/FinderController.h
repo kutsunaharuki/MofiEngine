@@ -87,6 +87,13 @@ namespace app
 			 * @return 真ん中の十字が、被写体の顔のまわりの丸の中に入っていれば true
 			 */
 			bool IsSubjectInRange() const { return m_isSubjectInRange; }
+			/**
+			 * @brief ファインダーのチェック欄に、今の写り方で合っているかを入れる
+			 * @param isFaceVisible 顔が見えるか
+			 * @param isStealing 狙いの悪党が盗んでいるか
+			 * @param isInFocus ピントが合っているか
+			 */
+			void SetMatchCheck(const bool isFaceVisible, const bool isStealing, const bool isInFocus);
 
 
 		public:

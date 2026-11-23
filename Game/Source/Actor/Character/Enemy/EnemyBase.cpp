@@ -28,6 +28,7 @@ namespace app
 				,	{"Assets/animData/Enemy/BigMan/Walk.tka",  true} // 歩行
 				,	{"Assets/animData/Enemy/BigMan/Alert.tka", true} // 警戒
 				,   {"Assets/animData/Enemy/BigMan/Steal.tka", true} // 盗む
+				,   {"Assets/animData/Enemy/BigMan/Point.tka", false} // 指さす(1 回だけ。最後の形で止まる)
 			};
 
 			// BIG_MAN_ANIMATION_DATA の数と、EnemyAnimation の数があっているかをコンパイル時にチェック
@@ -51,6 +52,7 @@ namespace app
 				,	{"Assets/animData/Enemy/RatMan/Walk.tka",  true} // 歩行
 				,	{"Assets/animData/Enemy/RatMan/Alert.tka", true} // 警戒
 				,	{"Assets/animData/Enemy/RatMan/Steal.tka", true} // 盗む
+				,	{"Assets/animData/Enemy/RatMan/Point.tka", false} // 指さす(1 回だけ。最後の形で止まる)
 			};
 
 			// RAT_MAN_ANIMATION_DATA の数と、EnemyAnimation の数があっているかをコンパイル時にチェック

@@ -99,11 +99,21 @@ namespace app
 			 * @return 走っていれば runNoticeScale、それ以外は 1
 			 */
 			float GetNoticeScale() const override { return m_noticeScale; }
+			/** 主人公と、手に持つカメラを描く(InGameScene から呼ぶので public) */
+			void Render(RenderContext& rc) override;
 
 
 		protected:
 			/** 足音を 1 回鳴らすまでに歩く長さ(走ると速く進むので、足音も速くなる) */
 			float GetFootstepStride() const override;
+
+
+		private:
+			/**
+			 * @brief 手に持つカメラを、手のボーンの位置と向きに合わせる
+			 * @param parameter 調整パラメーター
+			 */
+			void UpdateHandCamera(const BoyParameter& parameter);
 
 
 		private:
@@ -115,6 +125,16 @@ namespace app
 			bool m_isFinderActive;
 			/** 目立ちやすさの倍率 */
 			float m_noticeScale;
+			/** 手に持つカメラのモデル */
+			ModelRender m_handCamera;
+			/** カメラを持つ手のボーンの番号(見つからなければ -1) */
+			int m_handBoneNo;
+			/** 今探しているボーンの名前(JSON で変わったら探し直す) */
+			std::string m_handBoneName;
+			/** 手のひらの先の方のボーンの番号(見つからなければ -1) */
+			int m_palmBoneNo;
+			/** 今探している、手のひらの先の方のボーンの名前 */
+			std::string m_palmBoneName;
 		};
 	}
 }

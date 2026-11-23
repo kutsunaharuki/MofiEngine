@@ -37,6 +37,16 @@ namespace app
 			Vector3 updateScale;
 			/** 走っている時の目立ちやすさの倍率 */
 			float runNoticeScale;
+			/** 手に持つカメラをつけるボーンの名前(手首) */
+			std::string cameraHandBone;
+			/** 手のひらの先の方のボーンの名前(手首とこのボーンの真ん中を、手のひらの真ん中にする) */
+			std::string cameraPalmBone;
+			/** 手に持つカメラの、手からのずれ(主人公の向きで見る。x = 横、y = 上、z = 前) */
+			Vector3 cameraOffset;
+			/** 手に持つカメラの回転(度。主人公の向きに足す。x → y → z の順に回す) */
+			Vector3 cameraRotation;
+			/** 手に持つカメラの大きさ */
+			float cameraScale;
 
 
 			BoyParameter()
@@ -51,6 +61,11 @@ namespace app
 				, initialPosition(Vector3::Zero)
 				, updateScale(Vector3::One)
 				, runNoticeScale(1.0f)
+				, cameraHandBone("mixamorig:RightHand")
+				, cameraPalmBone("mixamorig:RightHandMiddle1")
+				, cameraOffset(Vector3::Zero)
+				, cameraRotation(Vector3::Zero)
+				, cameraScale(1.0f)
 			{}
 
 
@@ -71,6 +86,11 @@ namespace app
 				initialPosition = file.GetVector3("initialPosition", initialPosition);
 				updateScale = file.GetVector3("updateScale", updateScale);
 				runNoticeScale = file.GetFloat("runNoticeScale", runNoticeScale);
+				cameraHandBone = file.GetString("cameraHandBone", cameraHandBone);
+				cameraPalmBone = file.GetString("cameraPalmBone", cameraPalmBone);
+				cameraOffset = file.GetVector3("cameraOffset", cameraOffset);
+				cameraRotation = file.GetVector3("cameraRotation", cameraRotation);
+				cameraScale = file.GetFloat("cameraScale", cameraScale);
 			}
 		};
 	}

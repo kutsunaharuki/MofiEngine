@@ -137,6 +137,19 @@ namespace app
 		 */
 		void JudgeMissionShot(const camera::IPhotoSubject* focusSubject, const bool isInFocus);
 		/**
+		 * @brief 今の写り方の情報を作る(撮った時と、ファインダーのチェック欄で同じ物を使う)
+		 * @param focusSubject オートフォーカスが選んだ被写体(いなければ nullptr)
+		 * @param isInFocus ピントが合っているか
+		 * @return 写り方の情報(アルバムの番号はまだ入れない)
+		 */
+		mission::ShotInfo MakeShotInfo(const camera::IPhotoSubject* focusSubject, const bool isInFocus);
+		/**
+		 * @brief ファインダーのチェック欄(顔が見える・盗んでいる・ピント)を、今の写り方で入れる
+		 * @param focusSubject オートフォーカスが選んだ被写体(いなければ nullptr)
+		 * @param isInFocus ピントが合っているか
+		 */
+		void UpdateFinderCheck(const camera::IPhotoSubject* focusSubject, const bool isInFocus);
+		/**
 		 * @brief ゲームループ確認用のデバッグ窓(Debug の時だけ)
 		 * @details 撮らずにミッションを進めて、インゲーム → リザルト → タイトル を流して確かめる
 		 */

@@ -10,5 +10,11 @@
   "gravity":1500.0,
   "initialPosition": [0, 0, 0],
   "updateScale": [3.4, 3.4, 3.4],
-  "runNoticeScale":2.0
+  "runNoticeScale":2.0,
+  "comment_camera":"手に持つカメラ(ゲーム中に JSON を変えると、すぐ反映される)。カメラの真ん中を手のひらの真ん中(手首と中指の付け根の間)に、向きは主人公の向きに合わせる。cameraOffset は主人公の向きで見たずれ(x 横・y 上・z 前)、cameraRotation は足す回転(度)",
+  "cameraHandBone":"mixamorig:RightHand",
+  "cameraPalmBone":"mixamorig:RightHandMiddle1",
+  "cameraOffset":[0, 0, 0],
+  "cameraRotation":[0, 0, 0],
+  "cameraScale":0.02
 }

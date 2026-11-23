@@ -13,6 +13,12 @@ namespace app
 	{
 		namespace
 		{
+			/**
+			 * 構図(左右・上下の角度、大きさ、位置)も照合するか
+			 * ※ 細かすぎて難しく、面白くなかったので見ない(顔が見える・盗んでいる・ピントだけで決める)
+			 *    もう一度見る時は true にする
+			 */
+			constexpr bool IS_CHECK_COMPOSITION = false;
 			/** 半回転の角度 */
 			constexpr float HALF_TURN_DEG = 180.0f;
 			/** 1 回転の角度 */
@@ -74,9 +80,9 @@ namespace app
 
 			set(MatchItem::FaceInFrame, isInFrame, 0.0f);
 
-			// 見本が無いミッションは、角度・大きさ・位置を見ない(成功にしておく)
+			// 見本が無いミッション(と、構図を見ない時)は、角度・大きさ・位置を見ない(成功にしておく)
 			// ※ JSON に見本を書き足しながら、ミッションを 1 つずつ進められるように
-			if (!mission.hasSample)
+			if (!mission.hasSample || !IS_CHECK_COMPOSITION)
 			{
 				set(MatchItem::Yaw, true, 0.0f);
 				set(MatchItem::Pitch, true, 0.0f);

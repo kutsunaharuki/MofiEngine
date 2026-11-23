@@ -58,6 +58,7 @@ namespace app
 				Walk,      // 歩く
 				Alert,     // 警戒
 				Steal,     // 盗む
+				Point,     // 主人公を指さす(見つけた時)
 				Max        // 最大数
 			};
 

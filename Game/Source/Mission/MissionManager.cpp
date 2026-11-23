@@ -119,6 +119,28 @@ namespace app
 		}
 
 
+		MatchResult MissionManager::PreviewShot(const ShotInfo& shot) const
+		{
+			MatchResult preview;
+			bool hasResult = false;
+			for (const MissionData& mission : m_missionList)
+			{
+				if (mission.state != MissionState::Progress) continue;
+
+				const MatchResult result = MissionJudge::Judge(shot, mission);
+				// 狙いの悪党のミッションが見つかったら、それを使う
+				if (result.isSuccess[static_cast<size_t>(MatchItem::Target)]) return result;
+				// 無ければ、最初の進行中のミッションの結果を使う
+				if (!hasResult)
+				{
+					preview = result;
+					hasResult = true;
+				}
+			}
+			return preview;
+		}
+
+
 		bool MissionManager::JudgeShot(const ShotInfo& shot, ShotRecord& record)
 		{
 			// 敵が写っていなければ数えない

@@ -25,6 +25,18 @@ namespace app
 			constexpr const char* SLOW_GAUGE_NAME = "SlowGauge";
 			constexpr const char* SHOT_FLASH_NAME = "ShotFlash";
 
+			/** チェック欄の印と文字の名前(上から 顔が見える・盗んでいる・ピントが合っている) */
+			constexpr const char* CHECK_MARK_NAME_LIST[] = { "CheckMarkFace", "CheckMarkSteal", "CheckMarkFocus" };
+			constexpr const char* CHECK_TEXT_NAME_LIST[] = { "CheckTextFace", "CheckTextSteal", "CheckTextFocus" };
+			/** チェックが入った時の文字の色 / 入っていない時の色 */
+			const Vector4 CHECK_ON_TEXT_COLOR = Vector4(0.55f, 1.0f, 0.55f, 1.0f);
+			const Vector4 CHECK_OFF_TEXT_COLOR = Vector4(1.0f, 1.0f, 1.0f, 0.75f);
+			/** チェックの印の色(みどり) */
+			const Vector4 CHECK_MARK_COLOR = Vector4(0.4f, 1.0f, 0.4f, 1.0f);
+			/** チェックが入った時に、印がポンと大きく出る時間(秒)と大きさ */
+			constexpr float CHECK_POP_TIME = 0.2f;
+			constexpr float CHECK_POP_SCALE = 1.6f;
+
 			/** 撮った時のフラッシュの、一番白い時の濃さ(0〜1) */
 			constexpr float SHOT_FLASH_MAX_ALPHA = 0.9f;
 			/** 撮った時のフラッシュが、一番白くなるまでの時間(秒) */
@@ -85,6 +97,8 @@ namespace app
 			ApplySlowGauge();
 			// 撮った時のフラッシュ
 			ApplyShotFlash();
+			// チェック欄
+			ApplyCheckList();
 
 			UIMenuBase::Update();
 		}
@@ -117,6 +131,15 @@ namespace app
 			// 撮った時のフラッシュ(光っていない時は出さない)
 			m_shotFlash = FindUI<UIFrame>(SHOT_FLASH_NAME);
 			if (m_shotFlash) m_shotFlash->SetIsDraw(false);
+
+			// チェック欄(作り直したので探し直す。合っているかは残す)
+			for (int i = 0; i < static_cast<int>(CheckItem::Max); ++i)
+			{
+				CheckRow& row = m_checkRowList[i];
+				row.mark = FindUI<UIIcon>(CHECK_MARK_NAME_LIST[i]);
+				row.text = FindUI<UIText>(CHECK_TEXT_NAME_LIST[i]);
+				if (row.mark) row.markBaseScale = row.mark->GetScale();
+			}
 			if (m_slowGauge) m_slowGaugeColor = m_slowGauge->GetColor();
 
 			// 作り直したキャンバスにも、開いているかを反映する
@@ -199,6 +222,39 @@ namespace app
 
 			// 使い切った直後(まだ遅くできない)は赤くする
 			m_slowGauge->SetColor(m_canSlowStart ? m_slowGaugeColor : SLOW_GAUGE_EMPTY_COLOR);
+		}
+
+
+		void FinderMenu::SetCheck(const CheckItem item, const bool isChecked)
+		{
+			const int index = static_cast<int>(item);
+			if (index < 0 || index >= static_cast<int>(CheckItem::Max)) return;
+
+			CheckRow& row = m_checkRowList[index];
+			// 入った瞬間だけ、ポンと出る動きを最初から
+			if (isChecked && !row.isChecked) row.checkTimer = 0.0f;
+			row.isChecked = isChecked;
+		}
+
+
+		void FinderMenu::ApplyCheckList()
+		{
+			const float deltaTime = g_gameTime->GetFrameDeltaTime();
+			for (CheckRow& row : m_checkRowList)
+			{
+				if (row.text) row.text->SetColor(row.isChecked ? CHECK_ON_TEXT_COLOR : CHECK_OFF_TEXT_COLOR);
+				if (row.mark == nullptr) continue;
+
+				row.mark->SetIsDraw(row.isChecked);
+				if (!row.isChecked) continue;
+
+				// 入った時に大きく出て、元の大きさにもどる
+				row.checkTimer += deltaTime;
+				const float rate = TClamp<float>::Clamp(row.checkTimer / CHECK_POP_TIME, 0.0f, 1.0f);
+				const float scale = CHECK_POP_SCALE + (1.0f - CHECK_POP_SCALE) * rate;
+				row.mark->SetScale(Vector3(row.markBaseScale.x * scale, row.markBaseScale.y * scale, row.markBaseScale.z));
+				row.mark->SetColor(CHECK_MARK_COLOR);
+			}
 		}
 
 

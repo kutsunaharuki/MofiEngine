@@ -110,6 +110,15 @@ namespace app
 		}
 
 
+		void FinderController::SetMatchCheck(const bool isFaceVisible, const bool isStealing, const bool isInFocus)
+		{
+			if (m_finderMenu == nullptr) return;
+			m_finderMenu->SetCheck(ui::FinderMenu::CheckItem::FaceVisible, isFaceVisible);
+			m_finderMenu->SetCheck(ui::FinderMenu::CheckItem::Stealing, isStealing);
+			m_finderMenu->SetCheck(ui::FinderMenu::CheckItem::InFocus, isInFocus);
+		}
+
+
 		void FinderController::LateUpdate()
 		{
 			if (m_photoCapture == nullptr) return;
