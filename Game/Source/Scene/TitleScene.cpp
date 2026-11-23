@@ -31,6 +31,7 @@ namespace app
         , m_titleEventMenu(nullptr)
         , m_titleSelectIndex(static_cast<int>(ui::TitleEventMenu::TitleTextType::Start))
         , m_isRequestInGame(false)
+        , m_isStartFlash(false)
     {}
 
 
@@ -88,6 +89,17 @@ namespace app
         // タイトルのスプライトレンダーを更新
         m_titleSceneSpriteRender->Update();
 
+        // Start を決めた後は、フラッシュが終わるのを待つだけ(入力は受けない)
+        if (m_isStartFlash)
+        {
+            if (m_titleEventMenu) m_titleEventMenu->Update();
+            if (m_titleEventMenu == nullptr || m_titleEventMenu->IsScreenFlashFinished())
+            {
+                m_isRequestInGame = true;
+            }
+            return;
+        }
+
         // サウンドオプションの更新(開いているときだけ、中で入力を受け付ける)
         m_soundOption.Update();
 
@@ -123,7 +135,12 @@ namespace app
         if (!g_pad[0]->IsTrigger(enButtonA)) return;
         switch (selectType)
         {
-            case TitleTextType::Start: m_isRequestInGame = true; break;
+            case TitleTextType::Start:
+                // すぐには移らずに、カメラのフラッシュのように画面を真っ白にしてから移る
+                m_isStartFlash = true;
+                if (m_titleEventMenu) m_titleEventMenu->StartScreenFlash();
+                sound::SoundManager::GetInstance()->Play(sound::EnSoundType::SE, sound::se::SHUTTER);
+                break;
             case TitleTextType::Sound: m_soundOption.Open();     break;
             case TitleTextType::End:   PostQuitMessage(0);       break;
             default: break;

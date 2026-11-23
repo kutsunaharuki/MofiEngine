@@ -83,6 +83,11 @@ namespace app
 				m_slowGaugeRate = rate;
 				m_canSlowStart = canStart;
 			}
+			/**
+			 * @brief 撮った時の、画面全体のフラッシュを始める
+			 * @details 一気に白くなって、すぐに消えていく
+			 */
+			void PlayShotFlash() { m_shotFlashTimer = 0.0f; }
 
 
 		private:
@@ -105,6 +110,10 @@ namespace app
 			 * @brief スローモーションのゲージを、残りの量と色に合わせる
 			 */
 			void ApplySlowGauge();
+			/**
+			 * @brief 撮った時のフラッシュを、時間に合わせて薄くしていく
+			 */
+			void ApplyShotFlash();
 
 
 		private:
@@ -143,6 +152,10 @@ namespace app
 			float m_slowGaugeRate;
 			/** 覗けば遅くできるか */
 			bool m_canSlowStart;
+			/** 撮った時に、画面全体を白く光らせる板 */
+			UIFrame* m_shotFlash;
+			/** 撮った時のフラッシュを始めてからの時間(マイナスなら光っていない) */
+			float m_shotFlashTimer;
 			/** 開いているか */
 			bool m_isOpen;
 		};

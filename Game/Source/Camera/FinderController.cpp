@@ -102,6 +102,7 @@ namespace app
 			{
 				m_photoCapture->Shot();
 				sound::SoundManager::GetInstance()->Play(sound::EnSoundType::SE, sound::se::SHUTTER);
+				if (m_finderMenu) m_finderMenu->PlayShotFlash();
 				m_coolTimer = parameter.shotCoolTime;
 				return true;
 			}

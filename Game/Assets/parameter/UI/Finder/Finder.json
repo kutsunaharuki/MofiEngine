@@ -154,6 +154,16 @@
         "position":[789,-405,0],
         "color":[1,1,1,1],
         "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"撮った時に、画面全体を白く光らせる板(カメラのフラッシュ。濃さは FinderMenu が動かす。全部の上に重ねるので、一番最後に置く)",
+        "type":"UIFrame",
+        "name":"ShotFlash",
+        "width":1920,
+        "height":1080,
+        "position":[0,0,0],
+        "fillColor":[1,1,1,0],
+        "borderWidth":0
       }
     ]
   }

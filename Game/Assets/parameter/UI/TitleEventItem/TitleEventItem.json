@@ -7,6 +7,73 @@
         "position":[0,-150,0]
       },
       {
+        "comment":"Flash のまわりの光(ふだんはうっすら。光る時に強くなる)",
+        "type":"UIIcon",
+        "name":"TitleLogoFlashGlow",
+        "asset":"Assets/spriteData/UI/Title/TitleLogoFlashGlow.DDS",
+        "width":1094,
+        "height":546,
+        "position":[0,180,0],
+        "color":[1,1,1,0],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ロゴの The の左上のカメラのマーク(少しかたむける。画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"TitleCamera",
+        "asset":"Assets/spriteData/UI/Title/TitleCamera.DDS",
+        "width":128,
+        "height":100,
+        "position":[-540,415,0],
+        "rotation":12,
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ロゴの The",
+        "type":"UIIcon",
+        "name":"TitleLogoThe",
+        "asset":"Assets/spriteData/UI/Title/TitleLogoThe.DDS",
+        "width":315,
+        "height":178,
+        "position":[-330,330,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"ロゴの Flash(ぴかーんと光る)",
+        "type":"UIIcon",
+        "name":"TitleLogoFlash",
+        "asset":"Assets/spriteData/UI/Title/TitleLogoFlash.DDS",
+        "width":854,
+        "height":306,
+        "position":[0,180,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"光った時に Flash の上に重ねる真っ白な Flash(濃さは TitleEventMenu が動かす)",
+        "type":"UIIcon",
+        "name":"TitleLogoFlashWhite",
+        "asset":"Assets/spriteData/UI/Title/TitleLogoFlashWhite.DDS",
+        "width":854,
+        "height":306,
+        "position":[0,180,0],
+        "color":[1,1,1,0],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"光った時のキラッ(Flash の h の右上)",
+        "type":"UIIcon",
+        "name":"TitleSparkle",
+        "asset":"Assets/spriteData/UI/Title/TitleSparkle.DDS",
+        "width":200,
+        "height":200,
+        "position":[300,300,0],
+        "color":[1,1,1,0],
+        "pivot":[0.5,0.5]
+      },
+      {
         "comment":"ボタンの案内: 十字キー上下 の絵(画像を上書きすれば差し替わる)",
         "type":"UIIcon",
         "name":"TitleGuideIconDpadVertical",
@@ -53,6 +120,16 @@
         "shadow":true,
         "shadowOffset":2,
         "shadowColor":[0,0,0,1]
+      },
+      {
+        "comment":"光った時に、画面全体をうっすら白くする板(濃さは TitleEventMenu が動かす。全部の上に重ねるので、一番最後に置く)",
+        "type":"UIFrame",
+        "name":"TitleScreenFlash",
+        "width":1920,
+        "height":1080,
+        "position":[0,0,0],
+        "fillColor":[1,1,1,0],
+        "borderWidth":0
       }
     ]
   }

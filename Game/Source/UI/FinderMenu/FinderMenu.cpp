@@ -23,6 +23,14 @@ namespace app
 			constexpr const char* IN_RANGE_CIRCLE_NAME = "InRangeCircle";
 			constexpr const char* OUT_RANGE_CIRCLE_NAME = "OutRangeCircle";
 			constexpr const char* SLOW_GAUGE_NAME = "SlowGauge";
+			constexpr const char* SHOT_FLASH_NAME = "ShotFlash";
+
+			/** 撮った時のフラッシュの、一番白い時の濃さ(0〜1) */
+			constexpr float SHOT_FLASH_MAX_ALPHA = 0.9f;
+			/** 撮った時のフラッシュが、一番白くなるまでの時間(秒) */
+			constexpr float SHOT_FLASH_RISE_TIME = 0.03f;
+			/** 撮った時のフラッシュが、一番白い所から消えるまでの時間(秒) */
+			constexpr float SHOT_FLASH_FALL_TIME = 0.4f;
 
 			/** 使い切った直後(まだ遅くできない)の、スローモーションのゲージの色 */
 			const Vector4 SLOW_GAUGE_EMPTY_COLOR = Vector4(0.9f, 0.3f, 0.3f, 0.9f);
@@ -55,6 +63,8 @@ namespace app
 			, m_slowGaugeColor(1.0f, 1.0f, 1.0f, 1.0f)
 			, m_slowGaugeRate(1.0f)
 			, m_canSlowStart(true)
+			, m_shotFlash(nullptr)
+			, m_shotFlashTimer(-1.0f)
 			, m_isOpen(false)
 		{}
 
@@ -73,6 +83,8 @@ namespace app
 			ApplyKnob(m_zoomKnob, m_zoomKnobBasePosition, m_zoomBar, m_zoomRate);
 			// スローモーションのゲージを、残りの量に合わせる
 			ApplySlowGauge();
+			// 撮った時のフラッシュ
+			ApplyShotFlash();
 
 			UIMenuBase::Update();
 		}
@@ -101,6 +113,10 @@ namespace app
 
 			// スローモーションのゲージ(JSON の色を、遅くできる時の色として覚える)
 			m_slowGauge = FindUI<UIIcon>(SLOW_GAUGE_NAME);
+
+			// 撮った時のフラッシュ(光っていない時は出さない)
+			m_shotFlash = FindUI<UIFrame>(SHOT_FLASH_NAME);
+			if (m_shotFlash) m_shotFlash->SetIsDraw(false);
 			if (m_slowGauge) m_slowGaugeColor = m_slowGauge->GetColor();
 
 			// 作り直したキャンバスにも、開いているかを反映する
@@ -183,6 +199,38 @@ namespace app
 
 			// 使い切った直後(まだ遅くできない)は赤くする
 			m_slowGauge->SetColor(m_canSlowStart ? m_slowGaugeColor : SLOW_GAUGE_EMPTY_COLOR);
+		}
+
+
+		void FinderMenu::ApplyShotFlash()
+		{
+			if (m_shotFlash == nullptr) return;
+
+			// 光っていない
+			if (m_shotFlashTimer < 0.0f)
+			{
+				m_shotFlash->SetIsDraw(false);
+				return;
+			}
+
+			m_shotFlashTimer += g_gameTime->GetFrameDeltaTime();
+
+			// 一気に白くして、はじめは速く、だんだんゆっくり消す
+			float power = 0.0f;
+			if (m_shotFlashTimer < SHOT_FLASH_RISE_TIME)
+			{
+				power = m_shotFlashTimer / SHOT_FLASH_RISE_TIME;
+			}
+			else
+			{
+				const float rate = TClamp<float>::Clamp((m_shotFlashTimer - SHOT_FLASH_RISE_TIME) / SHOT_FLASH_FALL_TIME, 0.0f, 1.0f);
+				power = (1.0f - rate) * (1.0f - rate);
+				// 消え切ったら終わり
+				if (rate >= 1.0f) m_shotFlashTimer = -1.0f;
+			}
+
+			m_shotFlash->SetIsDraw(power > 0.0f);
+			m_shotFlash->SetFillColor(Vector4(1.0f, 1.0f, 1.0f, SHOT_FLASH_MAX_ALPHA * power));
 		}
 
 

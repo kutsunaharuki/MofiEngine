@@ -45,6 +45,8 @@ namespace app
 	private:
 		/** インゲームへ移るかを保存する用 */
 		bool m_isRequestInGame;
+		/** Start を決めて、まぶしいフラッシュをしている途中か(終わったらインゲームへ移る) */
+		bool m_isStartFlash;
 
 		/** タイトルシーンのスプライトレンダー */
 		std::unique_ptr<SpriteRender> m_titleSceneSpriteRender;
