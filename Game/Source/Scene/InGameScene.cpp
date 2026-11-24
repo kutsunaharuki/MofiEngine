@@ -863,14 +863,13 @@ namespace app
 		const bool isMatched = record.status == mission::ShotStatus::Counted || record.status == mission::ShotStatus::Failed;
 		if (isMatched)
 		{
-			// 見本が無いミッションは、角度・大きさ・位置を見ていないので出さない
+			// 構図(角度・大きさ・位置)は、見本が無いミッションと、構図を見ない時は出さない
 			const bool hasSample = hasMission && missionList[record.missionIndex].hasSample;
+			const bool isShowComposition = hasSample && mission::IS_CHECK_COMPOSITION;
 			for (int i = 0; i < static_cast<int>(mission::MatchItem::Max); ++i)
 			{
 				const mission::MatchItem item = static_cast<mission::MatchItem>(i);
-				const bool isSampleItem = item == mission::MatchItem::Yaw || item == mission::MatchItem::Pitch
-					|| item == mission::MatchItem::Size || item == mission::MatchItem::Position;
-				if (isSampleItem && !hasSample) continue;
+				if (mission::IsCompositionItem(item) && !isShowComposition) continue;
 
 				ui::JudgeCheckData check;
 				check.name = mission::GetMatchItemCheckName(item);

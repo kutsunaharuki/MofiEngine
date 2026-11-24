@@ -15,6 +15,14 @@ namespace app
 	namespace mission
 	{
 		/**
+		 * 構図(左右・上下の角度、大きさ、位置)も照合するか
+		 * ※ 細かすぎて難しく、面白くなかったので見ない(顔が見える・盗んでいる・ピントだけで決める)
+		 *    もう一度見る時は true にする(照合ジャッジの画面にも、構図の項目がまた出る)
+		 */
+		constexpr bool IS_CHECK_COMPOSITION = false;
+
+
+		/**
 		 * @brief 照合の項目(判定の順番)
 		 */
 		enum class MatchItem : uint8_t
@@ -31,6 +39,16 @@ namespace app
 			Position,		// 位置
 			Max
 		};
+		/**
+		 * @brief 構図の項目か(左右・上下の角度、大きさ、位置)
+		 * @param item 項目
+		 * @return 構図の項目なら true
+		 */
+		inline bool IsCompositionItem(const MatchItem item)
+		{
+			return item == MatchItem::Yaw || item == MatchItem::Pitch
+				|| item == MatchItem::Size || item == MatchItem::Position;
+		}
 
 		
 		/**

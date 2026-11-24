@@ -13,12 +13,6 @@ namespace app
 	{
 		namespace
 		{
-			/**
-			 * 構図(左右・上下の角度、大きさ、位置)も照合するか
-			 * ※ 細かすぎて難しく、面白くなかったので見ない(顔が見える・盗んでいる・ピントだけで決める)
-			 *    もう一度見る時は true にする
-			 */
-			constexpr bool IS_CHECK_COMPOSITION = false;
 			/** 半回転の角度 */
 			constexpr float HALF_TURN_DEG = 180.0f;
 			/** 1 回転の角度 */
@@ -148,12 +142,17 @@ namespace app
 			// 狙いと違う悪党を撮った時は、ほかの項目が合っていても意味が無いので 0
 			if (!isSuccess[static_cast<size_t>(MatchItem::Target)]) return 0.0f;
 
+			// 構図を見ない時は、構図の項目を数えない(いつも成功なので、一致度が高く出すぎる)
 			int successCount = 0;
-			for (const bool isItemSuccess : isSuccess)
+			int itemCount = 0;
+			for (size_t i = 0; i < isSuccess.size(); ++i)
 			{
-				if (isItemSuccess) ++successCount;
+				if (!IS_CHECK_COMPOSITION && IsCompositionItem(static_cast<MatchItem>(i))) continue;
+				++itemCount;
+				if (isSuccess[i]) ++successCount;
 			}
-			return static_cast<float>(successCount) / static_cast<float>(isSuccess.size());
+			if (itemCount == 0) return 0.0f;
+			return static_cast<float>(successCount) / static_cast<float>(itemCount);
 		}
 	}
 }
