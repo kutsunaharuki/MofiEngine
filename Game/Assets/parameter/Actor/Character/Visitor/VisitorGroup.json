@@ -9,10 +9,10 @@
   "lookTimeMax":8.0,
   "talkSwitchTime":5.0,
   "talkRate":0.4,
-  "strollerDistance":50.0,
-  "strollerScale":[10,10,10],
-  "strollerYawDeg":0.0,
-  "babyOffset":[0,40,0],
-  "babyScale":[10,10,10],
+  "strollerDistance":70.0,
+  "strollerScale":[7,7,7],
+  "strollerYawDeg":90.0,
+  "babyOffset":[0,53.2,23.8],
+  "babyScale":[3.5,3.5,3.5],
   "babyYawDeg":0.0
 }
