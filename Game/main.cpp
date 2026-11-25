@@ -54,9 +54,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	// Game loop.
 	while (DispatchWindowMessage())
 	{
-		if (g_pad[0]->IsTrigger(enButtonA)) {
-			g_pad[0]->SetVibration(/*durationSec=*/0.5f, /*normalizedPower=*/1.0f);
-		}
 
 		// Drive one frame of the low-level engine yourself.
 		// (K2Engine used to hide this behind K2Engine::Execute().)
