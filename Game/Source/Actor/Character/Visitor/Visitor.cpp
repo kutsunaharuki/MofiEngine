@@ -16,6 +16,11 @@ namespace app
 			/** アニメーションの数 */
 			constexpr uint8_t VISITOR_ANIMATION_NUM = static_cast<uint8_t>(Visitor::VisitorAnimation::Max);
 
+			/** 足音を 1 回鳴らすまでに歩く長さ(お客さんはゆっくり歩くので、主人公より少し短い) */
+			constexpr float VISITOR_FOOTSTEP_STRIDE = 70.0f;
+			/** 足音が聞こえる距離(お客さんは多いので、悪党より短くする) */
+			constexpr float VISITOR_FOOTSTEP_HEAR_DISTANCE = 500.0f;
+
 
 			/********** カレン **********/
 
@@ -545,6 +550,20 @@ namespace app
 			SetScale(parameter.scale);
 
 			CharacterBase::Update();
+		}
+
+
+		float Visitor::GetFootstepStride() const
+		{
+			return VISITOR_FOOTSTEP_STRIDE;
+		}
+
+
+		bool Visitor::CanPlayFootstep() const
+		{
+			// 聞いているのはカメラなので、カメラからの距離で決める
+			const Vector3 diff = g_camera3D->GetPosition() - m_transform.GetWorldPosition();
+			return diff.LengthSq() < VISITOR_FOOTSTEP_HEAR_DISTANCE * VISITOR_FOOTSTEP_HEAR_DISTANCE;
 		}
 	}
 }

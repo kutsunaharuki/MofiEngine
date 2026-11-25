@@ -80,6 +80,13 @@ namespace app
 			static bool ToVisitorType(const std::string& name, VisitorType& outType);
 
 
+		protected:
+			/** 足音を 1 回鳴らすまでに歩く長さ */
+			float GetFootstepStride() const override;
+			/** カメラの近くにいる時だけ、足音を鳴らす(お客さんは多いので、遠くの足音まで鳴るとうるさい) */
+			bool CanPlayFootstep() const override;
+
+
 		public:
 			/**
 			 * @brief 移動の入力を設定(グループが毎フレーム決める)

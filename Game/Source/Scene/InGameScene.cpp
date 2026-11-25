@@ -1033,6 +1033,8 @@ namespace app
 		// B か START で閉じる(ゲームに戻る)
 		if (g_pad[0]->IsTrigger(enButtonB) || g_pad[0]->IsTrigger(enButtonStart))
 		{
+			// ゲームに戻る音(戻る用の音が届くまでは、決定の音で代わりにする)
+			sound::SoundManager::GetInstance()->Play(sound::EnSoundType::SE, sound::se::DECIDE);
 			m_isPauseOpen = false;
 			return;
 		}
@@ -1051,6 +1053,8 @@ namespace app
 
 		// A で決める
 		if (!g_pad[0]->IsTrigger(enButtonA)) return;
+		// 決めた音(「つづける」を選んだ時は、ゲームに戻る音にもなる)
+		sound::SoundManager::GetInstance()->Play(sound::EnSoundType::SE, sound::se::DECIDE);
 		// 決めたボタンを押した形にする(見た目は View が変える)
 		if (m_pauseMenu) m_pauseMenu->PressSelect();
 		switch (selectType)
