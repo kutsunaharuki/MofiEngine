@@ -6,6 +6,7 @@
 #include "Boy.h"
 #include "BoyStateMachine.h"
 #include "BoyState.h"
+#include "Source/Camera/GameCamera.h"
 
 
 namespace app
@@ -28,8 +29,14 @@ namespace app
 				,	{"Assets/animData/Boy/PhotoWalkBack.tka",    true} // ファインダーを覗いている時の後ろ歩き
 				,	{"Assets/animData/Boy/PhotoWalkLeft.tka",    true} // ファインダーを覗いている時の左歩き
 				,	{"Assets/animData/Boy/PhotoWalkRight.tka",   true} // ファインダーを覗いている時の右歩き
-				,	{"Assets/animData/Boy/LowHide.tka",          true} // 小さい物陰に隠れる
-				,	{"Assets/animData/Boy/HightHide.tka",        true} // 高い物陰に隠れる
+				,	{"Assets/animData/Boy/CrouchHide.tka",            true} // しゃがんで止まっている
+				,	{"Assets/animData/Boy/CrouchWalk.tka",            true} // しゃがんだまま歩く
+				,	{"Assets/animData/Boy/CrouchCamera.tka",          true} // しゃがんでカメラを構える
+				,	{"Assets/animData/Boy/CrouchShoot.tka",           true} // しゃがんで撮る
+				,	{"Assets/animData/Boy/LeanCameraLeft.tka",        true} // 柱の左からのぞいてカメラを構える
+				,	{"Assets/animData/Boy/LeanCameraRight.tka",       true} // 柱の右からのぞいてカメラを構える
+				,	{"Assets/animData/Boy/CrouchLeanCameraLeft.tka",  true} // しゃがんで、柱の左からのぞいてカメラを構える
+				,	{"Assets/animData/Boy/CrouchLeanCameraRight.tka", true} // しゃがんで、柱の右からのぞいてカメラを構える
 			};
 
 			// 少年のアニメーションデータの数と、EnBoyAnimation の数があっているかをコンパイル時にチェックする
@@ -85,6 +92,9 @@ namespace app
 			: m_gameCamera(nullptr)
 			, m_isFinderActive(false)
 			, m_noticeScale(1.0f)
+			, m_leanSide(EnLeanSide::None)
+			, m_eyeOffset(Vector3::Zero)
+			, m_crouchVisionHeight(0.0f)
 			, m_handBoneNo(-1)
 			, m_palmBoneNo(-1)
 		{}
@@ -141,9 +151,54 @@ namespace app
 			
 			// 走っていると目立つ(悪党が遠くから・早く気付く)
 			m_noticeScale = IsState(BoyRunState::ID()) ? parameter.runNoticeScale : 1.0f;
+			// しゃがんだ時に、悪党が見る高さ
+			m_crouchVisionHeight = parameter.crouchVisionHeight;
 
 			// 手に持つカメラを、手に合わせる(モデルを動かした後に呼ぶ)
 			UpdateHandCamera(parameter);
+
+			// 目(カメラ)の位置を、しゃがみ・のぞきに合わせる
+			UpdateEyeOffset(parameter);
+		}
+
+
+		bool Boy::IsCrouching() const
+		{
+			if (m_characterStateMachine == nullptr) return false;
+			return static_cast<const BoyStateMachine*>(m_characterStateMachine.get())->IsCrouching();
+		}
+
+
+		float Boy::GetVisionTargetHeight(const float defaultHeight) const
+		{
+			if (!IsCrouching()) return defaultHeight;
+
+			// しゃがむと体が低くなるので、悪党は低い所を見る
+			// ※ GetParameter は JSON を読み直すので const ではない。Update で覚えた値を使う
+			return m_crouchVisionHeight < defaultHeight ? m_crouchVisionHeight : defaultHeight;
+		}
+
+
+		void Boy::UpdateEyeOffset(const BoyParameter& parameter)
+		{
+			Vector3 targetOffset = Vector3::Zero;
+
+			// しゃがんでいれば、目を下げる
+			if (IsCrouching()) targetOffset.y -= parameter.crouchEyeDrop;
+
+			// 柱からのぞいていれば、目をのぞく方へずらす(カメラの右の向きで、左なら反対)
+			const bool isLeanLeft = IsState(BoyLeanLeftState::ID());
+			const bool isLeanRight = IsState(BoyLeanRightState::ID());
+			if (m_gameCamera != nullptr && (isLeanLeft || isLeanRight))
+			{
+				Vector3 side = m_gameCamera->GetRightXZ();
+				side.Scale(isLeanLeft ? -parameter.leanEyeOffset : parameter.leanEyeOffset);
+				targetOffset += side;
+			}
+
+			// 一気に動くと酔うので、少しずつ近づける
+			const float rate = TClamp<float>::Clamp(parameter.eyeMoveSpeed * g_gameTime->GetFrameDeltaTime(), 0.0f, 1.0f);
+			m_eyeOffset += (targetOffset - m_eyeOffset) * rate;
 		}
 
 

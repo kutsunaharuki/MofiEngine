@@ -302,6 +302,10 @@ namespace app
 			m_boy->SetGameCamera(m_gameCamera.get());
 			m_gameCamera->Update();
 
+			// 柱からのぞける所(フォトチャンス)を調べるために、ステージから柱を集める
+			// ※ 画面の横の広さも覚えるので、カメラを更新した後に呼ぶ
+			m_photoChance.Initialize(*m_stage, m_boy->GetParameter().leanPillarName);
+
 			// 経路探索のデバッグ表示に、見せるものを渡す(全部作り終わってから渡す)
 			debug::NavigationDebugWindow::Target navigationDebugTarget;
 			navigationDebugTarget.boy = m_boy.get();
@@ -420,6 +424,8 @@ namespace app
 
 		// 主人公の更新(ファインダーを覗いている間は、撮影ステートになる)
 		m_boy->SetIsFinderActive(m_photoCapture.IsFinderActive());
+		// 柱からのぞけるか(ファインダーを覗いている時だけ調べる)
+		UpdatePhotoChance();
 		// ステージエディタのパースの画面で、右クリック + WASD でカメラを飛ばしている間は、主人公を動かさない
 		// ※ WASD は主人公の移動にも使っているので、止めないと一緒に歩いてしまう
 		const bool isEditorCameraFlying = m_stageEditor != nullptr && m_stageEditor->IsCameraFlying();
@@ -432,6 +438,8 @@ namespace app
 		// ファインダーを覗いている間だけ、1人称にする
 		m_gameCamera->SetFirstPeerson(m_photoCapture.IsFinderActive());
 		m_gameCamera->SetZoomRatio(m_photoCapture.GetFinderZoomRatio());
+		// しゃがむと目が下がる・柱からのぞくと目が横にずれる
+		m_gameCamera->SetEyeOffset(m_boy->GetEyeOffset());
 		m_gameCamera->Update();
 
 		// ファインダー視点のカメラをゲームカメラの位置と向きに合わせる
@@ -704,6 +712,32 @@ namespace app
 			break;
 		}
 		return shot;
+	}
+
+
+	void InGameScene::UpdatePhotoChance()
+	{
+		// 覗いていない時は、のぞかない
+		if (!m_photoCapture.IsFinderActive())
+		{
+			m_boy->SetLeanSide(actor::EnLeanSide::None);
+			return;
+		}
+
+		// 悪党の位置を集める(主人公と悪党の間に柱があるかを見る)
+		m_enemyPositionList.clear();
+		for (const auto& enemy : m_enemyList)
+		{
+			m_enemyPositionList.push_back(enemy->GetTransform().GetWorldPosition());
+		}
+
+		const actor::EnLeanSide leanSide = m_photoChance.Update(
+			m_boy->GetTransform().GetWorldPosition(),
+			m_gameCamera->GetForwardXZ(),
+			m_gameCamera->GetRightXZ(),
+			m_enemyPositionList,
+			m_boy->GetParameter());
+		m_boy->SetLeanSide(leanSide);
 	}
 
 

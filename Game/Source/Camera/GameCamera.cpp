@@ -73,6 +73,7 @@ namespace app
 			, m_isFirstPerson(false)
 			, m_zoomRatio(1.0f)
 			, m_currentDistance(-1.0f)
+			, m_eyeOffset(Vector3::Zero)
 		{}
 
 
@@ -137,6 +138,8 @@ namespace app
 
 			m_prevEyePos = m_target->GetWorldPosition();
 			m_prevEyePos.y += m_parameter.Get().eyeHeight;
+			// しゃがむと下がる・柱からのぞくと横にずれる
+			m_prevEyePos += m_eyeOffset;
 
 			return m_prevEyePos;
 		}

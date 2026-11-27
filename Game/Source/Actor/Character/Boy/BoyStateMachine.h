@@ -72,16 +72,21 @@ namespace app
 			 */
 			void SlowMove();
 			/**
+			 * @brief ファインダーを覗いている時の移動(速さを決めて動く)
+			 * @param maxSpeed スティックを全部倒した時の速さ
+			 * @details しゃがんで構えたまま歩く時に使う
+			 */
+			void SlowMove(const float maxSpeed);
+			/**
 			 * @brief 指定した方向へ、なめらかに向きを変える
 			 * @param direction 向きたい方向(XZ平面)
 			 */
 			void RotateToward(const Vector3& direction);
 			/**
-			 * @brief 自分から、隠れている物への方向を取得
-			 * @return 方向(XZ平面、長さ1)
-			 * @details 隠れるステートで、向きを決めるのに使う
+			 * @brief しゃがんでいるか
+			 * @return しゃがんでいれば true(R3 で切りかわる)
 			 */
-			Vector3 GetDirectionToHideObject() const;
+			bool IsCrouching() const { return m_isCrouching; }
 
 
 		protected:
@@ -93,14 +98,6 @@ namespace app
 
 
 		private:
-			/** 近くにある、隠れられる物の種類 */
-			enum class EnHideType : uint8_t
-			{
-				None,	// 何もない
-				Low,	// 小さい物(屈んで隠れる)
-				High,	// 壁や高い物(壁を背にして隠れる)
-			};
-
 			/**
 			 * @brief スティックの入力を、カメラから見た移動方向(XZ平面)にする
 			 * @return 移動方向(長さ1。入力が無ければ 0)
@@ -112,17 +109,15 @@ namespace app
 			 */
 			core::IState* FindPhotoWalkState();
 			/**
-			 * @brief 近くに隠れられる物があるかを調べる
-			 * @return 隠れられる物の種類
-			 * @details 膝と頭の高さでレイを飛ばして、膝だけ当たれば小さい物、両方当たれば壁とする。
-			 *          当たった位置は m_hideObjectPosition に入れる
-			 */
-			EnHideType CheckHideType();
-			/**
 			 * @brief 走るかどうかを切り替える(L スティックの押し込み)
 			 * @param isFinderActive ファインダーを覗いているか
 			 */
 			void UpdateRunToggle(const bool isFinderActive);
+			/**
+			 * @brief しゃがむかどうかを切り替える(R スティックの押し込み。1 回押したら、もう 1 回押すまでしゃがんだまま)
+			 * @details ファインダーを覗いていても、歩いても、しゃがんだまま(立つのは R3 か、L3 で走った時だけ)
+			 */
+			void UpdateCrouchToggle();
 			/**
 			 * @brief スティックをどれだけ倒したか
 			 * @return 0(倒していない)〜 1(全部倒した)
@@ -135,10 +130,10 @@ namespace app
 			Boy* m_boy;
 			/** 今の向き */
 			Quaternion m_rotation;
-			/** 隠れている物の位置(レイが当たった位置) */
-			Vector3 m_hideObjectPosition;
 			/** 走っているか */
 			bool m_isRunning;
+			/** しゃがんでいるか */
+			bool m_isCrouching;
 		};
 	}
 }

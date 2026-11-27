@@ -366,6 +366,9 @@
     <ClCompile Include="Source\UI\TitlePressButtonMenu\TitlePressButtonMenu.cpp">
       <Filter>Source\UI\TitlePressButtonMenu</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Boy\PhotoChance.cpp">
+      <Filter>Source\Actor\Character\Boy</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -628,6 +631,9 @@
     </ClInclude>
     <ClInclude Include="Source\UI\TitlePressButtonMenu\TitlePressButtonMenu.h">
       <Filter>Source\UI\TitlePressButtonMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Boy\PhotoChance.h">
+      <Filter>Source\Actor\Character\Boy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

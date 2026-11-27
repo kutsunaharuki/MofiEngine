@@ -25,12 +25,22 @@ namespace app
 			float gravity;
 			/** ファインダーを覗いている時の歩行速度 */
 			float photoWalkSpeed;
-			/** 隠れられる物を探す距離(足元の中心から) */
-			float hideCheckDistance;
-			/** 小さい物を探すレイの高さ(膝くらい) */
-			float hideLowRayHeight;
-			/** 高い物を探すレイの高さ(頭くらい) */
-			float hideHighRayHeight;
+			/** しゃがんで歩く速さ */
+			float crouchWalkSpeed;
+			/** しゃがんだ時に、目(カメラ)を下げる長さ */
+			float crouchEyeDrop;
+			/** しゃがんだ時に、悪党が見る高さ(足元から。低い物の陰に入ると見えなくなる) */
+			float crouchVisionHeight;
+			/** 柱のモデルの名前(モデルのパスにこの名前が入っている置物を、のぞける柱にする。ゲームを始めた時だけ読む) */
+			std::string leanPillarName;
+			/** 柱の表面から、これより近ければのぞける */
+			float leanCheckDistance;
+			/** 柱のはしが、画面の真ん中からこれより外に出ていたら、そちらからはのぞかない(画面の半分を 1 とした長さ。0.5 = 1/4) */
+			float leanEdgeLimit;
+			/** のぞいた時に、目(カメラ)を横にずらす長さ */
+			float leanEyeOffset;
+			/** 目(カメラ)を、しゃがんだ・のぞいた位置まで動かす速さ(大きいほど早い) */
+			float eyeMoveSpeed;
 			/** 初期位置 */
 			Vector3 initialPosition;
 			/** 更新されるスケール */
@@ -55,9 +65,14 @@ namespace app
 				, rotateSpeed(15.0f)
 				, gravity(1500.0f)
 				, photoWalkSpeed(100.0f)
-				, hideCheckDistance(60.0f)
-				, hideLowRayHeight(30.0f)
-				, hideHighRayHeight(110.0f)
+				, crouchWalkSpeed(80.0f)
+				, crouchEyeDrop(50.0f)
+				, crouchVisionHeight(35.0f)
+				, leanPillarName("SM_Column01")
+				, leanCheckDistance(60.0f)
+				, leanEdgeLimit(0.5f)
+				, leanEyeOffset(40.0f)
+				, eyeMoveSpeed(8.0f)
 				, initialPosition(Vector3::Zero)
 				, updateScale(Vector3::One)
 				, runNoticeScale(1.0f)
@@ -80,9 +95,14 @@ namespace app
 				rotateSpeed = file.GetFloat("rotateSpeed", rotateSpeed);
 				gravity = file.GetFloat("gravity", gravity);
 				photoWalkSpeed = file.GetFloat("photoWalkSpeed", photoWalkSpeed);
-				hideCheckDistance = file.GetFloat("hideCheckDistance", hideCheckDistance);
-				hideLowRayHeight = file.GetFloat("hideLowRayHeight", hideLowRayHeight);
-				hideHighRayHeight = file.GetFloat("hideHighRayHeight", hideHighRayHeight);
+				crouchWalkSpeed = file.GetFloat("crouchWalkSpeed", crouchWalkSpeed);
+				crouchEyeDrop = file.GetFloat("crouchEyeDrop", crouchEyeDrop);
+				crouchVisionHeight = file.GetFloat("crouchVisionHeight", crouchVisionHeight);
+				leanPillarName = file.GetString("leanPillarName", leanPillarName);
+				leanCheckDistance = file.GetFloat("leanCheckDistance", leanCheckDistance);
+				leanEdgeLimit = file.GetFloat("leanEdgeLimit", leanEdgeLimit);
+				leanEyeOffset = file.GetFloat("leanEyeOffset", leanEyeOffset);
+				eyeMoveSpeed = file.GetFloat("eyeMoveSpeed", eyeMoveSpeed);
 				initialPosition = file.GetVector3("initialPosition", initialPosition);
 				updateScale = file.GetVector3("updateScale", updateScale);
 				runNoticeScale = file.GetFloat("runNoticeScale", runNoticeScale);

@@ -312,7 +312,8 @@ namespace app
 
 			// 主人公のどこを見るか
 			Vector3 targetPosition = m_player->GetTransform().GetWorldPosition();
-			targetPosition.y += setting.targetHeight;
+			// ※ 主人公がしゃがむと低くなる(低い物の陰に入ると、線がさえぎられて見えなくなる)
+			targetPosition.y += m_player->GetVisionTargetHeight(setting.targetHeight);
 
 			if (m_vision.Update(deltaTime, eyePosition, forward, targetPosition,
 				GetCollisionObject(), m_player->GetCollisionObject(), m_player->GetNoticeScale()))

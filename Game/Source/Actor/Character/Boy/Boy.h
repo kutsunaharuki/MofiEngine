@@ -6,6 +6,7 @@
 #include "Source/Actor/Character/CharacterBase.h"
 #include "Source/Util/ParameterManager.h"
 #include "Source/Actor/Character/Boy/Object/BoyParameter.h"
+#include "Source/Actor/Character/Boy/PhotoChance.h"
 
 
 namespace app
@@ -32,8 +33,14 @@ namespace app
 			PhotoWalkBack,		   // ファインダーを覗いている時の後ろ歩き
 			PhotoWalkLeft,		   // ファインダーを覗いている時の左歩き
 			PhotoWalkRight,		   // ファインダーを覗いている時の右歩き
-			LowHide,			   // 小さい物陰に隠れる
-			HighHide,              // 高い物陰に隠れる
+			CrouchHide,            // しゃがんで止まっている
+			CrouchWalk,            // しゃがんだまま歩く
+			CrouchCamera,          // しゃがんでカメラを構える
+			CrouchShoot,           // しゃがんで撮る
+			LeanCameraLeft,        // 柱の左からのぞいてカメラを構える
+			LeanCameraRight,       // 柱の右からのぞいてカメラを構える
+			CrouchLeanCameraLeft,  // しゃがんで、柱の左からのぞいてカメラを構える
+			CrouchLeanCameraRight, // しゃがんで、柱の右からのぞいてカメラを構える
 			Max
 		};
 
@@ -82,6 +89,28 @@ namespace app
 			bool IsFinderActive() const { return m_isFinderActive; }
 
 			/**
+			 * @brief 柱のどちらからのぞけるかを設定(シーンが PhotoChance で調べて渡す)
+			 * @param leanSide のぞく向き(のぞけなければ None)
+			 * @details ファインダーを覗いて止まっている時に、この向きでのぞく
+			 */
+			void SetLeanSide(const EnLeanSide leanSide) { m_leanSide = leanSide; }
+			/**
+			 * @brief 柱のどちらからのぞけるか
+			 * @return のぞく向き
+			 */
+			EnLeanSide GetLeanSide() const { return m_leanSide; }
+			/**
+			 * @brief 目(カメラ)の位置のずれを取得(しゃがむと下がる・のぞくと横にずれる)
+			 * @return ずれ(ワールドの向き)。GameCamera に渡す
+			 */
+			const Vector3& GetEyeOffset() const { return m_eyeOffset; }
+			/**
+			 * @brief しゃがんでいるか
+			 * @return しゃがんでいれば true
+			 */
+			bool IsCrouching() const;
+
+			/**
 			 * @brief 調整用パラメーターを取得
 			 * @return パラメーター(JSON が変わっていれば、読み直してから返す)
 			 */
@@ -99,6 +128,12 @@ namespace app
 			 * @return 走っていれば runNoticeScale、それ以外は 1
 			 */
 			float GetNoticeScale() const override { return m_noticeScale; }
+			/**
+			 * @brief 悪党が見る高さ(足元から)
+			 * @param defaultHeight ふつうの高さ
+			 * @return しゃがんでいれば crouchVisionHeight(ふつうより低ければ)、それ以外は defaultHeight
+			 */
+			float GetVisionTargetHeight(const float defaultHeight) const override;
 			/** 主人公と、手に持つカメラを描く(InGameScene から呼ぶので public) */
 			void Render(RenderContext& rc) override;
 
@@ -114,6 +149,11 @@ namespace app
 			 * @param parameter 調整パラメーター
 			 */
 			void UpdateHandCamera(const BoyParameter& parameter);
+			/**
+			 * @brief 目(カメラ)の位置のずれを、しゃがみ・のぞきに合わせて少しずつ動かす
+			 * @param parameter 調整パラメーター
+			 */
+			void UpdateEyeOffset(const BoyParameter& parameter);
 
 
 		private:
@@ -125,6 +165,12 @@ namespace app
 			bool m_isFinderActive;
 			/** 目立ちやすさの倍率 */
 			float m_noticeScale;
+			/** 柱のどちらからのぞけるか */
+			EnLeanSide m_leanSide;
+			/** 目(カメラ)の位置のずれ */
+			Vector3 m_eyeOffset;
+			/** しゃがんだ時に、悪党が見る高さ(パラメーターの値を Update で覚える) */
+			float m_crouchVisionHeight;
 			/** 手に持つカメラのモデル */
 			ModelRender m_handCamera;
 			/** カメラを持つ手のボーンの番号(見つからなければ -1) */

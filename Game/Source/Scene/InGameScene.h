@@ -14,6 +14,7 @@
 #include "Source/DebugTool/LoadTimeWindow.h"
 #include "Source/DebugTool/PhotoMatchDebugWindow.h"
 #include "Source/Stage/LightController.h"
+#include "Source/Actor/Character/Boy/PhotoChance.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -151,6 +152,11 @@ namespace app
 		 */
 		void DrawGameLoopDebug();
 		/**
+		 * @brief 柱からのぞけるかを調べて、主人公に渡す
+		 * @details ファインダーを覗いている時だけ調べる(覗いていなければ、のぞかない)
+		 */
+		void UpdatePhotoChance();
+		/**
 		 * @brief ミッション(Model)から行の値を作って、ミッションの UI(View)に渡す
 		 * @details MVP の Presenter の役目。枚数や状態が変わった時に呼ぶ
 		 */
@@ -227,6 +233,10 @@ namespace app
 		std::unique_ptr<app::actor::EnemyBase> m_enemy;
 		/** 主人公 */
 		std::unique_ptr<app::actor::Boy> m_boy;
+		/** フォトチャンス(柱からのぞいて撮れるかを調べる) */
+		actor::PhotoChance m_photoChance;
+		/** 悪党の位置の一覧(フォトチャンスに渡す。毎フレーム作り直さないように持っておく) */
+		std::vector<Vector3> m_enemyPositionList;
 		/** ステージ(置物) */
 		std::unique_ptr<app::stage::Stage> m_stage;
 		/** ステージエディタ(Debug の時だけ作る。Release では nullptr) */

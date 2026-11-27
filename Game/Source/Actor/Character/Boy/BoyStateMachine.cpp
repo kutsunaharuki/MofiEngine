@@ -6,9 +6,7 @@
 #include "BoyStateMachine.h"
 #include "BoyState.h"
 #include "Source/Camera/GameCamera.h"
-#include "Source/Util/RayCast.h"
 #include <cmath>
-#include <cfloat>
 
 
 namespace app
@@ -28,8 +26,8 @@ namespace app
 			: CharacterStateMachine(owner)
 			, m_boy(owner)
 			, m_rotation(Quaternion::Identity)
-			, m_hideObjectPosition(Vector3::Zero)
 			, m_isRunning(false)
+			, m_isCrouching(false)
 		{
 			// ステートの追加
 			AddState<BoyIdleState>(*this);
@@ -40,8 +38,12 @@ namespace app
 			AddState<BoyPhotoWalkBackState>(*this);
 			AddState<BoyPhotoWalkLeftState>(*this);
 			AddState<BoyPhotoWalkRightState>(*this);
-			AddState<BoyLowHideState>(*this);
-			AddState<BoyHighHideState>(*this);
+			AddState<BoyCrouchIdleState>(*this);
+			AddState<BoyCrouchWalkState>(*this);
+			AddState<BoyCrouchCameraState>(*this);
+			AddState<BoyCrouchPhotoWalkState>(*this);
+			AddState<BoyLeanLeftState>(*this);
+			AddState<BoyLeanRightState>(*this);
 		}
 
 
@@ -49,26 +51,41 @@ namespace app
 		{
 			// ファインダー状態かを見る
 			const bool isFinderActive = m_boy->IsFinderActive();
-			// ステートを選ぶ前に走るかどうかを決める
+			// ステートを選ぶ前に、走るか・しゃがむかを決める
 			UpdateRunToggle(isFinderActive);
+			UpdateCrouchToggle();
 
-			// 移動入力があれば歩く(隠れるステートは StopMove するので、歩いている間は隠れない)
+			// 移動入力があれば歩く
 			if (HasMoveInput())
 			{
-				// ファインダーをのぞきながら歩くなら、スティックの向きの撮影歩行ステート
-				if (isFinderActive) return FindPhotoWalkState();
+				if (isFinderActive)
+				{
+					// しゃがんだまま構えて歩くなら、しゃがんだまま歩く(立たない)
+					if (m_isCrouching) return FindState(BoyCrouchPhotoWalkState::ID());
+					// ファインダーをのぞきながら歩くなら、スティックの向きの撮影歩行ステート
+					return FindPhotoWalkState();
+				}
+				// しゃがんでいれば、しゃがみ歩き
+				if (m_isCrouching) return FindState(BoyCrouchWalkState::ID());
 				// 移動入力 + 走れるなら 走るステート
 				if (m_isRunning) return FindState(BoyRunState::ID());
 				return FindState(BoyWalkState::ID());
 			}
 
-			// 止まっている時に、近くに隠れられる物があれば隠れる(ファインダーを覗いていなくても隠れる)
-			const EnHideType hideType = CheckHideType();
-			if (hideType == EnHideType::Low) return FindState(BoyLowHideState::ID());
-			if (hideType == EnHideType::High) return FindState(BoyHighHideState::ID());
+			// ファインダーを覗いて止まっている時
+			if (isFinderActive)
+			{
+				// 柱の近くなら、柱からのぞく(しゃがんでいれば、しゃがんだままのぞく)
+				const EnLeanSide leanSide = m_boy->GetLeanSide();
+				if (leanSide == EnLeanSide::Left) return FindState(BoyLeanLeftState::ID());
+				if (leanSide == EnLeanSide::Right) return FindState(BoyLeanRightState::ID());
+				// しゃがんでいれば、しゃがんで構える
+				if (m_isCrouching) return FindState(BoyCrouchCameraState::ID());
+				return FindState(BoyPhotoIdleState::ID());
+			}
 
-			// ファインダーを覗きっぱなしなら撮影待機ステート
-			if (isFinderActive) return FindState(BoyPhotoIdleState::ID());
+			// しゃがんでいれば、しゃがんだまま止まる
+			if (m_isCrouching) return FindState(BoyCrouchIdleState::ID());
 
 			// 何もしていなければ待機
 			return FindState(BoyIdleState::ID());
@@ -124,29 +141,16 @@ namespace app
 
 		void BoyStateMachine::SlowMove()
 		{
-			// 撮影中は横や後ろにも歩くので、移動する方向は向かずにカメラの方を向く
-			// 少し倒せばゆっくり、全部倒せば photoWalkSpeed(狙いながら少しだけ動けるように)
-			Move(GetParameter().photoWalkSpeed * CalcMoveInputStrength(), false);
-			FaceCameraForward();
+			SlowMove(GetParameter().photoWalkSpeed);
 		}
 
 
-		Vector3 BoyStateMachine::GetDirectionToHideObject() const
+		void BoyStateMachine::SlowMove(const float maxSpeed)
 		{
-			Vector3 direction = m_hideObjectPosition;
-			direction.Subtract(m_boy->GetTransform().GetWorldPosition());
-			direction.y = 0.0f;
-
-			// 重なっていて方向が出せない時は、今の向きのままにする
-			if (direction.LengthSq() <= 0.0f)
-			{
-				Vector3 forward(0.0f, 0.0f, 1.0f);
-				m_rotation.Apply(forward);
-				return forward;
-			}
-
-			direction.Normalize();
-			return direction;
+			// 撮影中は横や後ろにも歩くので、移動する方向は向かずにカメラの方を向く
+			// 少し倒せばゆっくり、全部倒せば maxSpeed(狙いながら少しだけ動けるように)
+			Move(maxSpeed * CalcMoveInputStrength(), false);
+			FaceCameraForward();
 		}
 
 
@@ -179,67 +183,6 @@ namespace app
 		}
 
 
-		BoyStateMachine::EnHideType BoyStateMachine::CheckHideType()
-		{
-			const camera::GameCamera* gameCamera = m_boy->GetGameCamera();
-			if (gameCamera == nullptr) return EnHideType::None;
-
-			const BoyParameter& parameter = GetParameter();
-			const Vector3& position = m_boy->GetTransform().GetWorldPosition();
-
-			// カメラから見た前後左右の4方向を調べる
-			Vector3 forward = gameCamera->GetForwardXZ();
-			Vector3 right = gameCamera->GetRightXZ();
-			Vector3 back = forward;
-			back.Scale(-1.0f);
-			Vector3 left = right;
-			left.Scale(-1.0f);
-			const Vector3 directions[] = { forward, back, left, right };
-
-			EnHideType result = EnHideType::None;
-			float nearestDistanceSq = FLT_MAX;
-
-			for (const Vector3& direction : directions)
-			{
-				Vector3 toEnd = direction;
-				toEnd.Scale(parameter.hideCheckDistance);
-
-				// 膝の高さのレイ。当たらなければ、この方向には何もない
-				Vector3 lowStart = position;
-				lowStart.y += parameter.hideLowRayHeight;
-				Vector3 lowEnd = lowStart;
-				lowEnd.Add(toEnd);
-
-				// キャラクター(敵・一般客・主人公)は隠れる物にしない
-				const util::RayHit lowHit = util::RayCastClosest(lowStart, lowEnd, nullptr, util::RayFilter::IgnoreCharacter);
-				if (!lowHit.isHit) continue;
-				const Vector3& lowHitPosition = lowHit.position;
-
-				// 一番近い物に隠れる
-				Vector3 toHit = lowHitPosition;
-				toHit.Subtract(lowStart);
-				const float distanceSq = toHit.LengthSq();
-				if (distanceSq >= nearestDistanceSq) continue;
-
-				// 頭の高さのレイ。当たれば壁や高い物、当たらなければ小さい物
-				Vector3 highStart = position;
-				highStart.y += parameter.hideHighRayHeight;
-				Vector3 highEnd = highStart;
-				highEnd.Add(toEnd);
-
-
-				// 一番近くで何が当たったかを判定
-				const bool isHighHit = util::RayCastClosest(highStart, highEnd, nullptr, util::RayFilter::IgnoreCharacter).isHit;
-
-				nearestDistanceSq = distanceSq;
-				m_hideObjectPosition = lowHitPosition;
-				result = isHighHit ? EnHideType::High : EnHideType::Low;
-			}
-
-			return result;
-		}
-
-
 		void BoyStateMachine::UpdateRunToggle(const bool isFinderActive)
 		{
 			// 止まった時・ファインダーをのぞいた時は、走るのをやめる
@@ -253,6 +196,20 @@ namespace app
 			if (g_pad[0]->IsTrigger(enButtonLB3))
 			{
 				m_isRunning = !m_isRunning;
+				// しゃがんでいる時に走り出したら、立つ
+				if (m_isRunning) m_isCrouching = false;
+			}
+		}
+
+
+		void BoyStateMachine::UpdateCrouchToggle()
+		{
+			// 押し込むたびに しゃがむと立つを切り替える(1 回押したら、もう 1 回押すまでしゃがんだまま)
+			if (g_pad[0]->IsTrigger(enButtonRB3))
+			{
+				m_isCrouching = !m_isCrouching;
+				// しゃがんだら、走るのはやめる
+				if (m_isCrouching) m_isRunning = false;
 			}
 		}
 

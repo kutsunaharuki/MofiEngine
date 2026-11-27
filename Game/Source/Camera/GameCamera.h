@@ -90,6 +90,11 @@ namespace app
 			 * @param target 追従対象のトランスフォーム
 			 */
 			void SetTarget(const core::TransformNode* target) { m_target = target; }
+			/**
+			 * @brief 目の位置のずれを設定する(しゃがむと下がる・柱からのぞくと横にずれる)
+			 * @param eyeOffset 目の位置に足すずれ(ワールドの向き)
+			 */
+			void SetEyeOffset(const Vector3& eyeOffset) { m_eyeOffset = eyeOffset; }
 
 
 		private:
@@ -136,6 +141,8 @@ namespace app
 			float m_zoomRatio;
 			/** 今の 3人称のカメラの距離(壁に押されると縮む。負なら、まだ決まっていない) */
 			float m_currentDistance;
+			/** 目の位置のずれ(しゃがむと下がる・柱からのぞくと横にずれる) */
+			Vector3 m_eyeOffset;
 		};
 	}
 }

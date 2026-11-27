@@ -124,6 +124,14 @@ namespace app
 			 */
 			virtual float GetNoticeScale() const { return 1.0f; }
 			/**
+			 * @brief 悪党が見る高さ(足元から)
+			 * @param defaultHeight ふつうの高さ(悪党の目の設定の targetHeight)
+			 * @return 見る高さ。ふつうは defaultHeight のまま
+			 * @details しゃがむと低くなる。悪党の目からこの高さに線を引いて、物にさえぎられたら見えない
+			 *          (低い物の陰では見つかりにくく、何もない所ではふつうに見つかる)
+			 */
+			virtual float GetVisionTargetHeight(const float defaultHeight) const { return defaultHeight; }
+			/**
 			 * @brief 時間の倍率(スローモーション)
 			 * @return 普段は 1.0(主人公はずっと 1.0)
 			 * @details 悪党・客は util::WorldTime の倍率を返す。移動とアニメーションの速さにかける

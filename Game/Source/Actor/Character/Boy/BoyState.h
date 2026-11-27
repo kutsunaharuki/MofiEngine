@@ -208,15 +208,15 @@ namespace app
 
 
 		/**
-		 * @brief 小さい物陰に隠れるステート
-		 * @details 屈んで、隠れている物の方を向く
+		 * @brief しゃがんで止まっているステート
+		 * @details R3 を押すと、しゃがむ・立つが切りかわる
 		 */
-		class BoyLowHideState : public BoyStateBase
+		class BoyCrouchIdleState : public BoyStateBase
 		{
-			appState(BoyLowHideState);
+			appState(BoyCrouchIdleState);
 
 		public:
-			explicit BoyLowHideState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+			explicit BoyCrouchIdleState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
 
 			void Enter() override;
 			void Update() override;
@@ -228,21 +228,115 @@ namespace app
 
 		/*****************************************************/
 
-		
+
 		/**
-		 * @brief 高い物陰に隠れるステート
-		 * @details 立ったまま、壁を背にする
+		 * @brief しゃがんだまま歩くステート
 		 */
-		class BoyHighHideState : public BoyStateBase
+		class BoyCrouchWalkState : public BoyStateBase
 		{
-			appState(BoyHighHideState);
+			appState(BoyCrouchWalkState);
 
 		public:
-			explicit BoyHighHideState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+			explicit BoyCrouchWalkState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
 
 			void Enter() override;
 			void Update() override;
 			void Exit() override;
+		};
+
+
+
+
+		/*****************************************************/
+
+
+		/**
+		 * @brief しゃがんでカメラを構えるステート(柱の近くではない時)
+		 */
+		class BoyCrouchCameraState : public BoyStateBase
+		{
+			appState(BoyCrouchCameraState);
+
+		public:
+			explicit BoyCrouchCameraState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+		};
+
+
+
+
+		/*****************************************************/
+
+
+		/**
+		 * @brief しゃがんでカメラを構えたまま歩くステート
+		 * @details 撮影中の歩きと同じく、カメラの方を向いたまま、ゆっくり動く
+		 */
+		class BoyCrouchPhotoWalkState : public BoyStateBase
+		{
+			appState(BoyCrouchPhotoWalkState);
+
+		public:
+			explicit BoyCrouchPhotoWalkState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine) {}
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+		};
+
+
+
+
+		/*****************************************************/
+
+
+		/**
+		 * @brief 柱の左からのぞいて、カメラを構えるステート
+		 * @details しゃがんでいれば、しゃがんだままのぞく(R3 で切りかえると、アニメーションも変わる)
+		 */
+		class BoyLeanLeftState : public BoyStateBase
+		{
+			appState(BoyLeanLeftState);
+
+		public:
+			explicit BoyLeanLeftState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine), m_isCrouchAnimation(false) {}
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+
+		private:
+			/** しゃがんでのぞくアニメーションを再生しているか */
+			bool m_isCrouchAnimation;
+		};
+
+
+
+
+		/*****************************************************/
+
+
+		/**
+		 * @brief 柱の右からのぞいて、カメラを構えるステート
+		 * @details しゃがんでいれば、しゃがんだままのぞく(R3 で切りかえると、アニメーションも変わる)
+		 */
+		class BoyLeanRightState : public BoyStateBase
+		{
+			appState(BoyLeanRightState);
+
+		public:
+			explicit BoyLeanRightState(BoyStateMachine& stateMachine) : BoyStateBase(stateMachine), m_isCrouchAnimation(false) {}
+
+			void Enter() override;
+			void Update() override;
+			void Exit() override;
+
+		private:
+			/** しゃがんでのぞくアニメーションを再生しているか */
+			bool m_isCrouchAnimation;
 		};
 	}
 }

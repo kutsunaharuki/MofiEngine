@@ -202,59 +202,166 @@ namespace app
 
 
 		/*************************************/
-		// 低い隠れステート
+		// しゃがんで止まっているステート
 		/*************************************/
 
 
-		void BoyLowHideState::Enter()
+		void BoyCrouchIdleState::Enter()
 		{
-			m_stateMachine.PlayAnimation(EnBoyAnimation::LowHide);
+			m_stateMachine.PlayAnimation(EnBoyAnimation::CrouchHide);
 		}
 
 
-		void BoyLowHideState::Update()
+		void BoyCrouchIdleState::Update()
 		{
-			// 屈んだまま、隠れている物の方を向く
+			// しゃがんだまま止まる(向きは今のまま)
 			m_stateMachine.StopMove();
-			m_stateMachine.RotateToward(m_stateMachine.GetDirectionToHideObject());
 		}
 
 
-		void BoyLowHideState::Exit()
+		void BoyCrouchIdleState::Exit()
 		{}
 
 
 
 
 		/*************************************/
-		// 高い隠れステート
+		// しゃがんだまま歩くステート
+		/*************************************/
+
+
+		void BoyCrouchWalkState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::CrouchWalk);
+		}
+
+
+		void BoyCrouchWalkState::Update()
+		{
+			// ふつうに歩くより遅く、歩く方向を向いて進む
+			const BoyParameter& parameter = m_stateMachine.GetParameter();
+			m_stateMachine.Move(parameter.crouchWalkSpeed);
+		}
+
+
+		void BoyCrouchWalkState::Exit()
+		{}
+
+
+
+
+		/*************************************/
+		// しゃがんでカメラを構えるステート
+		/*************************************/
+
+
+		void BoyCrouchCameraState::Enter()
+		{
+			m_stateMachine.PlayAnimation(EnBoyAnimation::CrouchCamera);
+		}
+
+
+		void BoyCrouchCameraState::Update()
+		{
+			// 動かずに、カメラの向いている方向を向く
+			m_stateMachine.StopMove();
+			m_stateMachine.FaceCameraForward();
+		}
+
+
+		void BoyCrouchCameraState::Exit()
+		{}
+
+
+
+
+		/*************************************/
+		// しゃがんでカメラを構えたまま歩くステート
+		/*************************************/
+
+
+		void BoyCrouchPhotoWalkState::Enter()
+		{
+			// しゃがんで構えたまま歩くアニメーションは無いので、しゃがみ歩きを使う
+			m_stateMachine.PlayAnimation(EnBoyAnimation::CrouchWalk);
+		}
+
+
+		void BoyCrouchPhotoWalkState::Update()
+		{
+			// カメラの方を向いたまま、しゃがみ歩きの速さまでで動く
+			const BoyParameter& parameter = m_stateMachine.GetParameter();
+			m_stateMachine.SlowMove(parameter.crouchWalkSpeed);
+		}
+
+
+		void BoyCrouchPhotoWalkState::Exit()
+		{}
+
+
+
+
+		/*************************************/
+		// 柱からのぞいてカメラを構えるステート
 		/*************************************/
 
 
 		namespace
 		{
-			/** ベクトルを反転するためのスケール */
-			constexpr float VECTOR_SCALE = -1.0f;
+			/**
+			 * @brief のぞいている時の、毎フレームの処理(左右で同じ)
+			 * @param stateMachine ステートマシン
+			 * @param isCrouchAnimation しゃがんでのぞくアニメーションを再生しているか(変わったら書きかえる)
+			 * @param standAnimation 立ってのぞくアニメーション
+			 * @param crouchAnimation しゃがんでのぞくアニメーション
+			 */
+			void UpdateLean(BoyStateMachine& stateMachine, bool& isCrouchAnimation, const EnBoyAnimation standAnimation, const EnBoyAnimation crouchAnimation)
+			{
+				// 動かずに、カメラの向いている方向を向く
+				stateMachine.StopMove();
+				stateMachine.FaceCameraForward();
+
+				// のぞいている間に R3 でしゃがむ・立つを切りかえたら、アニメーションも切りかえる
+				const bool isCrouching = stateMachine.IsCrouching();
+				if (isCrouching == isCrouchAnimation) return;
+				isCrouchAnimation = isCrouching;
+				stateMachine.PlayAnimation(isCrouching ? crouchAnimation : standAnimation);
+			}
 		}
 
 
-		void BoyHighHideState::Enter()
+		// ※ アニメーションの名前の左右は、のぞく向きと反対(LeanCameraRight が、左からのぞく動き)
+		void BoyLeanLeftState::Enter()
 		{
-			m_stateMachine.PlayAnimation(EnBoyAnimation::HighHide);
+			m_isCrouchAnimation = m_stateMachine.IsCrouching();
+			m_stateMachine.PlayAnimation(m_isCrouchAnimation ? EnBoyAnimation::CrouchLeanCameraRight : EnBoyAnimation::LeanCameraRight);
 		}
 
 
-		void BoyHighHideState::Update()
+		void BoyLeanLeftState::Update()
 		{
-			// 壁を背にするので、壁と反対の方向を向く
-			m_stateMachine.StopMove();
-			Vector3 direction = m_stateMachine.GetDirectionToHideObject();
-			direction.Scale(VECTOR_SCALE);
-			m_stateMachine.RotateToward(direction);
+			UpdateLean(m_stateMachine, m_isCrouchAnimation, EnBoyAnimation::LeanCameraRight, EnBoyAnimation::CrouchLeanCameraRight);
 		}
 
 
-		void BoyHighHideState::Exit()
+		void BoyLeanLeftState::Exit()
+		{}
+
+
+		void BoyLeanRightState::Enter()
+		{
+			m_isCrouchAnimation = m_stateMachine.IsCrouching();
+			m_stateMachine.PlayAnimation(m_isCrouchAnimation ? EnBoyAnimation::CrouchLeanCameraLeft : EnBoyAnimation::LeanCameraLeft);
+		}
+
+
+		void BoyLeanRightState::Update()
+		{
+			UpdateLean(m_stateMachine, m_isCrouchAnimation, EnBoyAnimation::LeanCameraLeft, EnBoyAnimation::CrouchLeanCameraLeft);
+		}
+
+
+		void BoyLeanRightState::Exit()
 		{}
     }
 }
