@@ -4,16 +4,27 @@
       {
         "type":"UIDummy",
         "name":"TitleMenuActor",
-        "position":[0,-150,0]
+        "position":[-800,70,0]
+      },
+      {
+        "comment":"手で持ったカメラ(背景の上に重ねる。カメラと手のまわりは透明。画像を上書きすれば差し替わる)",
+        "type":"UIIcon",
+        "name":"TitleMainCamera",
+        "asset":"Assets/spriteData/UI/Title/TitleMainCamera.dds",
+        "width":1920,
+        "height":1080,
+        "position":[0,0,0],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
       },
       {
         "comment":"Flash のまわりの光(ふだんはうっすら。光る時に強くなる)",
         "type":"UIIcon",
         "name":"TitleLogoFlashGlow",
         "asset":"Assets/spriteData/UI/Title/TitleLogoFlashGlow.DDS",
-        "width":1094,
-        "height":546,
-        "position":[0,180,0],
+        "width":875,
+        "height":437,
+        "position":[-480,250,0],
         "color":[1,1,1,0],
         "pivot":[0.5,0.5]
       },
@@ -22,11 +33,22 @@
         "type":"UIIcon",
         "name":"TitleCamera",
         "asset":"Assets/spriteData/UI/Title/TitleCamera.DDS",
-        "width":128,
-        "height":100,
-        "position":[-540,415,0],
+        "width":102,
+        "height":80,
+        "position":[-875,445,0],
         "rotation":12,
         "color":[1,1,1,1],
+        "pivot":[0.5,0.5]
+      },
+      {
+        "comment":"カメラのフラッシュの光(濃さと大きさは 担当のメニューが行う)",
+        "type":"UIIcon",
+        "name":"TitleCameraFlash",
+        "asset":"Assets/spriteData/UI/Title/TitleCameraFlash.DDS",
+        "width":320,
+        "height":320,
+        "position":[-844,445,0],
+        "color":[1,1,1,0],
         "pivot":[0.5,0.5]
       },
       {
@@ -34,9 +56,9 @@
         "type":"UIIcon",
         "name":"TitleLogoThe",
         "asset":"Assets/spriteData/UI/Title/TitleLogoThe.DDS",
-        "width":315,
-        "height":178,
-        "position":[-330,330,0],
+        "width":252,
+        "height":142,
+        "position":[-744,370,0],
         "color":[1,1,1,1],
         "pivot":[0.5,0.5]
       },
@@ -45,21 +67,10 @@
         "type":"UIIcon",
         "name":"TitleLogoFlash",
         "asset":"Assets/spriteData/UI/Title/TitleLogoFlash.DDS",
-        "width":854,
-        "height":306,
-        "position":[0,180,0],
+        "width":683,
+        "height":245,
+        "position":[-480,250,0],
         "color":[1,1,1,1],
-        "pivot":[0.5,0.5]
-      },
-      {
-        "comment":"光った時に Flash の上に重ねる真っ白な Flash(濃さは TitleEventMenu が動かす)",
-        "type":"UIIcon",
-        "name":"TitleLogoFlashWhite",
-        "asset":"Assets/spriteData/UI/Title/TitleLogoFlashWhite.DDS",
-        "width":854,
-        "height":306,
-        "position":[0,180,0],
-        "color":[1,1,1,0],
         "pivot":[0.5,0.5]
       },
       {
@@ -67,9 +78,9 @@
         "type":"UIIcon",
         "name":"TitleSparkle",
         "asset":"Assets/spriteData/UI/Title/TitleSparkle.DDS",
-        "width":200,
-        "height":200,
-        "position":[300,300,0],
+        "width":160,
+        "height":160,
+        "position":[-240,346,0],
         "color":[1,1,1,0],
         "pivot":[0.5,0.5]
       },

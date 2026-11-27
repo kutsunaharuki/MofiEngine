@@ -23,8 +23,6 @@
 #include "Source/AI/Navigation/NavGrid.h"
 #include "Source/AI/Navigation/Pathfinder.h"
 #include "Source/Mission/ShotMeasure.h"
-#include "Source/UI/SampleMenu/SampleMenu.h"
-#include "Source/Mission/PhotoSampleRenderer.h"
 #include "Source/Manager/GameResult.h"
 #include "Source/UI/JudgeMenu/JudgeMenu.h"
 #include "Source/UI/TimerMenu/TimerMenu.h"
@@ -55,8 +53,6 @@ namespace app
 		constexpr const char* SOUND_OPTION_LAYOUT_PATH = "Assets/parameter/UI/Sound/SoundOption.json";
 		/** ミッションのレイアウトのパス */
 		constexpr const char* MISSION_LAYOUT_PATH = "Assets/parameter/UI/Mission/Mission.json";
-		/** 見本の絵のレイアウトのパス */
-		constexpr const char* SAMPLE_LAYOUT_PATH = "Assets/parameter/UI/Sample/Sample.json";
 		/** 照合ジャッジのレイアウトのパス */
 		constexpr const char* JUDGE_LAYOUT_PATH = "Assets/parameter/UI/Judge/Judge.json";
 		/** 制限時間のレイアウトのパス */
@@ -92,7 +88,6 @@ namespace app
 		, m_isLastShotInFocus(false)
 		, m_isFinishRequested(false)
 		, m_missionMenu(nullptr)
-		, m_sampleMenu(nullptr)
 		, m_judgeMenu(nullptr)
 		, m_isJudgeOpen(false)
 		, m_timerMenu(nullptr)
@@ -157,9 +152,6 @@ namespace app
 			m_missionMenu = m_missionLayout.GetMenu<ui::MissionMenu>();
 			// ミッション(Model)から行を作って、ミッションの UI(View)に渡す
 			UpdateMissionMenu();
-			// 見本の絵の UI(絵は PhotoSampleRenderer が描き終わってから渡す)
-			m_sampleLayout.Initialize<ui::SampleMenu>(SAMPLE_LAYOUT_PATH);
-			m_sampleMenu = m_sampleLayout.GetMenu<ui::SampleMenu>();
 			// 照合ジャッジの UI(撮った直後に開く)
 			m_judgeLayout.Initialize<ui::JudgeMenu>(JUDGE_LAYOUT_PATH);
 			m_judgeMenu = m_judgeLayout.GetMenu<ui::JudgeMenu>();
@@ -291,25 +283,6 @@ namespace app
 			m_loadTimeWindow.Mark("PhotoCapture / Finder");
 			break;
 		}
-		case LoadStep::PhotoSample:
-		{
-			// ミッションの見本の絵
-			// ミッションの見本の絵(見本のあるミッションだけ人形を作る。描くのは人形のポーズが止まってから)
-			// ※ ミッションの一覧と同じ順番にする(見本の無いミッションは nullptr)
-			for (const mission::MissionData& mission : m_missionManager.GetMissionList())
-			{
-				if (!mission.hasSample)
-				{
-					m_photoSampleList.push_back(nullptr);
-					continue;
-				}
-				auto photoSample = std::make_unique<mission::PhotoSampleRenderer>();
-				photoSample->Initialize(mission);
-				m_photoSampleList.push_back(std::move(photoSample));
-			}
-			m_loadTimeWindow.Mark("Photo Sample");
-			break;
-		}
 		case LoadStep::Camera:
 		{
 			// 最初のフレームとカメラ
@@ -397,9 +370,6 @@ namespace app
 		m_missionLayout.Update();
 		// 制限時間の UI の更新(点滅などの動き。時間を減らすのは UpdateTimeLimit)
 		m_timerLayout.Update();
-		// 見本の絵を描き進めて、UI に渡す
-		UpdatePhotoSample();
-		m_sampleLayout.Update();
 
 		// 照合ジャッジを開いている間は、ゲームの時間を止める(悪党・一般客・主人公・カメラを動かさない)
 		// ※ スタートボタンより先に見て、ジャッジの間にサウンドオプションが開かないようにする
@@ -558,10 +528,6 @@ namespace app
 
 		// 制限時間(覗いている間も、のこり時間が分かるように出す)
 		m_timerLayout.Render(rc);
-
-		// 見本の絵(覗いている時と、いない時で、出す場所が変わる)
-		// ※ ファインダーの UI より後に描画して、手前に出す
-		m_sampleLayout.Render(rc);
 
 		// サウンドオプションは毎フレーム描画を呼ぶ(閉じているときは、メニューの中で何も描画されない)
 		// ※ IsTrigger の中で呼ぶと、ボタンを押した1フレームしか描画されない
@@ -810,36 +776,6 @@ namespace app
 			rowList.push_back(row);
 		}
 		m_missionMenu->SetMissionRows(rowList);
-	}
-
-
-	void InGameScene::UpdatePhotoSample()
-	{
-		// 描き終わっていない見本だけ進める(描き終わった物は中で何もしない)
-		for (auto& photoSample : m_photoSampleList)
-		{
-			if (photoSample) photoSample->Update();
-		}
-
-		// 出す絵: 進行中で、見本を描き終わった最初のミッション
-		Texture* texture = nullptr;
-		const std::vector<mission::MissionData>& missionList = m_missionManager.GetMissionList();
-		for (int i = 0; i < static_cast<int>(missionList.size()) && i < static_cast<int>(m_photoSampleList.size()); ++i)
-		{
-			if (missionList[i].state != mission::MissionState::Progress) continue;
-			mission::PhotoSampleRenderer* photoSample = m_photoSampleList[i].get();
-			if (photoSample == nullptr || !photoSample->IsRendered()) continue;
-
-			texture = &photoSample->GetTexture();
-			break;
-		}
-
-		// 毎フレーム渡す(同じ絵なら中で作り直さない。ホットリロードで UI が作り直されても出る)
-		if (m_sampleMenu)
-		{
-			m_sampleMenu->SetTexture(texture);
-			m_sampleMenu->SetIsFinderActive(m_photoCapture.IsFinderActive());
-		}
 	}
 
 

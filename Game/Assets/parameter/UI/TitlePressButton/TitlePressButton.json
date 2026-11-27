@@ -1,0 +1,19 @@
+{
+  "canvas": {
+    "elements": [
+      {
+        "comment":"最初の画面の 「Press A Button」の文字",
+        "type":"UIText",
+        "name":"TitlePressButtonText",
+        "text":"Press A Button",
+        "position":[0,-400,0],
+        "scale":[1.8,1.8,1],
+        "color":[1,1,1,1],
+        "pivot":[0.5,0.5],
+        "shadow":true,
+        "shadowOffset":3,
+        "shadowColor":[0,0,0,1]
+      }
+    ]
+  }
+}

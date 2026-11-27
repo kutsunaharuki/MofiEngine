@@ -38,8 +38,6 @@ namespace app
 		class UILayout;
 		/** ミッションの表示 */
 		class MissionMenu;
-		/** ミッションの見本の絵の表示 */
-		class SampleMenu;
 	}
 
 	namespace camera
@@ -82,8 +80,6 @@ namespace app
 	{
 		/** ミッション管理 */
 		class MissionManager;
-		/** ミッションの見本の絵を描く */
-		class PhotoSampleRenderer;
 	}
 
 	namespace ui
@@ -167,11 +163,6 @@ namespace app
 		 */
 		actor::EnemyBase* FindEnemy(const camera::IPhotoSubject* subject);
 		/**
-		 * @brief 見本の絵を描き進めて、UI(ミッションの欄・ファインダー)に渡す
-		 * @details 出すのは「進行中で、見本を描き終わった最初のミッション」の絵。無ければ見本の枠を消す
-		 */
-		void UpdatePhotoSample();
-		/**
 		 * @brief 最後に撮った写真の照合結果から、ジャッジの値を作って、ジャッジの UI を開く(時間が止まる)
 		 * @details MVP の Presenter の役目。撮った直後に呼ぶ
 		 */
@@ -224,7 +215,6 @@ namespace app
 			Visitor,		// 一般客
 			Boy,			// ステージエディタと主人公
 			Finder,			// 写真撮影・ファインダー・明かり
-			PhotoSample,	// ミッションの見本の絵
 			Camera,			// 最初のフレームとカメラ
 			Done			// 全部作り終わった
 		};
@@ -292,10 +282,6 @@ namespace app
 		ui::UILayout m_missionLayout;
 		/** ミッションメニュー */
 		ui::MissionMenu* m_missionMenu;
-		/** 見本の絵のUIレイアウト */
-		ui::UILayout m_sampleLayout;
-		/** 見本の絵のメニュー */
-		ui::SampleMenu* m_sampleMenu;
 		/** 照合ジャッジのUIレイアウト */
 		ui::UILayout m_judgeLayout;
 		/** 照合ジャッジのメニュー */
@@ -334,7 +320,5 @@ namespace app
 
 		/** ミッションの管理(シーンと同じ寿命。リトライで作り直される) */
 		mission::MissionManager m_missionManager;
-		/** ミッションごとの見本の絵(ミッションの一覧と同じ順番。見本が無いミッションは nullptr) */
-		std::vector<std::unique_ptr<mission::PhotoSampleRenderer>> m_photoSampleList;
 	};
 }

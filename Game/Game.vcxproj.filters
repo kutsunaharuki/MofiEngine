@@ -115,6 +115,9 @@
     <Filter Include="Source\UI\FoundMenu">
       <UniqueIdentifier>{e9602187-cf60-43d7-9d8c-554b82fb0efc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\UI\TitlePressButtonMenu">
+      <UniqueIdentifier>{10233229-7dbd-4b8c-a0d0-c658d7dfac0e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -356,6 +359,12 @@
     </ClCompile>
     <ClCompile Include="Source\UI\FoundMenu\FoundMenu.cpp">
       <Filter>Source\UI\FoundMenu</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DebugTool\FlashDebugWindow.cpp">
+      <Filter>Source\DebugTool</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\TitlePressButtonMenu\TitlePressButtonMenu.cpp">
+      <Filter>Source\UI\TitlePressButtonMenu</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -613,6 +622,12 @@
     </ClInclude>
     <ClInclude Include="Source\UI\FoundMenu\FoundMenu.h">
       <Filter>Source\UI\FoundMenu</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DebugTool\FlashDebugWindow.h">
+      <Filter>Source\DebugTool</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\TitlePressButtonMenu\TitlePressButtonMenu.h">
+      <Filter>Source\UI\TitlePressButtonMenu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
