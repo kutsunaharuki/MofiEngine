@@ -44,8 +44,9 @@ namespace app
 		{
 			// 敵のパラメーターを取得(大男とねずみ男で違う値)
 			const EnemyParameter& parameter = m_stateMachine.GetParameter();
-			// 警戒中は警戒の速さ、普段は歩く速さ
-			const float speed = m_stateMachine.IsAlert() ? parameter.alertSpeed : parameter.moveSpeed;
+			// 警戒中は警戒の速さ、普段と、調べに行く時(音がした所・見失った所)は歩く速さ
+			const bool isAlertSpeed = m_stateMachine.IsAlert() && !m_stateMachine.IsInvestigating();
+			const float speed = isAlertSpeed ? parameter.alertSpeed : parameter.moveSpeed;
 			m_stateMachine.Move(speed);
 		}
 		
@@ -134,9 +135,9 @@ namespace app
 				return;
 			}
 
-			// ③ 近づいた(または走る時間が終わった)ら、止まって主人公の方を向いたままにする
-			const bool isRunTimeOver = m_timer >= parameter.foundReactTime + parameter.foundMaxRunTime;
-			if (m_stateMachine.IsCaught() || distance <= parameter.foundCatchDistance || isRunTimeOver)
+			// ③ 近づいたら、つかまえた。止まって主人公の方を向いたままにする
+			// ※ 見失った時は、EnemyBase が見つけたステートをやめさせる(つかまえない)
+			if (m_stateMachine.IsCaught() || distance <= parameter.foundCatchDistance)
 			{
 				m_stateMachine.StopMove();
 				if (distance > 0.0f) m_stateMachine.RotateToward(toTarget);
@@ -150,14 +151,19 @@ namespace app
 				return;
 			}
 
-			// ② 主人公の方へまっすぐ走る(走るアニメーションが無いので、歩くアニメーションを速く回す)
+			// ② 主人公の方へ走る(走るアニメーションが無いので、歩くアニメーションを速く回す)
 			if (!m_isRunning)
 			{
 				m_isRunning = true;
 				m_stateMachine.PlayAnimation(EnemyBase::EnemyAnimation::Walk, 0.15f);
 				m_stateMachine.SetAnimationSpeed(parameter.foundRunAnimationSpeed);
 			}
-			m_stateMachine.SetMoveDirection(toTarget);
+			// 道順があれば、道順に沿って走る(ベンチなどをよける。方向は EnemyBase が UpdatePathFollow で入れている)
+			// 道順が無い・着いてしまった時は、まっすぐ主人公の方へ走る
+			if (!m_stateMachine.IsFollowingPath() || m_stateMachine.IsArrived())
+			{
+				m_stateMachine.SetMoveDirection(toTarget);
+			}
 			m_stateMachine.SetMoveAmount(1.0f);
 			m_stateMachine.Move(parameter.foundRunSpeed);
 		}

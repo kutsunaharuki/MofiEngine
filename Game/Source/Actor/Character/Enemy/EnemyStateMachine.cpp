@@ -33,6 +33,7 @@ namespace app
 			, m_moveAmount(0.0f)
 			, m_moveDirection(Vector3::Zero)
 			, m_isAlert(false)
+			, m_isInvestigating(false)
 			, m_isStealing(false)
 			, m_stealCount(0)
 			, m_isFound(false)
@@ -193,7 +194,7 @@ namespace app
 		core::IState* EnemyStateMachine::GetChangeState()
 		{
 			// 上になるほど優先度が高い
-			// 主人公を見つけたら、ほかのことはやめて、ずっと見つけたステートのまま
+			// 主人公を見つけたら、ほかのことはやめて、見失うまで見つけたステートのまま
 			if (m_isFound) return FindState(EnemyFoundState::ID());
 
 			if (m_isAlert)

@@ -109,6 +109,11 @@ namespace app
 			 * @return しゃがんでいれば true
 			 */
 			bool IsCrouching() const;
+			/**
+			 * @brief 柱からのぞいているか
+			 * @return のぞくステート(左・右)なら true
+			 */
+			bool IsLeaning() const;
 
 			/**
 			 * @brief 調整用パラメーターを取得
@@ -134,6 +139,11 @@ namespace app
 			 * @return しゃがんでいれば crouchVisionHeight(ふつうより低ければ)、それ以外は defaultHeight
 			 */
 			float GetVisionTargetHeight(const float defaultHeight) const override;
+			/**
+			 * @brief 悪党に見つかる状態か
+			 * @return カメラを構えている(ファインダーを覗いている)時だけ true
+			 */
+			bool CanBeFound() const override { return m_isFinderActive; }
 			/** 主人公と、手に持つカメラを描く(InGameScene から呼ぶので public) */
 			void Render(RenderContext& rc) override;
 

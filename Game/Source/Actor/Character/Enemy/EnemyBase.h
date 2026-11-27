@@ -159,6 +159,31 @@ namespace app
 			 */
 			void EndAlert();
 			/**
+			 * @brief シャッター音を聞いて、音がした所へ見に行く
+			 * @param soundPosition 音がした所(撮った時の主人公の位置)
+			 * @param isPhotographed 自分が撮られたか(撮られた時だけ、主人公をマークする)
+			 * @details 音がした所が hearDistance より遠ければ、聞こえない(何もしない)。
+			 *          マークすると、次にカメラを構えた所が見えたら、すぐ見つける。
+			 *          歩いて向かい、着いたら少し見回して、いつもの動きに戻る。見つけた後・Start 前に呼ばれた時は何もしない
+			 */
+			void HearShutterSound(const Vector3& soundPosition, const bool isPhotographed);
+			/**
+			 * @brief 主人公をマークしているか(撮られたことがあるか。画面には出さない)
+			 * @return マークしていれば true
+			 */
+			bool IsPlayerMarked() const { return m_isPlayerMarked; }
+			/**
+			 * @brief 柱からのぞいて撮られたことを知らせる(その柱の近くにいれば、しばらく気を付ける)
+			 * @param pillarPosition のぞいて撮られた柱の位置
+			 * @details 柱から pillarWaryDistance の中にいれば、waryTime の間、主人公に早く気づく
+			 */
+			void NotifyLeanShot(const Vector3& pillarPosition);
+			/**
+			 * @brief 気を付けているか
+			 * @return 気を付けていれば true(デバッグで表示する)
+			 */
+			bool IsWary() const { return m_waryTimer > 0.0f; }
+			/**
 			 * @brief 主人公を見つけた(見つけたステートになり、主人公の方へ走っていく)
 			 * @details 警戒・盗み・道順はやめる。一度見つけたら、もどらない。Start 前に呼ばれた時は何もしない
 			 */
@@ -214,6 +239,24 @@ namespace app
 			 * @param deltaTime 計測時間(秒)
 			 */
 			void UpdateVision(const ai::VisionSetting& setting, const float deltaTime);
+			/**
+			 * @brief 主人公の方を見る(目から主人公へ線を引いて、見えているかを調べる)
+			 * @param setting 目の設定
+			 * @param deltaTime 経過時間
+			 * @return 気づいたフレームだけ true(見えているかは m_vision.IsSeeing())
+			 * @details カメラを構えているかは見ない(呼ぶ前に決める)
+			 */
+			bool LookAtPlayer(const ai::VisionSetting& setting, const float deltaTime);
+			/**
+			 * @brief 主人公を追いかけている間の処理(見えなくなったら見失う)
+			 * @param parameter 敵のパラメーター
+			 * @param deltaTime 経過時間
+			 */
+			void UpdateChase(const EnemyParameter& parameter, const float deltaTime);
+			/**
+			 * @brief 主人公を見失った(見つけたステートをやめて、最後に見た所を調べに行く)
+			 */
+			void LoseSight();
 
 
 		private:
@@ -255,6 +298,20 @@ namespace app
 			int m_headBoneNo;
 			/** 主人公を見つけたか */
 			bool m_isFound;
+			/** 主人公をマークしているか(撮られたことがある。次にカメラを構えた所が見えたら、すぐ見つける) */
+			bool m_isPlayerMarked;
+			/** 追いかけている主人公が見えなくなってからの時間(秒) */
+			float m_lostTimer;
+			/** 最後に主人公が見えた位置(見失ったら、ここを調べに行く) */
+			Vector3 m_lastSeenPosition;
+			/** 追いかけている間に、主人公までの道順を次に求め直すまでの時間(秒) */
+			float m_chaseRepathTimer;
+			/** 前に主人公を見失った所(同じ所でまた見失ったら、まわりを探し回る) */
+			Vector3 m_prevLostPosition;
+			/** 前に主人公を見失ったことがあるか */
+			bool m_hasLostBefore;
+			/** 気を付けている残りの時間(秒。柱からのぞいて撮られた時) */
+			float m_waryTimer;
 		};
 	}
 }

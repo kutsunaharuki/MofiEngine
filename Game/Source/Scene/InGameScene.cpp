@@ -383,8 +383,9 @@ namespace app
 			return;
 		}
 
-		// 見つかった後は、ゲームオーバーの演出だけ進める(主人公は動かさない。ポーズも開かない)
-		if (m_foundEnemy != nullptr)
+		// つかまった後は、ゲームオーバーの演出だけ進める(主人公は動かさない。ポーズも開かない)
+		// ※ 見つかって追いかけられている間は、いつも通り動ける(隠れて見失わせれば、元に戻る)
+		if (IsCaught())
 		{
 			UpdateFound();
 			return;
@@ -460,8 +461,9 @@ namespace app
 		// 一般客の更新(全部の組)
 		m_visitorManager->Update();
 
-		// 主人公を見つけた悪党がいれば、「！」を出す(次のフレームから、見つかった後の更新になる)
+		// 主人公を見つけた悪党がいれば、「！」を出す。見失ったら消す
 		CheckFound();
+		UpdateFoundMark();
 
 
 		/** ファインダーのオートフォーカス */
@@ -502,6 +504,10 @@ namespace app
 		{
 			m_isLastShotInFocus = isInFocus;
 			JudgeMissionShot(focusSubject, isInFocus);
+			// 撮った悪党は、シャッター音を聞いて見に来る(照合の画面を閉じた後に歩き出す)
+			NotifyShutterSound(focusSubject);
+			// 柱からのぞいて撮ったら、その柱はしばらく使えない。柱の近くの悪党は気を付けるようになる
+			NotifyLeanShot();
 			// 撮った直後に、照合の結果を出す(次のフレームから時間が止まる)
 			OpenJudge();
 		}
@@ -599,8 +605,9 @@ namespace app
 		{
 			return false;
 		}
-		// 見つかった時：演出が終わるまで待って、ゲームオーバーとしてリザルトへ
-		if (m_foundEnemy != nullptr)
+		// つかまった時：演出が終わるまで待って、ゲームオーバーとしてリザルトへ
+		// ※ 追いかけられているだけの時は、まだ逃げられるので移らない
+		if (IsCaught())
 		{
 			if (m_foundMenu != nullptr && !m_foundMenu->IsFinished()) return false;
 
@@ -715,8 +722,47 @@ namespace app
 	}
 
 
+	void InGameScene::NotifyShutterSound(const camera::IPhotoSubject* focusSubject)
+	{
+		// 撮った被写体が悪党の時だけ
+		actor::EnemyBase* photographedEnemy = FindEnemy(focusSubject);
+		if (photographedEnemy == nullptr) return;
+
+		// 顔か背中(頭)が写っていて、間に物が無い時だけ(撮った写真と同じ測り方で調べる)
+		const mission::ShotMeasure measure = mission::MeasureShot(*photographedEnemy, m_photoCapture.GetFinderCamera(), m_boy->GetCollisionObject());
+		if (!measure.isMeasured || !measure.isFaceInFront || measure.isFaceBlocked) return;
+
+		// 音は、近くの悪党みんなに聞こえる(遠い悪党には聞こえない。距離は悪党ごとの hearDistance)
+		// 撮った時に主人公がいた所へ見に行く。主人公をマークするのは、撮られた悪党だけ
+		const Vector3& soundPosition = m_boy->GetTransform().GetWorldPosition();
+		for (auto& enemy : m_enemyList)
+		{
+			enemy->HearShutterSound(soundPosition, enemy.get() == photographedEnemy);
+		}
+	}
+
+
+	void InGameScene::NotifyLeanShot()
+	{
+		// 柱からのぞいている時だけ
+		if (!m_boy->IsLeaning()) return;
+
+		Vector3 pillarPosition;
+		if (!m_photoChance.UseCurrentPillar(m_boy->GetParameter().leanPillarCooldown, pillarPosition)) return;
+
+		// 柱の近くの悪党は、しばらく気を付ける(距離は悪党ごとの pillarWaryDistance)
+		for (auto& enemy : m_enemyList)
+		{
+			enemy->NotifyLeanShot(pillarPosition);
+		}
+	}
+
+
 	void InGameScene::UpdatePhotoChance()
 	{
+		// のぞいて撮った柱が、また使えるようになるまでの時間を減らす(覗いていない時も)
+		m_photoChance.UpdateCooldown(g_gameTime->GetFrameDeltaTime());
+
 		// 覗いていない時は、のぞかない
 		if (!m_photoCapture.IsFinderActive())
 		{
@@ -952,9 +998,9 @@ namespace app
 
 	void InGameScene::UpdateFound()
 	{
-		// 悪党と一般客は動かし続ける(悪党が主人公の方へ走ってくる)
+		// つかまった後: 悪党と一般客は動かし続ける
 		// ※ 主人公は動かさない(入力でにげられないように)。時間も減らさない
-		// ※ カメラも動かさない(更新を呼ぶと、スティックで視点が回ってしまう)。見つかった瞬間の視点のまま止める
+		// ※ カメラも動かさない(更新を呼ぶと、スティックで視点が回ってしまう)。つかまった瞬間の視点のまま止める
 		for (auto& enemy : m_enemyList)
 		{
 			enemy->Update();
@@ -964,25 +1010,55 @@ namespace app
 
 		if (m_foundMenu)
 		{
-			// 「！」を悪党の頭の上に出す(頭のボーンが無ければ、ピントの位置を使う)
-			Vector3 headPosition;
-			Vector3 headForward;
-			if (!m_foundEnemy->GetHead(headPosition, headForward))
-			{
-				headPosition = m_foundEnemy->GetFocusPosition();
-			}
-			headPosition.y += FOUND_MARK_HEIGHT;
-			Vector2 screenPosition;
-			const bool isVisible = util::CalcScreenPosition(*g_camera3D, headPosition, screenPosition);
-			m_foundMenu->SetMarkPosition(screenPosition, isVisible);
+			ApplyFoundMarkPosition();
 
-			// 主人公のところまで走り終わったら、画面をうっすら暗くして「見つかってしまった...」を出す
-			if (!m_foundMenu->IsGameOverStarted() && m_foundEnemy->IsCaught())
+			// 画面をうっすら暗くして「見つかってしまった...」を出す
+			if (!m_foundMenu->IsGameOverStarted())
 			{
 				m_foundMenu->StartGameOver();
 			}
 		}
 		m_foundLayout.Update();
+	}
+
+
+	void InGameScene::UpdateFoundMark()
+	{
+		// 追いかけられている間だけ
+		if (m_foundEnemy == nullptr) return;
+
+		// 見失われたら「！」を消して、元に戻る(また見つかったら、もう一度「！」が出る)
+		if (!m_foundEnemy->IsFound())
+		{
+			if (m_foundMenu) m_foundMenu->HideMark();
+			m_foundEnemy = nullptr;
+			return;
+		}
+
+		if (m_foundMenu) ApplyFoundMarkPosition();
+		m_foundLayout.Update();
+	}
+
+
+	void InGameScene::ApplyFoundMarkPosition()
+	{
+		// 「！」を悪党の頭の上に出す(頭のボーンが無ければ、ピントの位置を使う)
+		Vector3 headPosition;
+		Vector3 headForward;
+		if (!m_foundEnemy->GetHead(headPosition, headForward))
+		{
+			headPosition = m_foundEnemy->GetFocusPosition();
+		}
+		headPosition.y += FOUND_MARK_HEIGHT;
+		Vector2 screenPosition;
+		const bool isVisible = util::CalcScreenPosition(*g_camera3D, headPosition, screenPosition);
+		m_foundMenu->SetMarkPosition(screenPosition, isVisible);
+	}
+
+
+	bool InGameScene::IsCaught()
+	{
+		return m_foundEnemy != nullptr && m_foundEnemy->IsCaught();
 	}
 
 

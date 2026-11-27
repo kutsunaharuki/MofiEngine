@@ -125,6 +125,13 @@ namespace app
 		}
 
 
+		void FoundMenu::HideMark()
+		{
+			m_isMarkShown = false;
+			ApplyLook();
+		}
+
+
 		void FoundMenu::SetMarkPosition(const Vector2& screenPosition, const bool isVisible)
 		{
 			m_isMarkVisible = isVisible;

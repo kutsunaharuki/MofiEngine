@@ -37,6 +37,10 @@ namespace app
 			 */
 			void ShowMark();
 			/**
+			 * @brief 「！」を消す(悪党が主人公を見失った時)
+			 */
+			void HideMark();
+			/**
 			 * @brief 「！」を出す場所を設定する(毎フレーム呼ぶ)
 			 * @param screenPosition 悪党の頭の上の、画面の位置(真ん中が原点、上が +Y)
 			 * @param isVisible 画面に写っているか(カメラの後ろなら false)

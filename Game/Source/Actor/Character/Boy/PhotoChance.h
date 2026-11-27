@@ -72,6 +72,18 @@ namespace app
 				const BoyParameter& parameter);
 
 			/**
+			 * @brief 柱を使えない残りの時間を減らす(毎フレーム呼ぶ。ファインダーを覗いていない時も)
+			 * @param deltaTime 経過時間(秒)
+			 */
+			void UpdateCooldown(const float deltaTime);
+			/**
+			 * @brief 今のぞいている柱を使ったことにする(のぞいて撮った時に呼ぶ。しばらくその柱ではのぞけない)
+			 * @param cooldown 使えない時間(秒)
+			 * @param outPillarPosition 使った柱の位置(悪党に知らせるのに使う)
+			 * @return のぞいている柱があれば true
+			 */
+			bool UseCurrentPillar(const float cooldown, Vector3& outPillarPosition);
+			/**
 			 * @brief 柱の数を取得
 			 * @return 柱の数(0 なら、柱の名前が合っていない)
 			 */
@@ -89,13 +101,13 @@ namespace app
 			};
 
 			/**
-			 * @brief 主人公と悪党の間にあって、主人公に一番近い柱を探す
+			 * @brief 主人公と悪党の間にあって、主人公に一番近い柱を探す(使えない時間の柱はのぞく)
 			 * @param boyPosition 主人公の足元の位置
 			 * @param enemyPositionList 悪党の位置の一覧
 			 * @param checkDistance 柱の表面から、これより近ければのぞける
-			 * @return 柱(無ければ nullptr)
+			 * @return 柱の番号(無ければ -1)
 			 */
-			const Pillar* FindPillarBetween(const Vector3& boyPosition, const std::vector<Vector3>& enemyPositionList, const float checkDistance) const;
+			int FindPillarBetween(const Vector3& boyPosition, const std::vector<Vector3>& enemyPositionList, const float checkDistance) const;
 			/**
 			 * @brief 柱を画面に写して、どちらからのぞくかを決める
 			 * @param pillar 柱
@@ -111,6 +123,10 @@ namespace app
 		private:
 			/** 柱の一覧 */
 			std::vector<Pillar> m_pillarList;
+			/** 柱ごとの、使えない残りの時間(秒。m_pillarList と同じ順番。0 なら使える) */
+			std::vector<float> m_cooldownList;
+			/** 今のぞいている柱の番号(のぞいていなければ -1) */
+			int m_currentPillarIndex;
 			/** 画面の横の広さ(視野角の半分の tan。画面のはしが、前に 1 進んだ時の横のずれ) */
 			float m_tanHalfFovX;
 		};

@@ -19,6 +19,7 @@
 #include "Source/AI/Navigation/PathFollower.h"
 #include "Source/AI/WeightedRandom.h"
 #include "Source/AI/Vision.h"
+#include "Source/Util/ScreenPosition.h"
 #include <cmath>
 
 
@@ -32,10 +33,46 @@ namespace app
 			constexpr float NAV_DEBUG_PIXEL_PER_CELL = 6.0f;
 			/** マスにカーソルを当てた時に塞いでいる置物を何個まで出すか */
 			constexpr int NAV_DEBUG_BLOCKER_MAX = 10;
+
+			/** 探知グリッドの円を、何個に分けて描くか(36 なら 10 度ずつ) */
+			constexpr int VISION_GRID_SEGMENT_COUNT = 36;
+			/** 探知グリッドを、床からどれだけ上に描くか(床に埋もれないように) */
+			constexpr float VISION_GRID_LIFT = 2.0f;
+			/** 探知グリッドのマスの濃さ(一番弱い時 / 強さ 1 の時に足す分。0〜255) */
+			constexpr int VISION_GRID_ALPHA_MIN = 30;
+			constexpr int VISION_GRID_ALPHA_ADD = 110;
+			/** 体の点へ引いた線の太さ */
+			constexpr float VISION_RAY_THICKNESS = 2.0f;
+			/** 画面の半分(UI の座標は真ん中が原点なので、左上を原点にするときに足す) */
+			constexpr float SCREEN_HALF = 0.5f;
+			/** 1 周の角度(ラジアン) */
+			constexpr float FULL_CIRCLE_RAD = 6.28318530718f;
+
+
+			/**
+			 * @brief ワールドの位置を、ImGui の画面の位置にする
+			 * @param worldPosition ワールドの位置
+			 * @param outPosition ImGui の画面の位置(左上が原点・下が +Y・ウィンドウのピクセル)
+			 * @return カメラの前にあれば true(後ろなら false)
+			 */
+			bool WorldToImGui(const Vector3& worldPosition, ImVec2& outPosition)
+			{
+				Vector2 uiPosition;
+				if (!util::CalcScreenPosition(*g_camera3D, worldPosition, uiPosition)) return false;
+
+				// UI の座標(真ん中が原点・上が +Y・1920×1080)を、ImGui の画面の座標にする
+				// ※ UI_SPACE_WIDTH は UINT(符号なし)なので、float にしてから割る
+				const ImGuiIO& io = ImGui::GetIO();
+				const float rateX = uiPosition.x / static_cast<float>(UI_SPACE_WIDTH) + SCREEN_HALF;
+				const float rateY = SCREEN_HALF - uiPosition.y / static_cast<float>(UI_SPACE_HEIGHT);
+				outPosition = ImVec2(rateX * io.DisplaySize.x, rateY * io.DisplaySize.y);
+				return true;
+			}
 		}
 
 
 		NavigationDebugWindow::NavigationDebugWindow()
+			: m_isDrawVisionGrid(true)
 		{}
 
 
@@ -165,7 +202,7 @@ namespace app
 				m_message = "Alert started";
 			}
 			ImGui::SameLine();
-			// 警戒の時間を待たずに解く(警戒の前の美術品へ戻るかの確認用)
+			// 警戒を解く(警戒の前の美術品へ戻るかの確認用。隠れ場所を回る警戒は、これを押すまで続く)
 			if (ImGui::Button("Calm all"))
 			{
 				for (auto& enemy : enemyList)
@@ -174,6 +211,10 @@ namespace app
 				}
 				m_message = "Alert ended";
 			}
+
+			// 悪党の探知グリッドを、ゲームの画面に重ねて描く
+			ImGui::Checkbox("Vision grid", &m_isDrawVisionGrid);
+			DrawVisionGrid(enemyList);
 
 
 			if (!m_message.empty())
@@ -231,14 +272,14 @@ namespace app
 				if (alertMode != nullptr && enemyList[i]->GetEnemyStateMachine()->IsAlert())
 				{
 					// 警戒モードの Phase を表示
-					ImGui::Text("        alert %s point %d remain %.1f",
-						alertMode->GetPhaseName(), alertMode->GetPointIndex(), alertMode->GetRemainTime());
+					ImGui::Text("        alert %s point %d",
+						alertMode->GetPhaseName(), alertMode->GetPointIndex());
 				}
 
 				// ビジョンを取得
 				const ai::Vision& vision = enemyList[i]->GetVision();
 				// 見えていたら判定は See 見えていないなら ---
-				ImGui::Text("        vision %s  %.2f", vision.IsSeeing() ? "SEE" : "---", vision.GetSeeTimer());
+				ImGui::Text("        vision %s  %.2f  strength %.2f", vision.IsSeeing() ? "SEE" : "---", vision.GetSeeTimer(), vision.GetStrength());
 
 			}
 
@@ -442,6 +483,91 @@ namespace app
 				}
 			}
 			ImGui::End();
+#endif
+		}
+
+
+		void NavigationDebugWindow::DrawVisionGrid(std::vector<std::unique_ptr<actor::EnemyBase>>& enemyList)
+		{
+#ifdef APP_ENABLE_PARAMETER_HOTRELOAD
+			if (!m_isDrawVisionGrid) return;
+
+			// ゲームの画面(ImGui の窓の後ろ)に描く
+			ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+			// 主人公が目立つほど、円は大きくなる(走っている時など)
+			const float noticeScale = m_target.boy->GetNoticeScale();
+
+			for (auto& enemy : enemyList)
+			{
+				const ai::Vision& vision = enemy->GetVision();
+				const ai::VisionSetting& setting = vision.GetSetting();
+
+				// 悪党の足元・目・前の向き(判定と同じ求め方)
+				const Vector3& footPosition = enemy->GetTransform().GetWorldPosition();
+				Vector3 eyePosition = footPosition;
+				eyePosition.y += setting.eyeHeight;
+				Vector3 forward = Vector3::Front;
+				enemy->GetTransform().GetWorldRotation().Apply(forward);
+				// 前の向きの角度(Z+ が 0、X+ が +90 度)
+				const float forwardRad = std::atan2(forward.x, forward.z);
+
+				const float radius = setting.viewDistance * noticeScale;
+				const int ringCount = setting.ringCount > 0 ? setting.ringCount : 1;
+				const float segmentRad = FULL_CIRCLE_RAD / static_cast<float>(VISION_GRID_SEGMENT_COUNT);
+
+				// 円の上の位置(悪党の足元から、距離と角度で決める)
+				auto toWorld = [&](const float distance, const float angleRad)
+					{
+						return Vector3(
+							footPosition.x + std::sin(angleRad) * distance,
+							footPosition.y + VISION_GRID_LIFT,
+							footPosition.z + std::cos(angleRad) * distance);
+					};
+
+				for (int ring = 0; ring < ringCount; ++ring)
+				{
+					const float innerRadius = radius * static_cast<float>(ring) / static_cast<float>(ringCount);
+					const float outerRadius = radius * static_cast<float>(ring + 1) / static_cast<float>(ringCount);
+
+					for (int segment = 0; segment < VISION_GRID_SEGMENT_COUNT; ++segment)
+					{
+						// 正面(0)から左右に広げる(真後ろがマスの境めになるように、半分ずらす)
+						const float startRad = forwardRad + segmentRad * (static_cast<float>(segment) - VISION_GRID_SEGMENT_COUNT * 0.5f);
+						const float endRad = startRad + segmentRad;
+						const float middleRad = (startRad + endRad) * 0.5f;
+
+						// マスの真ん中の強さ(判定と同じ関数で求める)
+						const Vector3 middle = toWorld((innerRadius + outerRadius) * 0.5f, middleRad);
+						const float rate = vision.CalcCellRate(eyePosition, forward, middle, noticeScale);
+						if (rate <= 0.0f) continue;
+
+						// 正面のマスは緑、横のマスは黄色。強いほど濃い
+						const float offsetDeg = std::fabs(Math::RadToDeg(middleRad - forwardRad));
+						const bool isFront = offsetDeg <= setting.frontAngle;
+						const int alpha = VISION_GRID_ALPHA_MIN + static_cast<int>(VISION_GRID_ALPHA_ADD * rate);
+						const ImU32 color = isFront ? IM_COL32(80, 255, 120, alpha) : IM_COL32(255, 220, 60, alpha);
+
+						// マスの 4 つの角を画面に写す(1 つでもカメラの後ろなら描かない)
+						ImVec2 corner[4];
+						if (!WorldToImGui(toWorld(innerRadius, startRad), corner[0])) continue;
+						if (!WorldToImGui(toWorld(outerRadius, startRad), corner[1])) continue;
+						if (!WorldToImGui(toWorld(outerRadius, endRad), corner[2])) continue;
+						if (!WorldToImGui(toWorld(innerRadius, endRad), corner[3])) continue;
+						drawList->AddQuadFilled(corner[0], corner[1], corner[2], corner[3], color);
+					}
+				}
+
+				// 体の点(頭・胸・ひざ)へ引いた線。見えた点は緑、さえぎられた点は赤
+				for (int i = 0; i < vision.GetDebugRayCount(); ++i)
+				{
+					const ai::Vision::DebugRay& ray = vision.GetDebugRay(i);
+					ImVec2 from;
+					ImVec2 to;
+					if (!WorldToImGui(ray.from, from) || !WorldToImGui(ray.to, to)) continue;
+					const ImU32 color = ray.isVisible ? IM_COL32(80, 255, 120, 255) : IM_COL32(255, 60, 60, 255);
+					drawList->AddLine(from, to, color, VISION_RAY_THICKNESS);
+				}
+			}
 #endif
 		}
 	}

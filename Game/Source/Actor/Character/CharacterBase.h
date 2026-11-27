@@ -132,6 +132,12 @@ namespace app
 			 */
 			virtual float GetVisionTargetHeight(const float defaultHeight) const { return defaultHeight; }
 			/**
+			 * @brief 悪党に見つかる状態か
+			 * @return 見つかるなら true(ふつうは true)
+			 * @details 主人公は、カメラを構えている時だけ見つかる
+			 */
+			virtual bool CanBeFound() const { return true; }
+			/**
 			 * @brief 時間の倍率(スローモーション)
 			 * @return 普段は 1.0(主人公はずっと 1.0)
 			 * @details 悪党・客は util::WorldTime の倍率を返す。移動とアニメーションの速さにかける

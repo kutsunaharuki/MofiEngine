@@ -157,6 +157,30 @@ namespace app
 		 */
 		void UpdatePhotoChance();
 		/**
+		 * @brief 近くの悪党に、シャッター音を聞かせる(音がした所へ見に来る)
+		 * @param focusSubject 撮った時のピントの被写体
+		 * @details 悪党の顔か背中(頭)が写っていて、間に物が無い時だけ音が出る。
+		 *          音がとどく距離の中の悪党みんなが見に来て、撮られた悪党だけが主人公をマークする
+		 */
+		void NotifyShutterSound(const camera::IPhotoSubject* focusSubject);
+		/**
+		 * @brief 追いかけられている間の「！」を動かす(見失われたら消して、元に戻る)
+		 */
+		void UpdateFoundMark();
+		/**
+		 * @brief 柱からのぞいて撮った時の処理(その柱はしばらく使えない。柱の近くの悪党は気を付ける)
+		 */
+		void NotifyLeanShot();
+		/**
+		 * @brief 「！」を、見つけた悪党の頭の上に置く
+		 */
+		void ApplyFoundMarkPosition();
+		/**
+		 * @brief 見つけた悪党につかまったか
+		 * @return つかまったら true(ゲームオーバーになる)
+		 */
+		bool IsCaught();
+		/**
 		 * @brief ミッション(Model)から行の値を作って、ミッションの UI(View)に渡す
 		 * @details MVP の Presenter の役目。枚数や状態が変わった時に呼ぶ
 		 */
@@ -201,8 +225,9 @@ namespace app
 		 */
 		void CheckFound();
 		/**
-		 * @brief 見つかった後の更新(悪党が走ってきて、走り終わったら画面を暗くする)
+		 * @brief つかまった後の更新(画面を暗くして、ゲームオーバーにする)
 		 * @details MVP の Presenter の役目。主人公は動かさない。ポーズも開かない
+		 *          (見つかって追いかけられている間は、いつも通り動ける。UpdateFoundMark を見る)
 		 */
 		void UpdateFound();
 

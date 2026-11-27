@@ -18,12 +18,16 @@
   "maxDetourPerTarget":2,
   "retryInterval":1.0,
   
-  "alertDuration":20.0,
   "alertLookAroundTime":3.0,
   "alertRetryInterval":1.0,
 
-  "visionViewDistance":1000.0,
-  "visionViewAngle":90.0,
+  "visionViewDistance":500.0,
+  "comment_vision":"悪党を中心にした円を、角度(正面 frontAngle 度まで ふつう / sideAngle 度まで 弱い sideRate / その後ろ 見えない)と距離の輪(ringCount 個。内側 1 〜 外側 farRate)で区切る。体の頭・胸・ひざへ線を引き、見えた割合もかける",
+  "visionFrontAngle":85.0,
+  "visionSideAngle":135.0,
+  "visionSideRate":0.4,
+  "visionRingCount":3,
+  "visionFarRate":0.4,
   "visionEyeHeight":120.0,
   "visionTargetHeight":70.0,
   "visionNoticeTime":0.8,
@@ -38,5 +42,13 @@
   "foundRunSpeed":450.0,
   "foundRunAnimationSpeed":1.8,
   "foundCatchDistance":120.0,
-  "foundMaxRunTime":3.0
+  "loseSightTime":1.0,
+  "foundRepathInterval":0.5,
+  "sameLostDistance":300.0,
+  "alertSearchRadius":600.0,
+  "alertSearchPointCount":3,
+  "pillarWaryDistance":600.0,
+  "waryTime":30.0,
+  "hearDistance":800.0,
+  "investigateNoticeRate":0.4
 }

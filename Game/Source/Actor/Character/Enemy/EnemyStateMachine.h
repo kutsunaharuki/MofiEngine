@@ -60,6 +60,16 @@ namespace app
 			 */
 			inline bool IsAlert() const { return m_isAlert; }
 			/**
+			 * @brief 調べに行っているか(音がした所・見失った所)を設定
+			 * @param isInvestigating 調べに行っているなら true(警戒中でも、歩く速さで向かう)
+			 */
+			inline void SetInvestigating(const bool isInvestigating) { m_isInvestigating = isInvestigating; }
+			/**
+			 * @brief 調べに行っているか
+			 * @return 調べに行っているなら true
+			 */
+			inline bool IsInvestigating() const { return m_isInvestigating; }
+			/**
 			 * @brief 盗んでいるかを設定
 			 * @param isStealing 盗んでいるなら true(盗むステートになる)
 			 * @details 盗んでいない → 盗んでいる に変わった時だけ、盗んだ回数を増やす(ミッションで同じ盗みを二重に数えないため)
@@ -83,9 +93,17 @@ namespace app
 			inline void SetMoveAmount(const float amount) { m_moveAmount = amount; }
 
 			/**
-			 * @brief 主人公を見つけた(見つけたステートになる。一度見つけたら、もどらない)
+			 * @brief 主人公を見つけた(見つけたステートになる)
 			 */
 			inline void StartFound() { m_isFound = true; }
+			/**
+			 * @brief 主人公を見失った(見つけたステートをやめる)
+			 */
+			inline void EndFound()
+			{
+				m_isFound = false;
+				m_isCaught = false;
+			}
 			/**
 			 * @brief 主人公を見つけたか
 			 * @return 見つけたなら true
@@ -210,6 +228,8 @@ namespace app
 			Vector3 m_moveDirection;
 			/** 警戒状態かどうか */
 			bool m_isAlert;
+			/** 調べに行っているか(音がした所・見失った所。歩く速さで向かう) */
+			bool m_isInvestigating;
 			/** 盗んでいるか */
 			bool m_isStealing;
 			/** 回転 */

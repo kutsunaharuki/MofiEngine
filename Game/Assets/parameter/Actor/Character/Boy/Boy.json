@@ -13,6 +13,7 @@
   "leanCheckDistance": 60.0,
   "leanEdgeLimit": 0.5,
   "leanEyeOffset": 40.0,
+  "leanPillarCooldown": 15.0,
   "eyeMoveSpeed": 8.0,
   "gravity":1500.0,
   "initialPosition": [0, 0, 0],

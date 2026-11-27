@@ -169,6 +169,12 @@ namespace app
 		}
 
 
+		bool Boy::IsLeaning() const
+		{
+			return IsState(BoyLeanLeftState::ID()) || IsState(BoyLeanRightState::ID());
+		}
+
+
 		float Boy::GetVisionTargetHeight(const float defaultHeight) const
 		{
 			if (!IsCrouching()) return defaultHeight;

@@ -54,8 +54,24 @@ namespace app
 			float foundRunAnimationSpeed;
 			/** 主人公にこれより近づいたら止まる(つかまえた) */
 			float foundCatchDistance;
-			/** 走る時間の上限(秒。壁に引っかかって近づけない時も、これで止まる) */
-			float foundMaxRunTime;
+			/** 主人公がこの時間(秒)見えなかったら見失う(最後に見た所を調べに行く) */
+			float loseSightTime;
+			/** 追いかけている間に、主人公までの道順を求め直す間かく(秒。短いほどよく追うが重い) */
+			float foundRepathInterval;
+			/** 前に見失った所からこの距離の中で、また見失ったら、まわりの隠れ場所を探し回る */
+			float sameLostDistance;
+
+			// シャッター音
+			/** シャッター音が聞こえる距離(撮った所から、これより遠いと聞こえない) */
+			float hearDistance;
+			/** 調べに来ている間(音がした所・見失った所)と、気を付けている間の、気づく時間の倍率(小さいほど早く気づく) */
+			float investigateNoticeRate;
+
+			// 柱からのぞいて撮られた時
+			/** のぞいて撮られた柱から、この距離の中にいる悪党は気を付けるようになる */
+			float pillarWaryDistance;
+			/** 気を付けている時間(秒) */
+			float waryTime;
 
 
 			EnemyParameter()
@@ -72,7 +88,13 @@ namespace app
 				, foundRunSpeed(450.0f)
 				, foundRunAnimationSpeed(1.8f)
 				, foundCatchDistance(120.0f)
-				, foundMaxRunTime(3.0f)
+				, loseSightTime(1.0f)
+				, foundRepathInterval(0.5f)
+				, sameLostDistance(300.0f)
+				, hearDistance(800.0f)
+				, investigateNoticeRate(0.4f)
+				, pillarWaryDistance(600.0f)
+				, waryTime(30.0f)
 			{}
 
 			/**
@@ -103,14 +125,19 @@ namespace app
 				destinationMode.retryInterval = file.GetFloat("retryInterval", destinationMode.retryInterval);
 
 				// 警戒モード
-				alertMode.alertDuration = file.GetFloat("alertDuration", alertMode.alertDuration);
 				alertMode.lookAroundTime = file.GetFloat("alertLookAroundTime", alertMode.lookAroundTime);
 				alertMode.retryInterval = file.GetFloat("alertRetryInterval", alertMode.retryInterval);
+				alertMode.searchRadius = file.GetFloat("alertSearchRadius", alertMode.searchRadius);
+				alertMode.searchPointCount = static_cast<int>(file.GetFloat("alertSearchPointCount", static_cast<float>(alertMode.searchPointCount)));
 
 
 				// 敵ビジョン(視線)
 				vision.viewDistance = file.GetFloat("visionViewDistance", vision.viewDistance);
-				vision.viewAngle = file.GetFloat("visionViewAngle", vision.viewAngle);
+				vision.frontAngle = file.GetFloat("visionFrontAngle", vision.frontAngle);
+				vision.sideAngle = file.GetFloat("visionSideAngle", vision.sideAngle);
+				vision.sideRate = file.GetFloat("visionSideRate", vision.sideRate);
+				vision.ringCount = static_cast<int>(file.GetFloat("visionRingCount", static_cast<float>(vision.ringCount)));
+				vision.farRate = file.GetFloat("visionFarRate", vision.farRate);
 				vision.eyeHeight = file.GetFloat("visionEyeHeight", vision.eyeHeight);
 				vision.targetHeight = file.GetFloat("visionTargetHeight", vision.targetHeight);
 				vision.noticeTime = file.GetFloat("visionNoticeTime", vision.noticeTime);
@@ -128,7 +155,17 @@ namespace app
 				foundRunSpeed = file.GetFloat("foundRunSpeed", foundRunSpeed);
 				foundRunAnimationSpeed = file.GetFloat("foundRunAnimationSpeed", foundRunAnimationSpeed);
 				foundCatchDistance = file.GetFloat("foundCatchDistance", foundCatchDistance);
-				foundMaxRunTime = file.GetFloat("foundMaxRunTime", foundMaxRunTime);
+				loseSightTime = file.GetFloat("loseSightTime", loseSightTime);
+				foundRepathInterval = file.GetFloat("foundRepathInterval", foundRepathInterval);
+				sameLostDistance = file.GetFloat("sameLostDistance", sameLostDistance);
+
+				// シャッター音
+				hearDistance = file.GetFloat("hearDistance", hearDistance);
+				investigateNoticeRate = file.GetFloat("investigateNoticeRate", investigateNoticeRate);
+
+				// 柱からのぞいて撮られた時
+				pillarWaryDistance = file.GetFloat("pillarWaryDistance", pillarWaryDistance);
+				waryTime = file.GetFloat("waryTime", waryTime);
 			}
 		};
 	}

@@ -96,8 +96,20 @@ namespace app
 
 
 		private:
+			/**
+			 * @brief 悪党の探知グリッド(まわりの円のマス)と、体の点へ引いた線を、ゲームの画面に重ねて描く
+			 * @param enemyList 敵の一覧
+			 * @details マスは強さで色を変える(緑 = 正面、黄色 = 横、真後ろは描かない。濃いほど強い)。
+			 *          線は、見えた点は緑、さえぎられた点は赤
+			 */
+			void DrawVisionGrid(std::vector<std::unique_ptr<actor::EnemyBase>>& enemyList);
+
+
+		private:
 			/** 表示に使うもの */
 			Target m_target;
+			/** 探知グリッドを描くか */
+			bool m_isDrawVisionGrid;
 			/** 最後の操作の結果 */
 			std::string m_message;
 		};

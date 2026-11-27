@@ -7,6 +7,7 @@
 #include "EnemyStateMachine.h"
 #include "Source/AI/WeightedRandom.h"
 #include "Source/AI/Navigation/PathFollower.h"
+#include <algorithm>
 
 
 namespace app
@@ -25,7 +26,7 @@ namespace app
 			, m_pointIndex(NO_POINT)
 			, m_phase(Phase::NoPoint)
 			, m_phaseTimer(0.0f)
-			, m_alertTimer(0.0f)
+			, m_searchIndex(0)
 			, m_random(std::random_device{}())
 		{}
 		
@@ -38,16 +39,6 @@ namespace app
 		{
 			// 警戒していないなら何もしない
 			if (!m_stateMachine->IsAlert()) return;
-
-			// 警戒の時間が終わったらやめる
-			m_alertTimer += deltaTime;
-
-			if (m_alertTimer >= m_setting.alertDuration)
-			{
-				// 警戒終了
-				EndAlert();
-				return;
-			}
 
 			m_phaseTimer += deltaTime;
 
@@ -94,20 +85,156 @@ namespace app
 					}
 					break;
 				}
+
+				// 調べに行く場所へ向かっている(音がした所・見失った所)
+				case Phase::MoveToInvestigate:
+				{
+					// 着いたら見回す
+					if (m_stateMachine->IsArrived())
+					{
+						m_stateMachine->StopPathFollow();
+						ChangePhase(Phase::LookAroundInvestigate);
+						break;
+					}
+					// 道が見つからなかった時は、少し待ってからあきらめる(いつもの動きに戻る)
+					if (!m_stateMachine->IsFollowingPath() && m_phaseTimer >= m_setting.retryInterval)
+					{
+						EndAlert();
+					}
+					break;
+				}
+
+				// 調べに行った場所で見回している(警戒ステートの Alert アニメーションになる)
+				case Phase::LookAroundInvestigate:
+				{
+					// 見回し終わったら、警戒をやめていつもの動きに戻る
+					if (m_phaseTimer >= m_setting.lookAroundTime)
+					{
+						EndAlert();
+					}
+					break;
+				}
+
+				// 探し回っている途中で、次の隠れ場所へ向かっている
+				case Phase::MoveToSearch:
+				{
+					// 着いたら見回す
+					if (m_stateMachine->IsArrived())
+					{
+						m_stateMachine->StopPathFollow();
+						ChangePhase(Phase::LookAroundSearch);
+						break;
+					}
+					// 道が見つからなかった時は、少し待ってから次の隠れ場所へ
+					if (!m_stateMachine->IsFollowingPath() && m_phaseTimer >= m_setting.retryInterval)
+					{
+						++m_searchIndex;
+						StartMoveToSearchPoint();
+					}
+					break;
+				}
+
+				// 探し回っている途中で、隠れ場所で見回している
+				case Phase::LookAroundSearch:
+				{
+					// 見回し終わったら、次の隠れ場所へ(全部まわったら警戒をやめる)
+					if (m_phaseTimer >= m_setting.lookAroundTime)
+					{
+						++m_searchIndex;
+						StartMoveToSearchPoint();
+					}
+					break;
+				}
 			}
+		}
+
+
+		void EnemyAlertMode::StartSearchAround(const Vector3& position)
+		{
+			// 見失った所から近い隠れ場所を集める
+			struct Candidate
+			{
+				Vector3 position;
+				float distanceSq;
+			};
+			std::vector<Candidate> candidateList;
+			const float radiusSq = m_setting.searchRadius * m_setting.searchRadius;
+			for (const stage::HidePoint& hidePoint : m_hidePointList)
+			{
+				const Vector3 toPoint = hidePoint.position - position;
+				const float distanceSq = toPoint.LengthSq();
+				if (distanceSq > radiusSq) continue;
+				candidateList.push_back({ hidePoint.position, distanceSq });
+			}
+
+			// 近くに隠れ場所が無ければ、見失った所を調べに行くだけにする
+			if (candidateList.empty())
+			{
+				StartInvestigate(position);
+				return;
+			}
+
+			// 近い順に並べて、決まった数だけ見に行く
+			std::sort(candidateList.begin(), candidateList.end(),
+				[](const Candidate& a, const Candidate& b) { return a.distanceSq < b.distanceSq; });
+			m_searchPositionList.clear();
+			for (const Candidate& candidate : candidateList)
+			{
+				if (static_cast<int>(m_searchPositionList.size()) >= m_setting.searchPointCount) break;
+				m_searchPositionList.push_back(candidate.position);
+			}
+
+			// 盗んでいる途中でもやめて、歩く速さで探す
+			m_stateMachine->SetStealing(false);
+			m_stateMachine->SetAlert(true);
+			m_stateMachine->SetInvestigating(true);
+			m_stateMachine->SetWanderSetting(ai::WanderSetting());
+			m_pointIndex = NO_POINT;
+
+			m_searchIndex = 0;
+			StartMoveToSearchPoint();
+		}
+
+
+		void EnemyAlertMode::StartMoveToSearchPoint()
+		{
+			// 全部まわったら、警戒をやめていつもの動きに戻る
+			if (m_searchIndex >= static_cast<int>(m_searchPositionList.size()))
+			{
+				EndAlert();
+				return;
+			}
+
+			// 道が見つからなくても MoveToSearch にする(更新処理で少し待ってから次を試す)
+			m_stateMachine->MoveTo(m_searchPositionList[m_searchIndex]);
+			ChangePhase(Phase::MoveToSearch);
+		}
+
+
+		void EnemyAlertMode::StartInvestigate(const Vector3& position)
+		{
+			// 盗んでいる途中でもやめて、見に行く(警戒の速さではなく、歩く速さで向かう)
+			m_stateMachine->SetStealing(false);
+			m_stateMachine->SetAlert(true);
+			m_stateMachine->SetInvestigating(true);
+			m_pointIndex = NO_POINT;
+
+			// ふらつかずに、調べに行く場所へまっすぐ向かう
+			m_stateMachine->SetWanderSetting(ai::WanderSetting());
+			m_stateMachine->MoveTo(position);
+			ChangePhase(Phase::MoveToInvestigate);
 		}
 		
 		
 		void EnemyAlertMode::StartAlert()
 		{
-			// 警戒の時間を最初からにする
-			m_alertTimer = 0.0f;
-			// もう警戒中なら時間を戻すだけ(今の行き先はそのまま)
+			// もう警戒中なら何もしない(今の行き先はそのまま)
 			if (m_stateMachine->IsAlert()) return;
 
 			// 盗んでいる途中でも警戒モードに入るようにする
 			m_stateMachine->SetStealing(false);
 			m_stateMachine->SetAlert(true);
+			m_stateMachine->SetInvestigating(false);
 
 			// 隠れ場所が決まっていない状態
 			m_pointIndex = NO_POINT;
@@ -122,6 +249,7 @@ namespace app
 
 			m_stateMachine->StopPathFollow();
 			m_stateMachine->SetAlert(false);
+			m_stateMachine->SetInvestigating(false);
 
 			// 隠れ場所が決まっていない状態
 			m_pointIndex = NO_POINT;
@@ -146,7 +274,8 @@ namespace app
 			m_pointIndex = NO_POINT;
 
 			// 警戒中なら、新しい一覧から選び直す(階を移った時等)
-			if (m_stateMachine->IsAlert())
+			// ※ 調べに行っている途中は、隠れ場所を使っていないのでそのまま
+			if (m_stateMachine->IsAlert() && !IsInvestigating())
 			{
 				m_stateMachine->StopPathFollow();
 				ChangePhase(Phase::NoPoint);
@@ -161,18 +290,14 @@ namespace app
 			case Phase::NoPoint:     return "NoPoint";
 			case Phase::MoveToPoint: return "MoveToPoint";
 			case Phase::LookAround:  return "LookAround";
+			case Phase::MoveToInvestigate:     return "MoveToInvestigate";
+			case Phase::LookAroundInvestigate: return "LookAroundInvestigate";
+			case Phase::MoveToSearch:          return "MoveToSearch";
+			case Phase::LookAroundSearch:      return "LookAroundSearch";
 			}
 
 			// Phase 以外ならない
 			return "Unknown";
-		}
-		
-		
-		float EnemyAlertMode::GetRemainTime() const
-		{
-			const float remain = m_setting.alertDuration - m_alertTimer;
-			// remain が 0 より大きかったら true の時は remain、falseの時は 0
-			return (remain > 0.0f) ? remain : 0.0f;
 		}
 		
 		

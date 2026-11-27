@@ -33,7 +33,8 @@ namespace app
 
 
 		PhotoChance::PhotoChance()
-			: m_tanHalfFovX(DEFAULT_TAN_HALF_FOV_X)
+			: m_currentPillarIndex(-1)
+			, m_tanHalfFovX(DEFAULT_TAN_HALF_FOV_X)
 		{}
 
 
@@ -56,6 +57,9 @@ namespace app
 				pillar.radius = ((aabbMax.x - aabbMin.x) + (aabbMax.z - aabbMin.z)) * 0.25f;
 				m_pillarList.push_back(pillar);
 			}
+			// はじめは全部使える
+			m_cooldownList.assign(m_pillarList.size(), 0.0f);
+			m_currentPillarIndex = -1;
 
 			// 画面の横の広さ(ズームしていない時の視野角で決める。ズームで左右が変わらないように)
 			// ※ 視野角は縦の角度なので、横の広さは縦の広さ × 横長の比率
@@ -72,20 +76,50 @@ namespace app
 			const std::vector<Vector3>& enemyPositionList,
 			const BoyParameter& parameter)
 		{
-			const Pillar* pillar = FindPillarBetween(boyPosition, enemyPositionList, parameter.leanCheckDistance);
-			if (pillar == nullptr) return EnLeanSide::None;
+			m_currentPillarIndex = -1;
 
-			return CalcLeanSide(*pillar, boyPosition, forwardXZ, rightXZ, parameter.leanEdgeLimit);
+			const int pillarIndex = FindPillarBetween(boyPosition, enemyPositionList, parameter.leanCheckDistance);
+			if (pillarIndex < 0) return EnLeanSide::None;
+
+			const EnLeanSide leanSide = CalcLeanSide(m_pillarList[pillarIndex], boyPosition, forwardXZ, rightXZ, parameter.leanEdgeLimit);
+			// のぞく時だけ、のぞいている柱として覚える(撮った時に使えなくするため)
+			if (leanSide != EnLeanSide::None) m_currentPillarIndex = pillarIndex;
+			return leanSide;
 		}
 
 
-		const PhotoChance::Pillar* PhotoChance::FindPillarBetween(const Vector3& boyPosition, const std::vector<Vector3>& enemyPositionList, const float checkDistance) const
+		void PhotoChance::UpdateCooldown(const float deltaTime)
 		{
-			const Pillar* nearestPillar = nullptr;
+			for (float& cooldown : m_cooldownList)
+			{
+				if (cooldown > 0.0f) cooldown -= deltaTime;
+			}
+		}
+
+
+		bool PhotoChance::UseCurrentPillar(const float cooldown, Vector3& outPillarPosition)
+		{
+			if (m_currentPillarIndex < 0) return false;
+
+			m_cooldownList[m_currentPillarIndex] = cooldown;
+			outPillarPosition = m_pillarList[m_currentPillarIndex].center;
+			// もう使えないので、のぞいている柱ではなくなる
+			m_currentPillarIndex = -1;
+			return true;
+		}
+
+
+		int PhotoChance::FindPillarBetween(const Vector3& boyPosition, const std::vector<Vector3>& enemyPositionList, const float checkDistance) const
+		{
+			int nearestIndex = -1;
 			float nearestDistance = checkDistance;
 
-			for (const Pillar& pillar : m_pillarList)
+			for (int i = 0; i < static_cast<int>(m_pillarList.size()); i++)
 			{
+				// のぞいて撮ったばかりの柱は、しばらく使えない
+				if (m_cooldownList[i] > 0.0f) continue;
+
+				const Pillar& pillar = m_pillarList[i];
 				// 主人公から柱の表面までの長さ。遠い柱は見ない
 				Vector3 toPillar = pillar.center - boyPosition;
 				toPillar.y = 0.0f;
@@ -110,13 +144,13 @@ namespace app
 					const Vector3 gap = toPillar - closest;
 					if (DotXZ(gap, gap) > pillar.radius * pillar.radius) continue;
 
-					nearestPillar = &pillar;
+					nearestIndex = i;
 					nearestDistance = surfaceDistance;
 					break;
 				}
 			}
 
-			return nearestPillar;
+			return nearestIndex;
 		}
 
 

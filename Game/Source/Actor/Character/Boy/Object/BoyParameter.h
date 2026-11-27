@@ -39,6 +39,8 @@ namespace app
 			float leanEdgeLimit;
 			/** のぞいた時に、目(カメラ)を横にずらす長さ */
 			float leanEyeOffset;
+			/** のぞいて撮った柱が、また使えるようになるまでの時間(秒) */
+			float leanPillarCooldown;
 			/** 目(カメラ)を、しゃがんだ・のぞいた位置まで動かす速さ(大きいほど早い) */
 			float eyeMoveSpeed;
 			/** 初期位置 */
@@ -72,6 +74,7 @@ namespace app
 				, leanCheckDistance(60.0f)
 				, leanEdgeLimit(0.5f)
 				, leanEyeOffset(40.0f)
+				, leanPillarCooldown(15.0f)
 				, eyeMoveSpeed(8.0f)
 				, initialPosition(Vector3::Zero)
 				, updateScale(Vector3::One)
@@ -102,6 +105,7 @@ namespace app
 				leanCheckDistance = file.GetFloat("leanCheckDistance", leanCheckDistance);
 				leanEdgeLimit = file.GetFloat("leanEdgeLimit", leanEdgeLimit);
 				leanEyeOffset = file.GetFloat("leanEyeOffset", leanEyeOffset);
+				leanPillarCooldown = file.GetFloat("leanPillarCooldown", leanPillarCooldown);
 				eyeMoveSpeed = file.GetFloat("eyeMoveSpeed", eyeMoveSpeed);
 				initialPosition = file.GetVector3("initialPosition", initialPosition);
 				updateScale = file.GetVector3("updateScale", updateScale);
